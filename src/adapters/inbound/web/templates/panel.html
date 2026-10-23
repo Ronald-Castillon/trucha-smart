@@ -5,21 +5,30 @@
 <p class="suave">Bienvenido/a, <strong>{{ usuario.nombre_completo }}</strong> · Rol: {{ usuario.rol.value | title }} ·
   <span id="actualizado">actualización automática cada 2 s</span></p>
 <div class="rejilla" id="tarjetas-estanques">
-  {% for e, lote, lectura in filas %}
+  {% for e, lote, estado in filas %}
+  {% set lectura = estado.lectura %}
   <article class="tarjeta" data-estanque="{{ e.id }}">
     <h2><a href="/estanques/{{ e.id }}">{{ e.nombre }}</a></h2>
     <p class="suave">{{ e.tipo.value | title }}{% if e.ubicacion %} · {{ e.ubicacion }}{% endif %}</p>
     <p>{% if lote %}Lote <strong>{{ lote.codigo }}</strong> · {{ lote.num_peces_inicial }} peces · {{ lote.peso_medio_actual_g }} g{% else %}Sin lote activo{% endif %}</p>
     <div class="ultima-lectura">
       {% if lectura %}
-        🌡️ <span class="temperatura">{{ '%.2f' % lectura.temperatura_c }}</span> °C ·
-        💧 OD <span class="oxigeno">{{ '%.2f' % lectura.oxigeno_mg_l }}</span> mg/L ·
-        pH <span class="ph">{{ '%.2f' % lectura.ph }}</span><br>
+        🌡️ <span class="temperatura nivel-{{ estado.niveles['TEMPERATURA'].value }}">{{ '%.2f' % lectura.temperatura_c }}</span> °C ·
+        💧 OD <span class="oxigeno nivel-{{ estado.niveles['OXIGENO_DISUELTO'].value }}">{{ '%.2f' % lectura.oxigeno_mg_l }}</span> mg/L ·
+        pH <span class="ph nivel-{{ estado.niveles['PH'].value }}">{{ '%.2f' % lectura.ph }}</span><br>
         <span class="suave">Última lectura: <time class="medido-en" datetime="{{ lectura.medido_en.isoformat() }}">{{ lectura.medido_en.strftime('%d/%m/%Y %H:%M:%S') }} UTC</time></span>
       {% else %}
         <span class="suave">Sin lecturas</span>
       {% endif %}
     </div>
+    <div class="alertas-abiertas">
+      {% for a in estado.alertas_abiertas %}
+        <div class="alerta" data-alerta="{{ a.id }}"><span class="etiqueta {{ a.nivel.value }}">{{ 'CRÍTICA' if a.nivel.value == 'CRITICA' else 'PRECAUCIÓN' }}</span> {{ a.mensaje }}</div>
+      {% else %}
+        <span class="etiqueta NORMAL">Sin alertas abiertas</span>
+      {% endfor %}
+    </div>
+    {% if estado.alertas_abiertas and usuario.puede(P.ATENDER_ALERTA) %}<p><a href="/alertas">Atender alertas →</a></p>{% endif %}
   </article>
   {% else %}
   <p>No hay estanques registrados.</p>

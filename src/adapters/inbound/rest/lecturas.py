@@ -6,22 +6,33 @@ from fastapi import APIRouter, Depends, Query
 
 from src.adapters.inbound.rest.dependencias import Contenedor, contenedor, usuario_actual
 from src.adapters.inbound.rest.errores import RESPUESTAS_ERROR
-from src.adapters.inbound.rest.esquemas import EstadoEstanque, LecturaEntrada, LecturaSalida
+from src.adapters.inbound.rest.esquemas import (
+    AlertaSalida,
+    EstadoEstanque,
+    EvaluacionSalida,
+    LecturaEntrada,
+    LecturaRegistradaSalida,
+    LecturaSalida,
+)
 from src.domain.model.usuario import Usuario
 from src.ports.inbound.registrar_lectura import ComandoRegistrarLectura
 
 router = APIRouter(prefix="/api", tags=["lecturas"], responses=RESPUESTAS_ERROR)
 
 
-@router.post("/lecturas", response_model=LecturaSalida, status_code=201)
+@router.post("/lecturas", response_model=LecturaRegistradaSalida, status_code=201)
 def registrar_lectura(
     datos: LecturaEntrada,
     usuario: Usuario = Depends(usuario_actual),
     c: Contenedor = Depends(contenedor),
-) -> LecturaSalida:
+) -> LecturaRegistradaSalida:
     """Registra una lectura (formulario o sensor simulado). Valores físicamente imposibles
-    (pH fuera de 0–14, OD < 0, temperatura fuera de 0–40 °C) se rechazan con 422."""
-    lectura = c.lecturas.registrar(
+    (pH fuera de 0–14, OD < 0, temperatura fuera de 0–40 °C) se rechazan con 422.
+
+    La lectura se evalúa contra config/umbrales.yaml y, si un parámetro está en
+    PRECAUCIÓN o CRÍTICA, se crea una alerta (sin duplicar una abierta del mismo
+    estanque, parámetro y nivel)."""
+    resultado = c.lecturas.registrar(
         ComandoRegistrarLectura(
             estanque_id=datos.estanque_id,
             temperatura_c=datos.temperatura_c,
@@ -33,7 +44,11 @@ def registrar_lectura(
         usuario,
     )
     c.confirmar()
-    return LecturaSalida.de(lectura)
+    return LecturaRegistradaSalida(
+        **LecturaSalida.de(resultado.lectura).model_dump(),
+        evaluacion=[EvaluacionSalida.de(e) for e in resultado.evaluaciones],
+        alertas=[AlertaSalida.de(a) for a in resultado.alertas_nuevas],
+    )
 
 
 @router.get("/lecturas", response_model=list[LecturaSalida])
@@ -64,12 +79,14 @@ def estado_panel(
     """Estado de todos los estanques activos; el panel web lo consulta cada 2 s."""
     resultado = []
     for e in c.estanques.listar(usuario):
-        ultima = c.lecturas.ultima(e.id, usuario)
+        estado = c.lecturas.estado(e.id, usuario)
         resultado.append(
             EstadoEstanque(
                 estanque_id=e.id,
                 nombre=e.nombre,
-                ultima_lectura=LecturaSalida.de(ultima) if ultima else None,
+                ultima_lectura=LecturaSalida.de(estado.lectura) if estado.lectura else None,
+                niveles=estado.niveles,
+                alertas_abiertas=[AlertaSalida.de(a) for a in estado.alertas_abiertas],
             )
         )
     return resultado

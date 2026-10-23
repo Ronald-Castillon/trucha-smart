@@ -16,13 +16,14 @@
     return div.innerHTML;
   }
 
-  function pintarLectura(tarjeta, l) {
+  function pintarLectura(tarjeta, l, niveles) {
     const caja = tarjeta.querySelector(".ultima-lectura");
     if (!caja || !l) return;
+    const n = (p) => `nivel-${(niveles && niveles[p]) || "NORMAL"}`;
     caja.innerHTML =
-      `🌡️ <span class="temperatura">${fmt(l.temperatura_c)}</span> °C · ` +
-      `💧 OD <span class="oxigeno">${fmt(l.oxigeno_mg_l)}</span> mg/L · ` +
-      `pH <span class="ph">${fmt(l.ph)}</span><br>` +
+      `🌡️ <span class="temperatura ${n("TEMPERATURA")}">${fmt(l.temperatura_c)}</span> °C · ` +
+      `💧 OD <span class="oxigeno ${n("OXIGENO_DISUELTO")}">${fmt(l.oxigeno_mg_l)}</span> mg/L · ` +
+      `pH <span class="ph ${n("PH")}">${fmt(l.ph)}</span><br>` +
       `<span class="suave">Última lectura: <time class="medido-en" datetime="${escapar(l.medido_en)}">${fecha(l.medido_en)}</time></span>`;
   }
 
@@ -44,7 +45,7 @@
       for (const e of await r.json()) {
         const tarjeta = document.querySelector(`[data-estanque="${e.estanque_id}"]`);
         if (!tarjeta) continue;
-        pintarLectura(tarjeta, e.ultima_lectura);
+        pintarLectura(tarjeta, e.ultima_lectura, e.niveles);
         pintarAlertas(tarjeta, e.alertas_abiertas);
       }
       document.getElementById("actualizado").textContent =

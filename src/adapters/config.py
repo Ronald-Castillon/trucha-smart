@@ -6,6 +6,11 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+import yaml
+
+from src.domain.model.lectura_agua import Parametro
+from src.domain.model.umbral import ConjuntoUmbrales, Umbral
+
 RAIZ = Path(__file__).resolve().parents[2]
 
 
@@ -45,3 +50,27 @@ class Configuracion:
             umbrales_path=_ruta(e.get("UMBRALES_PATH", "config/umbrales.yaml")),
             alimentacion_path=_ruta(e.get("ALIMENTACION_PATH", "config/alimentacion.yaml")),
         )
+
+
+def cargar_umbrales(ruta: Path) -> ConjuntoUmbrales:
+    """Lee config/umbrales.yaml y construye los umbrales del dominio (ADR-005)."""
+    datos = yaml.safe_load(Path(ruta).read_text(encoding="utf-8"))
+
+    def umbral(clave: str, parametro: Parametro) -> Umbral:
+        d = datos[clave]
+        normal = d["normal"]
+        precaucion = d["precaucion"]
+        return Umbral(
+            parametro=parametro,
+            unidad=d.get("unidad", ""),
+            normal_min=normal[0],
+            normal_max=normal[1],
+            precaucion_min=precaucion[0],
+            precaucion_max=precaucion[1],
+        )
+
+    return ConjuntoUmbrales(
+        temperatura=umbral("temperatura", Parametro.TEMPERATURA),
+        oxigeno_disuelto=umbral("oxigeno_disuelto", Parametro.OXIGENO_DISUELTO),
+        ph=umbral("ph", Parametro.PH),
+    )

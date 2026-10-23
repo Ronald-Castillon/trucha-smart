@@ -6,10 +6,13 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
+from src.domain.model.alerta import Alerta, EstadoAlerta
 from src.domain.model.estanque import Estanque, TipoEstanque
-from src.domain.model.lectura_agua import FuenteLectura, LecturaAgua
+from src.domain.model.lectura_agua import FuenteLectura, LecturaAgua, Parametro
 from src.domain.model.lote import Lote
+from src.domain.model.umbral import Nivel
 from src.domain.model.usuario import Rol, Usuario
+from src.domain.service.evaluador_calidad_agua import Evaluacion
 
 # --------------------------------------------------------------------------- usuarios
 
@@ -147,9 +150,55 @@ class LecturaSalida(BaseModel):
         return cls(**{k: getattr(lec, k) for k in cls.model_fields})
 
 
+# --------------------------------------------------------------------------- alertas
+
+
+class AlertaSalida(BaseModel):
+    id: int
+    estanque_id: int
+    lectura_id: int
+    parametro: Parametro
+    nivel: Nivel
+    valor: float
+    mensaje: str
+    estado: EstadoAlerta
+    creada_en: datetime
+    atendida_por: int | None
+    atendida_en: datetime | None
+    observacion: str | None
+
+    @classmethod
+    def de(cls, a: Alerta) -> AlertaSalida:
+        return cls(**{k: getattr(a, k) for k in cls.model_fields})
+
+
+class AtencionEntrada(BaseModel):
+    observacion: str | None = Field(default=None, examples=["Se encendió el aireador"])
+
+
+class EvaluacionSalida(BaseModel):
+    parametro: Parametro
+    valor: float
+    nivel: Nivel
+    mensaje: str
+
+    @classmethod
+    def de(cls, e: Evaluacion) -> EvaluacionSalida:
+        return cls(parametro=e.parametro, valor=e.valor, nivel=e.nivel, mensaje=e.mensaje)
+
+
+class LecturaRegistradaSalida(LecturaSalida):
+    """Lectura guardada + evaluación contra umbrales + alertas creadas (RF-04)."""
+
+    evaluacion: list[EvaluacionSalida]
+    alertas: list[AlertaSalida]
+
+
 class EstadoEstanque(BaseModel):
     """Resumen de un estanque para el panel (se refresca cada 2 s)."""
 
     estanque_id: int
     nombre: str
     ultima_lectura: LecturaSalida | None
+    niveles: dict[Parametro, Nivel]
+    alertas_abiertas: list[AlertaSalida]

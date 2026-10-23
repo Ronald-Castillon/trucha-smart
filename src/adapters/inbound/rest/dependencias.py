@@ -11,6 +11,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from src.adapters.outbound.persistence.db import BaseDatos
+from src.adapters.outbound.persistence.repositorio_alerta_sql import RepositorioAlertaSQL
 from src.adapters.outbound.persistence.repositorio_estanque_sql import (
     RepositorioEstanqueSQL,
     RepositorioLoteSQL,
@@ -18,11 +19,15 @@ from src.adapters.outbound.persistence.repositorio_estanque_sql import (
 from src.adapters.outbound.persistence.repositorio_lectura_sql import RepositorioLecturaSQL
 from src.adapters.outbound.persistence.repositorio_usuario_sql import RepositorioUsuarioSQL
 from src.adapters.outbound.security.jwt_tokens import ServicioTokens
+from src.domain.model.umbral import ConjuntoUmbrales
 from src.domain.model.usuario import Usuario
+from src.domain.service.evaluador_calidad_agua import EvaluadorCalidadAgua
+from src.domain.service.servicio_alertas import ServicioAlertas
 from src.domain.service.servicio_estanques import ServicioEstanques
 from src.domain.service.servicio_lecturas import ServicioLecturas
 from src.domain.service.servicio_usuarios import ServicioUsuarios
 from src.ports.outbound.hasher_password import HasherPassword
+from src.ports.outbound.notificador import Notificador
 from src.ports.outbound.reloj import Reloj
 
 COOKIE_SESION = "ts_token"
@@ -40,6 +45,8 @@ class Recursos:
     hasher: HasherPassword
     tokens: ServicioTokens
     reloj: Reloj
+    umbrales: ConjuntoUmbrales
+    notificador: Notificador
 
 
 class Contenedor:
@@ -75,7 +82,23 @@ class Contenedor:
 
     @cached_property
     def lecturas(self) -> ServicioLecturas:
-        return ServicioLecturas(self.repo_lecturas, self.repo_estanques, self.recursos.reloj)
+        r = self.recursos
+        return ServicioLecturas(
+            self.repo_lecturas,
+            self.repo_estanques,
+            self.repo_alertas,
+            EvaluadorCalidadAgua(r.umbrales),
+            r.notificador,
+            r.reloj,
+        )
+
+    @cached_property
+    def repo_alertas(self) -> RepositorioAlertaSQL:
+        return RepositorioAlertaSQL(self.sesion)
+
+    @cached_property
+    def alertas(self) -> ServicioAlertas:
+        return ServicioAlertas(self.repo_alertas, self.recursos.reloj)
 
 
 def recursos(request: Request) -> Recursos:

@@ -54,3 +54,29 @@ class RepositorioUsuarioMemoria(RepositorioMemoria):
         return next(
             (replace(u) for u in self.datos.values() if u.nombre_usuario == nombre_usuario), None
         )
+
+
+class RepositorioEstanqueMemoria(RepositorioMemoria):
+    def por_nombre(self, nombre: str):
+        return next((replace(e) for e in self.datos.values() if e.nombre == nombre), None)
+
+    def listar(self, solo_activos: bool = True):
+        return [replace(e) for e in self.datos.values() if e.activo or not solo_activos]
+
+
+class RepositorioLoteMemoria(RepositorioMemoria):
+    def por_codigo(self, codigo: str):
+        return next((replace(lo) for lo in self.datos.values() if lo.codigo == codigo), None)
+
+    def activo_de(self, estanque_id: int):
+        return next(
+            (
+                replace(lo)
+                for lo in self.datos.values()
+                if lo.estanque_id == estanque_id and lo.activo
+            ),
+            None,
+        )
+
+    def de_estanque(self, estanque_id: int):
+        return [replace(lo) for lo in self.datos.values() if lo.estanque_id == estanque_id]

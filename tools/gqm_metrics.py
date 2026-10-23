@@ -329,7 +329,7 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.reconfigure(encoding="utf-8")
     texto = generar_reporte(args.incremento)
     destino = RAIZ / "docs" / "gqm" / f"reporte_inc{args.incremento}.md"
-    destino.write_text(texto, encoding="utf-8")
+    destino.write_text(texto, encoding="utf-8", newline="\n")
     print(texto)
     print(f"Escrito {destino.relative_to(RAIZ)}")
     return 0

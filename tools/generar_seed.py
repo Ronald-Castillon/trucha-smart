@@ -204,5 +204,5 @@ def generar() -> str:
 
 
 if __name__ == "__main__":
-    DESTINO.write_text(generar(), encoding="utf-8")
+    DESTINO.write_text(generar(), encoding="utf-8", newline="\n")
     print(f"Escrito {DESTINO.relative_to(RAIZ)}")

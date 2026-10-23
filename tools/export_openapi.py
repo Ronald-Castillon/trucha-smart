@@ -34,7 +34,7 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         print("docs/openapi.json está actualizado.")
         return 0
-    DESTINO.write_text(actual, encoding="utf-8")
+    DESTINO.write_text(actual, encoding="utf-8", newline="\n")
     print(f"Escrito {DESTINO.relative_to(RAIZ)}")
     return 0
 

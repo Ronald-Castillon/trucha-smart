@@ -42,3 +42,37 @@ th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(
 .etiqueta.riesgo { font-size: .85rem; }
 .semaforo-grande { font-size: 1.15rem; padding: .6rem .8rem; border-radius: 8px; color: #fff; }
 .semaforo-grande .valor { font-size: 2rem; font-weight: 800; }
+
+/* ----- Interfaz en vivo (Issue #23) ----- */
+.en-vivo { font-size: .8rem; font-weight: 600; color: var(--verde); vertical-align: middle;
+           display: inline-flex; align-items: center; gap: .3rem; }
+.punto { width: .55rem; height: .55rem; border-radius: 50%; background: var(--verde);
+         display: inline-block; animation: latido 1.4s ease-in-out infinite; }
+@keyframes latido { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+.tarjeta { transition: box-shadow .3s, border-color .3s; }
+.tarjeta.con-critica { border-color: var(--rojo); box-shadow: 0 0 0 2px rgba(192, 57, 43, .25); }
+.tarjeta.parpadeo { animation: parpadeo 1s ease-in-out 3; }
+@keyframes parpadeo { 50% { box-shadow: 0 0 0 6px rgba(192, 57, 43, .45); } }
+.cambio { animation: destello 1.2s ease-out; border-radius: 4px; }
+@keyframes destello { 0% { background: #fff3a6; } 100% { background: transparent; } }
+.actualizada { animation: aparecer .6s ease-out; }
+@keyframes aparecer { from { opacity: .35; } to { opacity: 1; } }
+.mini-grafico { position: relative; height: 110px; margin: .5rem 0; }
+.simulador { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin-top: .6rem;
+             padding-top: .6rem; border-top: 1px dashed var(--borde); font-size: .88rem; }
+.simulador select, .simulador button { padding: .3rem .5rem; font-size: .85rem; }
+.simulador.activo .sim-boton { background: var(--rojo); color: #fff; border-color: var(--rojo); }
+.sim-estado { display: inline-flex; align-items: center; gap: .3rem; }
+#avisos { position: fixed; top: 4.2rem; right: 1rem; z-index: 50; display: grid; gap: .5rem;
+          width: min(360px, calc(100vw - 2rem)); }
+.aviso { background: var(--superficie); border-left: 6px solid var(--primario); border-radius: 8px;
+         box-shadow: 0 6px 20px rgba(0, 0, 0, .18); padding: .7rem 2rem .7rem .8rem;
+         position: relative; font-size: .9rem; animation: entrar .35s ease-out; }
+.aviso.critica { border-left-color: var(--rojo); }
+.aviso.precaucion { border-left-color: var(--amarillo); }
+.aviso.error { border-left-color: var(--rojo); }
+.aviso.saliendo { opacity: 0; transform: translateX(30px); transition: all .5s; }
+.aviso .cerrar { position: absolute; top: .3rem; right: .4rem; background: none; color: var(--suave);
+                 padding: 0 .3rem; font-size: 1.1rem; }
+@keyframes entrar { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

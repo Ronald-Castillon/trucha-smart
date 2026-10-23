@@ -1,9 +1,20 @@
 {% extends "base.html" %}
 {% block titulo %}Alertas{% endblock %}
+{% block scripts %}
+<script>
+  // La lista se actualiza sola; si el usuario está escribiendo una observación no se toca.
+  (function () {
+    const secciones = ["#contador-abiertas", "#alertas-abiertas", "#alertas-atendidas"];
+    const recargar = () => window.TS && TS.recargarSecciones(secciones);
+    setInterval(recargar, 3000);
+    window.addEventListener("ts:alerta", recargar);
+  })();
+</script>
+{% endblock %}
 {% block contenido %}
 <h1>Alertas de calidad de agua</h1>
 <section class="tarjeta tabla-scroll">
-  <h2>Abiertas ({{ abiertas | length }})</h2>
+  <h2 id="contador-abiertas">Abiertas ({{ abiertas | length }}) <span class="en-vivo"><span class="punto"></span> en vivo</span></h2>
   <table id="alertas-abiertas">
     <thead><tr><th>Fecha (UTC)</th><th>Estanque</th><th>Nivel</th><th>Detalle</th><th>Atender</th></tr></thead>
     <tbody>

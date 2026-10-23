@@ -2,7 +2,7 @@
 {% block titulo %}Historial · {{ h.estanque.nombre }}{% endblock %}
 {% block contenido %}
 <p><a href="/estanques/{{ h.estanque.id }}">← {{ h.estanque.nombre }}</a></p>
-<h1>Historial de calidad de agua · {{ h.estanque.nombre }}</h1>
+<h1>Historial de calidad de agua · {{ h.estanque.nombre }}{% if en_vivo %} <span class="en-vivo" title="El rango incluye hoy: se actualiza cada 5 s"><span class="punto"></span> en vivo</span>{% endif %}</h1>
 <div class="rejilla">
   <section class="tarjeta">
     <h2>Filtrar por fechas (UTC)</h2>
@@ -20,7 +20,7 @@
       {{ riesgo.alertas_criticas_abiertas }} alerta(s) crítica(s) abierta(s)).<br>
       Verde 0–29 · Amarillo 30–59 · Rojo ≥ 60</p>
   </section>
-  <section class="tarjeta">
+  <section class="tarjeta" id="resumen-periodo">
     <h2>Resumen del periodo</h2>
     <p id="total-lecturas"><strong>{{ h.lecturas | length }}</strong> lecturas del {{ h.desde.strftime('%d/%m/%Y') }} al {{ h.hasta.strftime('%d/%m/%Y') }}</p>
     {% set nombres = {'TEMPERATURA': 'Temperatura (°C)', 'OXIGENO_DISUELTO': 'OD (mg/L)', 'PH': 'pH'} %}
@@ -65,11 +65,13 @@
 {% block scripts %}
 {% if serie %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script type="application/json" id="serie-datos">{{ serie | tojson }}</script>
 <script>
 (function () {
-  const serie = {{ serie | tojson }};
+  const leer = (doc) => JSON.parse(doc.getElementById("serie-datos").textContent);
+  const serie = leer(document);
   if (!window.Chart) { return; }
-  new Chart(document.getElementById("grafico-tendencia"), {
+  const grafico = new Chart(document.getElementById("grafico-tendencia"), {
     type: "line",
     data: {
       labels: serie.map(s => s.t),
@@ -80,7 +82,7 @@
       ]
     },
     options: {
-      responsive: true, maintainAspectRatio: false, animation: false,
+      responsive: true, maintainAspectRatio: false, animation: { duration: 500 },
       interaction: { mode: "index", intersect: false },
       scales: {
         y: { title: { display: true, text: "°C / mg/L" } },
@@ -89,6 +91,19 @@
     }
   });
   document.getElementById("grafico-tendencia").dataset.listo = "1";
+  {% if en_vivo %}
+  // El rango incluye hoy: tabla, resumen, riesgo y gráfico se actualizan solos.
+  setInterval(async () => {
+    if (!window.TS) return;
+    const doc = await TS.recargarSecciones(["#tabla-historial", "#riesgo", "#resumen-periodo"]);
+    if (!doc || !doc.getElementById("serie-datos")) return;
+    const nueva = leer(doc);
+    if (nueva.length === grafico.data.labels.length) return;
+    grafico.data.labels = nueva.map(s => s.t);
+    ["temperatura", "oxigeno", "ph"].forEach((k, i) => { grafico.data.datasets[i].data = nueva.map(s => s[k]); });
+    grafico.update();
+  }, 5000);
+  {% endif %}
 })();
 </script>
 {% endif %}

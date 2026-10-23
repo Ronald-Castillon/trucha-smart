@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block titulo %}Panel{% endblock %}
 {% block contenido %}
-<h1>Panel</h1>
+<h1>Panel <span class="en-vivo" title="Se actualiza cada segundo"><span class="punto"></span> en vivo</span></h1>
 <p class="suave">Bienvenido/a, <strong>{{ usuario.nombre_completo }}</strong> · Rol: {{ usuario.rol.value | title }} ·
   <span id="actualizado">actualización automática cada 1 s</span></p>
 <div class="rejilla" id="tarjetas-estanques">
@@ -23,6 +23,7 @@
         <span class="suave">Sin lecturas</span>
       {% endif %}
     </div>
+    <div class="mini-grafico"><canvas class="sparkline" aria-label="Tendencia de las últimas lecturas de {{ e.nombre }}"></canvas></div>
     <div class="alertas-abiertas">
       {% for a in estado.alertas_abiertas %}
         <div class="alerta" data-alerta="{{ a.id }}"><span class="etiqueta {{ a.nivel.value }}">{{ 'CRÍTICA' if a.nivel.value == 'CRITICA' else 'PRECAUCIÓN' }}</span> {{ a.mensaje }}</div>
@@ -30,11 +31,25 @@
         <span class="etiqueta NORMAL">Sin alertas abiertas</span>
       {% endfor %}
     </div>
-    {% if estado.alertas_abiertas and usuario.puede(P.ATENDER_ALERTA) %}<p><a href="/alertas">Atender alertas →</a></p>{% endif %}
+    {% if usuario.puede(P.ATENDER_ALERTA) %}<p class="enlace-atender"{% if not estado.alertas_abiertas %} hidden{% endif %}><a href="/alertas">Atender alertas →</a></p>{% endif %}
+    {% if usuario.puede(P.GESTIONAR_ESTANQUES) %}
+    <div class="simulador" data-estanque-sim="{{ e.id }}">
+      <select class="sim-escenario" aria-label="Escenario del sensor simulado">
+        <option value="normal">Sensor normal</option>
+        <option value="critico_oxigeno">Oxígeno cayendo</option>
+        <option value="critico_temperatura">Temperatura subiendo</option>
+      </select>
+      <button type="button" class="sim-boton secundario">▶ Simular sensor</button>
+      <span class="sim-estado suave"></span>
+    </div>
+    {% endif %}
   </article>
   {% else %}
   <p>No hay estanques registrados.</p>
   {% endfor %}
 </div>
 {% endblock %}
-{% block scripts %}<script src="/static/panel.js"></script>{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="/static/panel.js?v={{ V }}"></script>
+{% endblock %}

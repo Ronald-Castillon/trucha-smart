@@ -41,9 +41,9 @@ def test_cp_rf03_01_lectura_del_sensor_aparece_sin_recargar(pagina, url_base):
             headers={"Authorization": f"Bearer {token}"},
         )
         assert r.status_code == 201
-    pagina.locator('[data-estanque="2"] .oxigeno', has_text="9.99").wait_for(timeout=2500)
-    # El panel consulta cada 2 s: el peor caso es intervalo + latencia de la consulta.
-    assert time.perf_counter() - inicio < 2.5
+    pagina.locator('[data-estanque="2"] .oxigeno', has_text="9.99").wait_for(timeout=2000)
+    # El panel consulta cada 1 s: el peor caso es intervalo + latencia de la consulta.
+    assert time.perf_counter() - inicio < 2.0
 
 
 def test_cp_rf03_02_valor_imposible_muestra_error(pagina):

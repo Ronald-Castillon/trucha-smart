@@ -1,7 +1,9 @@
-// Refresca el panel cada 2 s consultando /api/panel (sesión por cookie HttpOnly).
+// Refresca el panel cada 1 s consultando /api/panel (sesión por cookie HttpOnly).
+// Con 1 s, una lectura del sensor queda visible en < 2 s (RF-03/RF-04), incluida
+// la latencia de la consulta (mejora continua tras el reporte GQM del Inc. 1).
 (function () {
   "use strict";
-  const INTERVALO_MS = 2000;
+  const INTERVALO_MS = 1000;
 
   function fmt(n) { return Number(n).toFixed(2); }
   function fecha(iso) {

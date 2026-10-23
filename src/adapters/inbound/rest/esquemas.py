@@ -195,7 +195,7 @@ class LecturaRegistradaSalida(LecturaSalida):
 
 
 class EstadoEstanque(BaseModel):
-    """Resumen de un estanque para el panel (se refresca cada 2 s)."""
+    """Resumen de un estanque para el panel (se refresca cada 1 s)."""
 
     estanque_id: int
     nombre: str

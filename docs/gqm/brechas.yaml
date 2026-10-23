@@ -1,0 +1,17 @@
+# Brechas del proceso AS-IS (base de la métrica M3.1).
+# Una brecha cuenta como RESUELTA en el incremento N solo si:
+#   1) resuelta_en <= N,
+#   2) existen las capturas de evidencia de todos sus RF, y
+#   3) existen pruebas con los IDs de caso de prueba de esos RF en tests/.
+# tools/gqm_metrics.py verifica (2) y (3); no basta con declararla.
+brechas:
+  - {id: B-01, descripcion: "Registros en cuaderno sin respaldo", rf: [RF-02], resuelta_en: 1}
+  - {id: B-02, descripcion: "Mediciones esporádicas", rf: [RF-03], resuelta_en: 1}
+  - {id: B-03, descripcion: "Sin detección automática de condiciones críticas", rf: [RF-04], resuelta_en: 1}
+  - {id: B-04, descripcion: "Sin control de quién registra", rf: [RF-01], resuelta_en: 1}
+  - {id: B-05, descripcion: "Umbrales no estandarizados", rf: [RF-04], resuelta_en: 1}
+  - {id: B-06, descripcion: "Sin registro de quién atendió un incidente", rf: [RF-04], resuelta_en: 1}
+  - {id: B-07, descripcion: "Sin historial ni tendencias", rf: [RF-05], resuelta_en: 2}
+  - {id: B-08, descripcion: "Alimentación empírica sin FCR", rf: [RF-06, RF-07], resuelta_en: 2}
+  - {id: B-09, descripcion: "Reportes manuales tardíos", rf: [RF-08], resuelta_en: 2}
+  - {id: B-10, descripcion: "Sin predicción con IA", rf: [], resuelta_en: null}  # Incremento 3

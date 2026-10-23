@@ -1,0 +1,36 @@
+# Indicadores de valor para la métrica M3.2 (mejora % respecto del AS-IS).
+#
+# >>> COMPLETAR POR EL EQUIPO <<<
+#   as_is: línea base medida en la piscigranja ANTES del sistema (no inventar).
+#   to_be_inc1 / to_be_inc2: valor medido con el sistema al cierre de cada incremento.
+# Mientras falte algún valor, tools/gqm_metrics.py muestra "pendiente".
+#
+# sentido: menor_es_mejor -> mejora % = (as_is - to_be) / as_is x 100
+#          mayor_es_mejor -> mejora % = (to_be - as_is) / as_is x 100
+indicadores:
+  - id: IV-1
+    nombre: "Tiempo desde que ocurre una condición crítica de agua hasta que se detecta"
+    unidad: "minutos"
+    sentido: menor_es_mejor
+    as_is: null        # p. ej. horas entre mediciones manuales (cuaderno del operario)
+    to_be_inc1: null   # p. ej. tiempo lectura -> alerta visible en el panel
+    to_be_inc2: null
+    fuente: "Cuaderno de mediciones (AS-IS); registro de alertas del sistema (TO-BE)"
+
+  - id: IV-2
+    nombre: "Tiempo para elaborar el reporte mensual de producción y calidad de agua"
+    unidad: "horas"
+    sentido: menor_es_mejor
+    as_is: null        # tiempo que hoy toma armarlo en Excel
+    to_be_inc1: null   # en Inc. 1 aún no hay exportación: medir el proceso vigente
+    to_be_inc2: null   # tiempo con la exportación PDF/CSV
+    fuente: "Entrevista / cronometraje al piscicultor"
+
+  - id: IV-3
+    nombre: "Lecturas de calidad de agua registradas por estanque y día"
+    unidad: "lecturas/día"
+    sentido: mayor_es_mejor
+    as_is: null        # hoy 1 o 2 por día según el operario: confirmar con el cuaderno
+    to_be_inc1: null
+    to_be_inc2: null
+    fuente: "Cuaderno (AS-IS); conteo en la tabla lecturas_agua (TO-BE)"

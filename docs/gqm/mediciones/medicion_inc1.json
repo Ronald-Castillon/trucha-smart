@@ -1,0 +1,30 @@
+{
+  "etiqueta": "inc1",
+  "version_medida": "v1.0-PMV",
+  "medido_en": "2026-10-23T07:38:04+00:00",
+  "entorno": "win32, Python 3.13.16, SQLite, Chromium headless (Playwright)",
+  "IV-1": {
+    "descripcion": "lectura crítica (OD 4.0 mg/L) por API -> alerta CRÍTICA visible en el panel web abierto",
+    "muestras_s": [
+      2.39,
+      1.875,
+      1.871,
+      2.383,
+      1.86
+    ],
+    "promedio_s": 2.076,
+    "maximo_s": 2.39,
+    "valor_minutos": 0.0398,
+    "criterio": "máximo de las muestras (peor caso observado)"
+  },
+  "IV-2": {
+    "descripcion": "la versión no tiene exportación de reportes",
+    "valor_horas": null
+  },
+  "IV-3": {
+    "descripcion": "simulador escenario normal con --intervalo 5 s; lecturas registradas en la BD durante la ventana, extrapoladas a 24 h",
+    "lecturas_registradas": 7,
+    "ventana_s": 30.675,
+    "valor_lecturas_dia": 19716.7
+  }
+}

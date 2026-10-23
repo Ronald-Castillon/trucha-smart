@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import sqlite3
 import sys
 from pathlib import Path
@@ -19,13 +20,17 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 SCHEMA = RAIZ / "db" / "schema.sql"
 SEED = RAIZ / "db" / "seed.sql"
+_MARCA_TIEMPO = re.compile(r"'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\+00'")
 
 
 def a_sqlite(sql: str) -> str:
     sql = sql.split("-- postgresql-only")[0]
     sql = sql.replace("SERIAL PRIMARY KEY", "INTEGER PRIMARY KEY AUTOINCREMENT")
     sql = sql.replace("TIMESTAMPTZ", "TIMESTAMP")
-    return sql.replace("+00'", "'")
+    # SQLAlchemy guarda las fechas en SQLite como 'AAAA-MM-DD HH:MM:SS.ffffff' y compara como
+    # texto: sin los microsegundos, '... 00:00:00' quedaría fuera de un rango que empieza en
+    # '... 00:00:00.000000' (Issue #19).
+    return _MARCA_TIEMPO.sub(lambda m: f"'{m.group(1)}.000000'", sql)
 
 
 def cargar_sqlite(conexion: sqlite3.Connection, con_seed: bool = True) -> None:

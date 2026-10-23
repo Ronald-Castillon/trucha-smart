@@ -437,6 +437,14 @@
         "title": "EvaluacionSalida",
         "type": "object"
       },
+      "FormatoReporte": {
+        "enum": [
+          "csv",
+          "pdf"
+        ],
+        "title": "FormatoReporte",
+        "type": "string"
+      },
       "FuenteLectura": {
         "enum": [
           "MANUAL",
@@ -1310,6 +1318,14 @@
           "JAULA"
         ],
         "title": "TipoEstanque",
+        "type": "string"
+      },
+      "TipoReporte": {
+        "enum": [
+          "calidad-agua",
+          "produccion"
+        ],
+        "title": "TipoReporte",
         "type": "string"
       },
       "TokenSalida": {
@@ -3893,6 +3909,118 @@
         "tags": [
           "lecturas",
           "panel"
+        ]
+      }
+    },
+    "/api/reportes/{tipo}.{formato}": {
+      "get": {
+        "description": "Reporte de `calidad-agua` o `produccion` en `csv` o `pdf` para el rango de fechas UTC\n(inclusivo). Requiere rol Piscicultor o Administrador. Rango inválido → 422.",
+        "operationId": "exportar_reporte_api_reportes__tipo___formato__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tipo",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TipoReporte"
+            }
+          },
+          {
+            "in": "path",
+            "name": "formato",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/FormatoReporte"
+            }
+          },
+          {
+            "in": "query",
+            "name": "desde",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Desde",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Hasta",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {},
+              "text/csv": {}
+            },
+            "description": "Archivo del reporte (descarga)"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Exportar Reporte",
+        "tags": [
+          "reportes"
         ]
       }
     },

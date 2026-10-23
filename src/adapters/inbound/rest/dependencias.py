@@ -33,7 +33,9 @@ from src.domain.service.servicio_historial import ServicioHistorial
 from src.domain.service.servicio_lecturas import ServicioLecturas
 from src.domain.service.servicio_produccion import ServicioProduccion
 from src.domain.service.servicio_racion import ServicioRacion
+from src.domain.service.servicio_reportes import ServicioReportes
 from src.domain.service.servicio_usuarios import ServicioUsuarios
+from src.ports.outbound.generador_reportes import GeneradorReportes
 from src.ports.outbound.hasher_password import HasherPassword
 from src.ports.outbound.notificador import Notificador
 from src.ports.outbound.reloj import Reloj
@@ -56,6 +58,7 @@ class Recursos:
     umbrales: ConjuntoUmbrales
     notificador: Notificador
     alimentacion: TablaAlimentacion
+    generador_reportes: GeneradorReportes
 
 
 class Contenedor:
@@ -132,6 +135,21 @@ class Contenedor:
             self.repo_lecturas,
             EvaluadorCalidadAgua(r.umbrales),
             RecomendadorRacion(r.alimentacion),
+        )
+
+    @cached_property
+    def reportes(self) -> ServicioReportes:
+        r = self.recursos
+        return ServicioReportes(
+            self.repo_estanques,
+            self.repo_lotes,
+            self.repo_lecturas,
+            self.repo_alertas,
+            self.repo_alimentacion,
+            self.repo_mortalidad,
+            EvaluadorCalidadAgua(r.umbrales),
+            r.generador_reportes,
+            r.reloj,
         )
 
     @cached_property

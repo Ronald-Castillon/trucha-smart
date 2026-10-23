@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
@@ -13,12 +14,14 @@ from src.adapters.inbound.rest.dependencias import (
     contenedor,
     usuario_actual,
 )
+from src.adapters.inbound.rest.reportes import respuesta_archivo
 from src.adapters.inbound.web.plantillas import render
 from src.domain.errores import CredencialesInvalidas, ErrorDominio, ErrorValidacion
 from src.domain.model.alerta import EstadoAlerta
 from src.domain.model.estanque import TipoEstanque
 from src.domain.model.lectura_agua import FuenteLectura
-from src.domain.model.usuario import Rol, Usuario
+from src.domain.model.usuario import Permiso, Rol, Usuario
+from src.ports.inbound.exportar_reporte import FormatoReporte, TipoReporte
 from src.ports.inbound.gestionar_estanque import ComandoSembrarLote, DatosEstanque
 from src.ports.inbound.registrar_lectura import ComandoRegistrarLectura
 from src.ports.inbound.registrar_usuario import ComandoRegistrarUsuario
@@ -250,6 +253,72 @@ def registrar_mortalidad(
     return _vista_produccion(
         request, c, usuario, lote_id, aviso=f"Mortalidad de {n} peces registrada"
     )
+
+
+# --------------------------------------------------------------------------- reportes (RF-08)
+
+
+def _vista_reportes(request, c: Contenedor, usuario: Usuario, estado=200, **extra):
+    usuario.exigir(Permiso.GESTIONAR_REPORTES)
+    hoy = c.recursos.reloj.ahora().date()
+    extra.setdefault(
+        "form",
+        {
+            "tipo": "calidad-agua",
+            "formato": "pdf",
+            "desde": (hoy.replace(day=1)).isoformat(),
+            "hasta": hoy.isoformat(),
+        },
+    )
+    return render(request, "reportes.html", estado, usuario=usuario, **extra)
+
+
+@router.get("/reportes")
+def reportes(
+    request: Request,
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    return _vista_reportes(request, c, usuario)
+
+
+@router.get("/reportes/vista")
+def vista_reporte(
+    request: Request,
+    tipo: TipoReporte,
+    desde: str = "",
+    hasta: str = "",
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    """Vista previa del reporte con los enlaces de descarga PDF y CSV."""
+    form = {"tipo": tipo.value, "desde": desde, "hasta": hasta}
+    try:
+        reporte = c.reportes.armar(tipo, _fecha("desde", desde), _fecha("hasta", hasta), usuario)
+    except ErrorValidacion as e:
+        return _vista_reportes(request, c, usuario, 422, error=e.mensaje, form=form)
+    query = urlencode({"tipo": tipo.value, "desde": desde, "hasta": hasta})
+    return render(request, "reporte_vista.html", usuario=usuario, r=reporte, query=query)
+
+
+@router.get("/reportes/descargar")
+def descargar_reporte(
+    request: Request,
+    tipo: TipoReporte,
+    formato: FormatoReporte,
+    desde: str = "",
+    hasta: str = "",
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    form = {"tipo": tipo.value, "formato": formato.value, "desde": desde, "hasta": hasta}
+    try:
+        archivo = c.reportes.exportar(
+            tipo, formato, _fecha("desde", desde), _fecha("hasta", hasta), usuario
+        )
+    except ErrorValidacion as e:
+        return _vista_reportes(request, c, usuario, 422, error=e.mensaje, form=form)
+    return respuesta_archivo(archivo)
 
 
 # --------------------------------------------------------------------------- historial (RF-05)

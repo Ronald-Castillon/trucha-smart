@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block titulo %}{{ r.titulo }}{% endblock %}
+{% block contenido %}
+<p><a href="/reportes">← Reportes</a></p>
+<h1>{{ r.titulo }}</h1>
+<p class="suave">Periodo {{ r.desde.strftime('%d/%m/%Y') }} – {{ r.hasta.strftime('%d/%m/%Y') }} (UTC) · generado {{ r.generado_en.strftime('%d/%m/%Y %H:%M') }} UTC por {{ r.generado_por }}</p>
+<p id="descargas">
+  <a class="boton" id="descargar-pdf" href="/reportes/descargar?{{ query }}&amp;formato=pdf">Descargar PDF</a>
+  <a class="boton" id="descargar-csv" href="/reportes/descargar?{{ query }}&amp;formato=csv">Descargar CSV</a>
+</p>
+{% if r.tipo.value == 'calidad-agua' %}
+<section class="tarjeta tabla-scroll">
+  <h2>Resumen por estanque</h2>
+  <table id="resumen-reporte">
+    <thead><tr><th>Estanque</th><th>Lecturas</th><th>T °C mín/prom/máx</th><th>OD mg/L mín/prom/máx</th><th>pH mín/prom/máx</th><th>Alertas P</th><th>Alertas C</th><th>Atendidas</th></tr></thead>
+    <tbody>
+    {% for x in r.resumen_calidad %}
+      <tr><td>{{ x.estanque }}</td><td>{{ x.lecturas }}</td>
+        {% for e in (x.temperatura, x.oxigeno, x.ph) %}<td>{{ '—' if e is none else '%.2f / %.2f / %.2f' % e }}</td>{% endfor %}
+        <td>{{ x.alertas_precaucion }}</td><td>{{ x.alertas_criticas }}</td><td>{{ x.alertas_atendidas }}</td></tr>
+    {% else %}<tr><td colspan="8">Sin datos en el periodo.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  <p id="total-filas"><strong>{{ r.filas_calidad | length }}</strong> lecturas en el periodo (el detalle completo está en el CSV).</p>
+</section>
+{% else %}
+<section class="tarjeta tabla-scroll">
+  <h2>Producción por lote</h2>
+  <table id="resumen-reporte">
+    <thead><tr><th>Estanque</th><th>Lote</th><th>Estado</th><th>Vivos</th><th>Mort. periodo</th><th>Biomasa kg</th><th>Alim. periodo kg</th><th>Alim. total kg</th><th>FCR</th></tr></thead>
+    <tbody>
+    {% for f in r.filas_produccion %}
+      <tr><td>{{ f.estanque }}</td><td>{{ f.lote }}</td><td>{{ 'activo' if f.activo else 'cerrado' }}</td><td>{{ f.peces_vivos }}</td><td>{{ f.mortalidad_periodo }}</td>
+        <td>{{ '%.3f' % f.biomasa_kg }}</td><td>{{ '%.3f' % f.alimento_periodo_kg }}</td><td>{{ '%.3f' % f.alimento_total_kg }}</td><td>{{ f.fcr }}</td></tr>
+    {% else %}<tr><td colspan="9">Sin lotes vigentes en el periodo.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  <p id="total-filas"><strong>{{ r.filas_produccion | length }}</strong> lote(s) en el periodo.</p>
+</section>
+{% endif %}
+{% endblock %}

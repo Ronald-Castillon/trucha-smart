@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -96,7 +97,9 @@ def _import_linter_ok() -> bool | None:
     exe = shutil.which("lint-imports")
     if exe is None:
         return None
-    r = subprocess.run([exe], cwd=RAIZ, capture_output=True, text=True, encoding="utf-8")
+    # PYTHONIOENCODING evita que rich falle con la consola cp1252 de Windows.
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    r = subprocess.run([exe], cwd=RAIZ, capture_output=True, text=True, encoding="utf-8", env=env)
     return r.returncode == 0
 
 

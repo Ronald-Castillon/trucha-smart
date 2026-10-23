@@ -14,6 +14,19 @@ Descomposición **Épica → Historia de usuario → Tareas**. Cada HU tiene su 
 7. Documentación y `docs/openapi.json` actualizados.
 8. PR revisado con checklist y CI en verde antes del merge.
 
+## Estado del backlog
+
+| HU | Issue | PR | Estado | Defectos (Issue `bug`) |
+|---|---|---|---|---|
+| HU-01 | #1 | #9 | ✅ Terminada (Inc. 1) | — |
+| HU-02 | #2 | #10 | ✅ Terminada (Inc. 1) | — |
+| HU-03 | #3 | #12 | ✅ Terminada (Inc. 1) | — |
+| HU-04 | #4 | #13 | ✅ Terminada (Inc. 1) | #11 (formato de mensajes del seed) |
+| HU-05 | #5 | — | Pendiente (Inc. 2) | — |
+| HU-06 | #6 | — | Pendiente (Inc. 2) | — |
+| HU-07 | #7 | — | Pendiente (Inc. 2) | — |
+| HU-08 | #8 | — | Pendiente (Inc. 2) | — |
+
 ## Épicas
 
 | Épica | Objetivo | Brechas | Historias |

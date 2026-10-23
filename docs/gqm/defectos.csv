@@ -1,1 +1,2 @@
 id,incremento,rf,titulo,estado,issue
+D-001,1,RF-04,Las alertas de db/seed.sql usaban otro formato de mensaje que el evaluador,cerrado,#11

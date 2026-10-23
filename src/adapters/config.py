@@ -9,7 +9,8 @@ from pathlib import Path
 import yaml
 
 from src.domain.model.lectura_agua import Parametro
-from src.domain.model.umbral import ConjuntoUmbrales, Umbral
+from src.domain.model.umbral import ConjuntoUmbrales, Nivel, Umbral
+from src.domain.service.recomendador_racion import TablaAlimentacion, TramoTasa
 
 RAIZ = Path(__file__).resolve().parents[2]
 
@@ -73,4 +74,22 @@ def cargar_umbrales(ruta: Path) -> ConjuntoUmbrales:
         temperatura=umbral("temperatura", Parametro.TEMPERATURA),
         oxigeno_disuelto=umbral("oxigeno_disuelto", Parametro.OXIGENO_DISUELTO),
         ph=umbral("ph", Parametro.PH),
+    )
+
+
+def cargar_alimentacion(ruta: Path) -> TablaAlimentacion:
+    """Lee config/alimentacion.yaml (tabla de tasas y factores, ADR-005)."""
+    datos = yaml.safe_load(Path(ruta).read_text(encoding="utf-8"))
+    niveles = {"normal": Nivel.NORMAL, "precaucion": Nivel.PRECAUCION, "critica": Nivel.CRITICA}
+
+    def factores(clave: str) -> dict[Nivel, float]:
+        return {niveles[k]: float(v) for k, v in datos[clave].items()}
+
+    return TablaAlimentacion(
+        tramos=tuple(
+            TramoTasa(float(t["desde_g"]), t["hasta_g"], float(t["tasa_pct"]))
+            for t in datos["tasas"]
+        ),
+        factor_temperatura=factores("factor_temperatura"),
+        factor_oxigeno=factores("factor_oxigeno"),
     )

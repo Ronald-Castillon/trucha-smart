@@ -18,6 +18,7 @@ from src.domain.service.calculadora_fcr import ResumenProduccion
 from src.domain.service.evaluador_calidad_agua import Evaluacion
 from src.domain.service.indice_riesgo import IndiceRiesgo, Semaforo
 from src.ports.inbound.consultar_historial import Historial
+from src.ports.inbound.recomendar_racion import RecomendacionLote
 
 # --------------------------------------------------------------------------- usuarios
 
@@ -333,3 +334,47 @@ class ProduccionSalida(BaseModel):
     def de(cls, r: ResumenProduccion) -> ProduccionSalida:
         datos = {k: getattr(r, k) for k in cls.model_fields}
         return cls(**datos)
+
+
+# ------------------------------------------------------------------- ración
+
+
+class RacionSalida(BaseModel):
+    lote_id: int
+    codigo: str
+    peces_vivos: int
+    biomasa_kg: float
+    peso_medio_g: float
+    tasa_pct: float
+    tramo: str
+    lectura_id: int | None = Field(description="Lectura de agua usada para los factores")
+    nivel_temperatura: Nivel | None
+    nivel_oxigeno: Nivel | None
+    factor_temperatura: float
+    factor_oxigeno: float
+    racion_kg: float = Field(description="kg de alimento por día")
+    suspender: bool
+    regla: str
+    advertencias: list[str]
+
+    @classmethod
+    def de(cls, r: RecomendacionLote) -> RacionSalida:
+        rec = r.recomendacion
+        return cls(
+            lote_id=r.lote.id,
+            codigo=r.lote.codigo,
+            peces_vivos=r.peces_vivos,
+            biomasa_kg=rec.biomasa_kg,
+            peso_medio_g=rec.peso_medio_g,
+            tasa_pct=rec.tasa_pct,
+            tramo=rec.tramo,
+            lectura_id=r.lectura.id if r.lectura else None,
+            nivel_temperatura=rec.nivel_temperatura,
+            nivel_oxigeno=rec.nivel_oxigeno,
+            factor_temperatura=rec.factor_temperatura,
+            factor_oxigeno=rec.factor_oxigeno,
+            racion_kg=rec.racion_kg,
+            suspender=rec.suspender,
+            regla=rec.regla,
+            advertencias=list(rec.advertencias),
+        )

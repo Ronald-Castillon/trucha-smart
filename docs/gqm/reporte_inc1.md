@@ -22,3 +22,16 @@ Los valores se calculan a partir de artefactos reales del repositorio (código, 
 - **M2.3** — 504 de 504 líneas ejecutables cubiertas
 - **M3.1** — 6 de 10 resueltas y verificadas: B-01, B-02, B-03, B-04, B-05, B-06
 - **M3.2** — IV-1: pendiente (falta AS-IS o TO-BE); IV-2: pendiente (falta AS-IS o TO-BE); IV-3: pendiente (falta AS-IS o TO-BE)
+
+## Anexo — M3.2 recalculado (2026-10-23)
+
+Este reporte se emitió al cerrar el Incremento 1 con M3.2 en "pendiente". Después se cargaron
+en `docs/gqm/valor_indicadores.yaml` los valores TO-BE **medidos** sobre el tag `v1.0-PMV`
+(`docs/gqm/mediciones/medicion_inc1.json`) y líneas base AS-IS **estimadas** a partir del enunciado.
+Las demás métricas de este reporte no cambian.
+
+| Métrica | Nombre | Valor | Meta | Estado |
+|---|---|---|---|---|
+| M3.2 | Mejora de indicadores de valor | 100.0 % (AS-IS estimado: IV-1, IV-3; parcial 2 de 3 IV) | >= 50.0 % | ⚠️ no acredita (requiere AS-IS medido) |
+
+- **M3.2** — IV-1: 720 (AS-IS estimado) → 0.0398 minutos (100.0 %); IV-2: pendiente (falta AS-IS); IV-3: 2 (AS-IS estimado) → 19716.7 lecturas/día (100.0 %)

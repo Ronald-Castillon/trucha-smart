@@ -1,0 +1,1 @@
+"""TruchaSmart - paquete raíz."""

@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+
+# Herramientas
+.pytest_cache/
+.ruff_cache/
+.import_linter_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Entorno y datos locales
+.env
+*.db
+*.sqlite3
+reportes_generados/
+
+# IDE / SO
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

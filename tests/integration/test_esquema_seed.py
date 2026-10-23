@@ -61,3 +61,14 @@ def test_clave_foranea_de_estanque_inexistente(bd):
             "INSERT INTO lecturas_agua (estanque_id, temperatura_c, oxigeno_mg_l, ph, fuente, "
             "medido_en) VALUES (999, 12, 8, 7, 'MANUAL', '2026-10-23 00:00:00')"
         )
+
+
+def test_modelos_orm_coinciden_con_schema_sql(bd):
+    """Cada tabla del ORM existe en db/schema.sql con exactamente las mismas columnas."""
+    from src.adapters.outbound.persistence import orm  # noqa: F401
+    from src.adapters.outbound.persistence.db import Base
+
+    for nombre, tabla in Base.metadata.tables.items():
+        columnas_sql = {fila[1] for fila in bd.execute(f"PRAGMA table_info({nombre})")}
+        assert columnas_sql, f"La tabla {nombre} no existe en schema.sql"
+        assert {c.name for c in tabla.columns} == columnas_sql, nombre

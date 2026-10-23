@@ -97,3 +97,36 @@ class RepositorioLecturaMemoria(RepositorioMemoria):
         ]
         res.sort(key=lambda x: (x.medido_en, x.id), reverse=True)
         return res[:limite] if limite else res
+
+
+class RepositorioAlertaMemoria(RepositorioMemoria):
+    def abierta(self, estanque_id, parametro, nivel):
+        return next(
+            (
+                replace(a)
+                for a in self.datos.values()
+                if a.estanque_id == estanque_id
+                and a.parametro == parametro
+                and a.nivel == nivel
+                and a.abierta
+            ),
+            None,
+        )
+
+    def listar(self, estanque_id=None, estado=None, limite=None):
+        res = [
+            replace(a)
+            for a in self.datos.values()
+            if (estanque_id is None or a.estanque_id == estanque_id)
+            and (estado is None or a.estado == estado)
+        ]
+        res.sort(key=lambda a: (a.creada_en, a.id), reverse=True)
+        return res[:limite] if limite else res
+
+
+class NotificadorFalso:
+    def __init__(self) -> None:
+        self.enviadas = []
+
+    def notificar(self, alerta) -> None:
+        self.enviadas.append(alerta)

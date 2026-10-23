@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 
 from src.adapters.inbound.rest.dependencias import Contenedor, contenedor, usuario_actual
 from src.adapters.inbound.rest.errores import RESPUESTAS_ERROR
@@ -13,6 +13,7 @@ from src.adapters.inbound.rest.esquemas import (
     LecturaEntrada,
     LecturaRegistradaSalida,
     LecturaSalida,
+    PuntoTendencia,
     RiesgoSalida,
 )
 from src.domain.model.usuario import Usuario
@@ -75,12 +76,18 @@ def ultima_lectura(
 
 @router.get("/panel", response_model=list[EstadoEstanque], tags=["panel"])
 def estado_panel(
-    usuario: Usuario = Depends(usuario_actual), c: Contenedor = Depends(contenedor)
+    request: Request,
+    puntos: int = Query(20, ge=0, le=200, description="Lecturas para la tendencia"),
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
 ) -> list[EstadoEstanque]:
     """Estado de todos los estanques activos; el panel web lo consulta cada 1 s."""
+    sim = getattr(request.app.state, "simulador", None)
     resultado = []
     for e in c.estanques.listar(usuario):
         estado = c.lecturas.estado(e.id, usuario)
+        recientes = c.lecturas.recientes(e.id, usuario, puntos) if puntos else []
+        simulacion = sim.de(e.id) if sim else None
         resultado.append(
             EstadoEstanque(
                 estanque_id=e.id,
@@ -89,6 +96,8 @@ def estado_panel(
                 niveles=estado.niveles,
                 alertas_abiertas=[AlertaSalida.de(a) for a in estado.alertas_abiertas],
                 riesgo=RiesgoSalida.de(c.historial.riesgo(e.id, usuario)),
+                tendencia=[PuntoTendencia.de(x) for x in reversed(recientes)],
+                simulacion=simulacion.escenario if simulacion else None,
             )
         )
     return resultado

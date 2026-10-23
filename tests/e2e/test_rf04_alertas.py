@@ -15,7 +15,7 @@ def _token(api: httpx.Client) -> dict[str, str]:
 
 def test_cp_rf04_01_alerta_critica_visible_en_panel(pagina, url_base):
     """CP-RF04-01: una lectura del sensor con OD 4.5 produce una alerta CRÍTICA en el panel
-    abierto en < 2 s (más el intervalo de refresco)."""
+    abierto en < 2 s (incluido el intervalo de refresco de 1 s)."""
     iniciar_sesion(pagina, "operario", "Oper123!")
     pagina.wait_for_url("**/panel")
     tarjeta = pagina.locator('[data-estanque="1"]')
@@ -28,8 +28,8 @@ def test_cp_rf04_01_alerta_critica_visible_en_panel(pagina, url_base):
             headers=_token(api),
         )
     assert r.status_code == 201 and r.json()["alertas"][0]["nivel"] == "CRITICA"
-    tarjeta.locator(".alerta .etiqueta.CRITICA").wait_for(timeout=2500)
-    assert time.perf_counter() - inicio < 2.5
+    tarjeta.locator(".alerta .etiqueta.CRITICA").wait_for(timeout=2000)
+    assert time.perf_counter() - inicio < 2.0
     assert "Oxígeno disuelto en CRÍTICA: 4.50 mg/L" in tarjeta.inner_text()
     assert "nivel-CRITICA" in tarjeta.locator(".oxigeno").get_attribute("class")
 

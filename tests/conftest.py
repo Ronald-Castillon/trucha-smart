@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterator
 
 import pytest
@@ -10,7 +11,7 @@ from fastapi.testclient import TestClient
 from src.adapters.config import RAIZ, cargar_umbrales
 from src.adapters.inbound.rest.dependencias import Recursos
 from src.adapters.outbound.notification.notificador_log import NotificadorLog
-from src.adapters.outbound.persistence.db import BaseDatos
+from src.adapters.outbound.persistence.db import Base, BaseDatos
 from src.adapters.outbound.persistence.repositorio_usuario_sql import RepositorioUsuarioSQL
 from src.adapters.outbound.security.bcrypt_hasher import HasherBcrypt
 from src.adapters.outbound.security.jwt_tokens import ServicioTokens
@@ -31,9 +32,14 @@ def reloj() -> RelojFijo:
     return RelojFijo()
 
 
+# TEST_DATABASE_URL permite correr las pruebas de integración contra PostgreSQL (CI, ADR-003).
+URL_PRUEBAS = os.getenv("TEST_DATABASE_URL", "sqlite://")
+
+
 @pytest.fixture
 def recursos(reloj) -> Iterator[Recursos]:
-    bd = BaseDatos("sqlite://")
+    bd = BaseDatos(URL_PRUEBAS)
+    Base.metadata.drop_all(bd.motor)
     bd.crear_tablas()
     hasher = HasherBcrypt(rondas=4)
     with bd.sesion() as s:
@@ -57,6 +63,7 @@ def recursos(reloj) -> Iterator[Recursos]:
         umbrales=cargar_umbrales(RAIZ / "config" / "umbrales.yaml"),
         notificador=NotificadorLog(),
     )
+    Base.metadata.drop_all(bd.motor)
     bd.motor.dispose()
 
 

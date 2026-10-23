@@ -76,7 +76,7 @@ def ultima_lectura(
 def estado_panel(
     usuario: Usuario = Depends(usuario_actual), c: Contenedor = Depends(contenedor)
 ) -> list[EstadoEstanque]:
-    """Estado de todos los estanques activos; el panel web lo consulta cada 2 s."""
+    """Estado de todos los estanques activos; el panel web lo consulta cada 1 s."""
     resultado = []
     for e in c.estanques.listar(usuario):
         estado = c.lecturas.estado(e.id, usuario)

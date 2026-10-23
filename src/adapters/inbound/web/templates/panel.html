@@ -3,7 +3,7 @@
 {% block contenido %}
 <h1>Panel</h1>
 <p class="suave">Bienvenido/a, <strong>{{ usuario.nombre_completo }}</strong> · Rol: {{ usuario.rol.value | title }} ·
-  <span id="actualizado">actualización automática cada 2 s</span></p>
+  <span id="actualizado">actualización automática cada 1 s</span></p>
 <div class="rejilla" id="tarjetas-estanques">
   {% for e, lote, estado in filas %}
   {% set lectura = estado.lectura %}

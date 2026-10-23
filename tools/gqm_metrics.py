@@ -64,9 +64,14 @@ class Metrica:
     valor: float | None
     formato: str
     detalle: str
+    # Si no es None, el valor no es una medición completa y no acredita la meta.
+    advertencia: str | None = None
 
     def texto_valor(self) -> str:
-        return "pendiente" if self.valor is None else self.formato.format(self.valor)
+        if self.valor is None:
+            return "pendiente"
+        texto = self.formato.format(self.valor)
+        return f"{texto} ({self.advertencia})" if self.advertencia else texto
 
 
 def evaluar_meta(m: Metrica, inc: int) -> tuple[str, str]:
@@ -74,6 +79,8 @@ def evaluar_meta(m: Metrica, inc: int) -> tuple[str, str]:
     meta = f"{op} {m.formato.format(objetivo)}"
     if m.valor is None:
         return meta, "⏳ pendiente"
+    if m.advertencia:
+        return meta, "⚠️ no acredita (requiere AS-IS medido)"
     ok = m.valor <= objetivo if op == "<=" else m.valor >= objetivo
     return meta, "✅ cumple" if ok else "❌ no cumple"
 
@@ -288,19 +295,44 @@ def m3_2(inc: int) -> Metrica:
     datos = yaml.safe_load(
         (RAIZ / "docs" / "gqm" / "valor_indicadores.yaml").read_text(encoding="utf-8")
     )
-    mejoras, partes = [], []
+    mejoras, partes, estimados = [], [], []
     for iv in datos["indicadores"]:
         as_is, to_be = iv.get("as_is"), iv.get(f"to_be_inc{inc}")
-        if as_is in (None, "") or to_be in (None, "") or float(as_is) == 0:
-            partes.append(f"{iv['id']}: pendiente (falta AS-IS o TO-BE)")
+        if as_is in (None, "") or float(as_is) == 0:
+            partes.append(f"{iv['id']}: pendiente (falta AS-IS)")
+            continue
+        if to_be in (None, ""):
+            partes.append(f"{iv['id']}: pendiente (sin TO-BE en el Inc. {inc})")
             continue
         a, t = float(as_is), float(to_be)
-        mejora = (a - t) / a * 100 if iv["sentido"] == "menor_es_mejor" else (t - a) / a * 100
+        if iv["sentido"] == "menor_es_mejor":
+            mejora = (a - t) / a * 100
+        else:  # acotada a 100 % para que un indicador no domine el promedio
+            mejora = min(100.0, (t - a) / a * 100)
         mejoras.append(mejora)
-        partes.append(f"{iv['id']}: {a:g} → {t:g} {iv['unidad']} ({mejora:.1f} %)")
-    completos = len(mejoras) == len(datos["indicadores"])
-    valor = sum(mejoras) / len(mejoras) if completos else None
-    return Metrica("M3.2", "Mejora de indicadores de valor", valor, "{:.1f} %", "; ".join(partes))
+        tipo = iv.get("as_is_tipo") or "medido"
+        if tipo != "medido":
+            estimados.append(iv["id"])
+        partes.append(
+            f"{iv['id']}: {a:g} ({'AS-IS ' + tipo}) → {t:g} {iv['unidad']} ({mejora:.1f} %)"
+        )
+    if not mejoras:
+        return Metrica(
+            "M3.2", "Mejora de indicadores de valor", None, "{:.1f} %", "; ".join(partes)
+        )
+    advertencias = []
+    if estimados:
+        advertencias.append("AS-IS estimado: " + ", ".join(estimados))
+    if len(mejoras) < len(datos["indicadores"]):
+        advertencias.append(f"parcial {len(mejoras)} de {len(datos['indicadores'])} IV")
+    return Metrica(
+        "M3.2",
+        "Mejora de indicadores de valor",
+        sum(mejoras) / len(mejoras),
+        "{:.1f} %",
+        "; ".join(partes),
+        "; ".join(advertencias) or None,
+    )
 
 
 # --------------------------------------------------------------------------- reporte

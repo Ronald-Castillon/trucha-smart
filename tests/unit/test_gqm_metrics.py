@@ -56,10 +56,45 @@ def _indicadores(raiz: Path, as_is, to_be) -> None:
     )
 
 
-def test_m3_2_pendiente_si_falta_linea_base(raiz: Path):
+def test_m3_2_parcial_si_falta_una_linea_base(raiz: Path):
     _indicadores(raiz, "null", 30)
     m = g.m3_2(1)
-    assert m.valor is None and "IV-1: pendiente" in m.detalle
+    assert m.valor == pytest.approx(75.0)  # IV-2 50 % e IV-3 100 %
+    assert "IV-1: pendiente (falta AS-IS)" in m.detalle
+    assert m.advertencia == "parcial 2 de 3 IV"
+    assert g.evaluar_meta(m, 1)[1].startswith("⚠️ no acredita")
+    assert m.texto_valor() == "75.0 % (parcial 2 de 3 IV)"
+
+
+def test_m3_2_sin_ningun_dato_es_pendiente(raiz: Path):
+    (raiz / "docs" / "gqm" / "valor_indicadores.yaml").write_text(
+        """indicadores:
+  - {id: IV-1, nombre: a, unidad: min, sentido: menor_es_mejor, as_is: null}
+""",
+        encoding="utf-8",
+    )
+    m = g.m3_2(2)
+    assert m.valor is None and g.evaluar_meta(m, 2)[1] == "⏳ pendiente"
+
+
+def test_m3_2_as_is_estimado_no_acredita_la_meta(raiz: Path):
+    (raiz / "docs" / "gqm" / "valor_indicadores.yaml").write_text(
+        """indicadores:
+  - {id: IV-1, nombre: a, unidad: min, sentido: menor_es_mejor, as_is: 720, as_is_tipo: estimado, to_be_inc2: 0.02}
+  - {id: IV-3, nombre: c, unidad: n, sentido: mayor_es_mejor, as_is: 2, as_is_tipo: medido, to_be_inc2: 20000}
+""",
+        encoding="utf-8",
+    )
+    m = g.m3_2(2)
+    assert m.valor == pytest.approx((99.997 + 100) / 2, abs=0.01)  # IV-3 acotada a 100 %
+    assert m.advertencia == "AS-IS estimado: IV-1"
+    assert "720 (AS-IS estimado)" in m.detalle and "2 (AS-IS medido)" in m.detalle
+    assert g.evaluar_meta(m, 2)[1] == "⚠️ no acredita (requiere AS-IS medido)"
+
+
+def test_m3_2_sin_to_be_del_incremento(raiz: Path):
+    _indicadores(raiz, 600, "null")
+    assert "IV-1: pendiente (sin TO-BE en el Inc. 1)" in g.m3_2(1).detalle
 
 
 def test_m3_2_promedia_mejoras(raiz: Path):

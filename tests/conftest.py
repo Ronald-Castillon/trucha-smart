@@ -8,7 +8,7 @@ from collections.abc import Iterator
 import pytest
 from fastapi.testclient import TestClient
 
-from src.adapters.config import RAIZ, cargar_umbrales
+from src.adapters.config import RAIZ, cargar_alimentacion, cargar_umbrales
 from src.adapters.inbound.rest.dependencias import Recursos
 from src.adapters.outbound.notification.notificador_log import NotificadorLog
 from src.adapters.outbound.persistence.db import Base, BaseDatos
@@ -62,6 +62,7 @@ def recursos(reloj) -> Iterator[Recursos]:
         reloj=reloj,
         umbrales=cargar_umbrales(RAIZ / "config" / "umbrales.yaml"),
         notificador=NotificadorLog(),
+        alimentacion=cargar_alimentacion(RAIZ / "config" / "alimentacion.yaml"),
     )
     Base.metadata.drop_all(bd.motor)
     bd.motor.dispose()

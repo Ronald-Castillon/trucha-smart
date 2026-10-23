@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block titulo %}Historial · {{ h.estanque.nombre }}{% endblock %}
+{% block contenido %}
+<p><a href="/estanques/{{ h.estanque.id }}">← {{ h.estanque.nombre }}</a></p>
+<h1>Historial de calidad de agua · {{ h.estanque.nombre }}</h1>
+<div class="rejilla">
+  <section class="tarjeta">
+    <h2>Filtrar por fechas (UTC)</h2>
+    <form class="apilado" method="get" id="filtro-fechas">
+      <label>Desde <input type="date" name="desde" value="{{ h.desde.isoformat() }}" required></label>
+      <label>Hasta <input type="date" name="hasta" value="{{ h.hasta.isoformat() }}" required></label>
+      <button type="submit">Filtrar</button>
+    </form>
+  </section>
+  <section class="tarjeta" id="riesgo">
+    <h2>Índice de riesgo actual</h2>
+    <p class="semaforo-grande {{ riesgo.semaforo.value | lower }}"><span class="valor">{{ riesgo.valor }}</span> / 100 · riesgo <strong>{{ riesgo.nivel }}</strong></p>
+    <p class="suave">{{ riesgo.formula }}<br>
+      ({{ riesgo.parametros_criticos }} parámetro(s) críticos y {{ riesgo.parametros_precaucion }} en precaución en la última lectura,
+      {{ riesgo.alertas_criticas_abiertas }} alerta(s) crítica(s) abierta(s)).<br>
+      Verde 0–29 · Amarillo 30–59 · Rojo ≥ 60</p>
+  </section>
+  <section class="tarjeta">
+    <h2>Resumen del periodo</h2>
+    <p id="total-lecturas"><strong>{{ h.lecturas | length }}</strong> lecturas del {{ h.desde.strftime('%d/%m/%Y') }} al {{ h.hasta.strftime('%d/%m/%Y') }}</p>
+    {% set nombres = {'TEMPERATURA': 'Temperatura (°C)', 'OXIGENO_DISUELTO': 'OD (mg/L)', 'PH': 'pH'} %}
+    <table>
+      <thead><tr><th>Parámetro</th><th>Mín.</th><th>Prom.</th><th>Máx.</th></tr></thead>
+      <tbody>
+      {% for p, e in h.estadisticas.items() %}
+        <tr><td>{{ nombres[p.value] }}</td><td>{{ '%.2f' % e.minimo }}</td><td>{{ '%.2f' % e.promedio }}</td><td>{{ '%.2f' % e.maximo }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+<section class="tarjeta">
+  <h2>Tendencia</h2>
+  {% if serie %}
+  <div style="position: relative; height: 340px"><canvas id="grafico-tendencia" aria-label="Gráfico de tendencia de temperatura, oxígeno disuelto y pH"></canvas></div>
+  {% else %}
+  <p>No hay lecturas en el rango seleccionado.</p>
+  {% endif %}
+</section>
+<section class="tarjeta tabla-scroll">
+  <h2>Lecturas</h2>
+  <table id="tabla-historial">
+    <thead><tr><th>Fecha (UTC)</th><th>Temperatura (°C)</th><th>OD (mg/L)</th><th>pH</th><th>Fuente</th></tr></thead>
+    <tbody>
+    {% for x in h.lecturas | reverse %}
+      <tr>
+        <td>{{ x.lectura.medido_en.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td class="nivel-{{ x.niveles['TEMPERATURA'].value }}">{{ '%.2f' % x.lectura.temperatura_c }}</td>
+        <td class="nivel-{{ x.niveles['OXIGENO_DISUELTO'].value }}">{{ '%.2f' % x.lectura.oxigeno_mg_l }}</td>
+        <td class="nivel-{{ x.niveles['PH'].value }}">{{ '%.2f' % x.lectura.ph }}</td>
+        <td>{{ x.lectura.fuente.value | title }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5">Sin lecturas en el rango.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
+{% block scripts %}
+{% if serie %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  const serie = {{ serie | tojson }};
+  if (!window.Chart) { return; }
+  new Chart(document.getElementById("grafico-tendencia"), {
+    type: "line",
+    data: {
+      labels: serie.map(s => s.t),
+      datasets: [
+        { label: "Temperatura (°C)", data: serie.map(s => s.temperatura), borderColor: "#c0392b", yAxisID: "y", tension: 0.25, pointRadius: 2 },
+        { label: "OD (mg/L)", data: serie.map(s => s.oxigeno), borderColor: "#0b6e8a", yAxisID: "y", tension: 0.25, pointRadius: 2 },
+        { label: "pH", data: serie.map(s => s.ph), borderColor: "#1f8a4c", yAxisID: "y2", tension: 0.25, pointRadius: 2 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: { mode: "index", intersect: false },
+      scales: {
+        y: { title: { display: true, text: "°C / mg/L" } },
+        y2: { position: "right", min: 5, max: 10, grid: { drawOnChartArea: false }, title: { display: true, text: "pH" } }
+      }
+    }
+  });
+  document.getElementById("grafico-tendencia").dataset.listo = "1";
+})();
+</script>
+{% endif %}
+{% endblock %}

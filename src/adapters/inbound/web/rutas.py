@@ -95,7 +95,8 @@ def _estanques_con_lote(c: Contenedor, usuario: Usuario):
 
 def _vista_panel(request, c: Contenedor, usuario: Usuario, **extra):
     filas = [
-        (e, lote, c.lecturas.estado(e.id, usuario)) for e, lote in _estanques_con_lote(c, usuario)
+        (e, lote, c.lecturas.estado(e.id, usuario), c.historial.riesgo(e.id, usuario))
+        for e, lote in _estanques_con_lote(c, usuario)
     ]
     return render(request, "panel.html", usuario=usuario, filas=filas, **extra)
 
@@ -167,6 +168,50 @@ def registrar_lectura(
     if resultado.alertas_nuevas:
         aviso += f" · {len(resultado.alertas_nuevas)} alerta(s) generada(s)"
     return _vista_panel(request, c, usuario, aviso=aviso)
+
+
+# --------------------------------------------------------------------------- historial (RF-05)
+
+
+@router.get("/estanques/{estanque_id}/historial")
+def historial(
+    request: Request,
+    estanque_id: int,
+    desde: str = "",
+    hasta: str = "",
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    error = None
+    try:
+        h = c.historial.historial(
+            estanque_id,
+            usuario,
+            _fecha("desde", desde) if desde else None,
+            _fecha("hasta", hasta) if hasta else None,
+        )
+    except ErrorValidacion as e:
+        error = e.mensaje
+        h = c.historial.historial(estanque_id, usuario)
+    serie = [
+        {
+            "t": x.lectura.medido_en.strftime("%d/%m %H:%M"),
+            "temperatura": x.lectura.temperatura_c,
+            "oxigeno": x.lectura.oxigeno_mg_l,
+            "ph": x.lectura.ph,
+        }
+        for x in h.lecturas
+    ]
+    return render(
+        request,
+        "historial.html",
+        422 if error else 200,
+        usuario=usuario,
+        h=h,
+        serie=serie,
+        riesgo=c.historial.riesgo(estanque_id, usuario),
+        error=error,
+    )
 
 
 # --------------------------------------------------------------------------- alertas (RF-04)

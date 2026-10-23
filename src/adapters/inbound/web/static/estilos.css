@@ -39,3 +39,6 @@ th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(
 .centro { min-height: 70vh; display: grid; place-items: center; }
 @media (max-width: 600px) { header { flex-direction: column; align-items: flex-start; } }
 .tarjeta h2 a { color: var(--primario); text-decoration: none; }
+.etiqueta.riesgo { font-size: .85rem; }
+.semaforo-grande { font-size: 1.15rem; padding: .6rem .8rem; border-radius: 8px; color: #fff; }
+.semaforo-grande .valor { font-size: 2rem; font-weight: 800; }

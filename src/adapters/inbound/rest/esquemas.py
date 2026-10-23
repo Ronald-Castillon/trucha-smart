@@ -13,6 +13,8 @@ from src.domain.model.lote import Lote
 from src.domain.model.umbral import Nivel
 from src.domain.model.usuario import Rol, Usuario
 from src.domain.service.evaluador_calidad_agua import Evaluacion
+from src.domain.service.indice_riesgo import IndiceRiesgo, Semaforo
+from src.ports.inbound.consultar_historial import Historial
 
 # --------------------------------------------------------------------------- usuarios
 
@@ -150,6 +152,69 @@ class LecturaSalida(BaseModel):
         return cls(**{k: getattr(lec, k) for k in cls.model_fields})
 
 
+# --------------------------------------------------------------------------- historial y riesgo
+
+
+class RiesgoSalida(BaseModel):
+    valor: int = Field(ge=0, le=100)
+    semaforo: Semaforo
+    nivel: str = Field(description="bajo | medio | alto")
+    parametros_criticos: int
+    parametros_precaucion: int
+    alertas_criticas_abiertas: int
+    formula: str
+
+    @classmethod
+    def de(cls, r: IndiceRiesgo) -> RiesgoSalida:
+        return cls(
+            valor=r.valor,
+            semaforo=r.semaforo,
+            nivel=r.nivel,
+            parametros_criticos=r.parametros_criticos,
+            parametros_precaucion=r.parametros_precaucion,
+            alertas_criticas_abiertas=r.alertas_criticas_abiertas,
+            formula=r.formula,
+        )
+
+
+class LecturaHistorial(LecturaSalida):
+    niveles: dict[Parametro, Nivel]
+
+
+class EstadisticaSalida(BaseModel):
+    minimo: float
+    maximo: float
+    promedio: float
+
+
+class HistorialSalida(BaseModel):
+    estanque_id: int
+    estanque: str
+    desde: date
+    hasta: date
+    total: int
+    lecturas: list[LecturaHistorial]
+    estadisticas: dict[Parametro, EstadisticaSalida]
+
+    @classmethod
+    def de(cls, h: Historial) -> HistorialSalida:
+        return cls(
+            estanque_id=h.estanque.id,
+            estanque=h.estanque.nombre,
+            desde=h.desde,
+            hasta=h.hasta,
+            total=len(h.lecturas),
+            lecturas=[
+                LecturaHistorial(**LecturaSalida.de(x.lectura).model_dump(), niveles=x.niveles)
+                for x in h.lecturas
+            ],
+            estadisticas={
+                p: EstadisticaSalida(minimo=e.minimo, maximo=e.maximo, promedio=e.promedio)
+                for p, e in h.estadisticas.items()
+            },
+        )
+
+
 # --------------------------------------------------------------------------- alertas
 
 
@@ -202,3 +267,4 @@ class EstadoEstanque(BaseModel):
     ultima_lectura: LecturaSalida | None
     niveles: dict[Parametro, Nivel]
     alertas_abiertas: list[AlertaSalida]
+    riesgo: RiesgoSalida

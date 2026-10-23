@@ -134,7 +134,7 @@ muestra las alertas generadas; el panel web se refresca cada 2 s.
 
 Contrato completo: [`docs/openapi.json`](docs/openapi.json) o <http://localhost:8000/docs>.
 Autenticación con `POST /api/auth/login` → `Authorization: Bearer <token>` (la web usa cookie
-HttpOnly). Todos los errores devuelven `{"error", "detalle", "campo"}` con 401, 403, 404, 409 o 422.
+HttpOnly). Todos los errores JSON devuelven `{"error", "detalle", "campo"}` con 401, 403, 404, 409 o 422.
 
 | RF | Método y ruta | Rol mínimo |
 |---|---|---|
@@ -144,6 +144,17 @@ HttpOnly). Todos los errores devuelven `{"error", "detalle", "campo"}` con 401, 
 | RF-02 | `POST /api/estanques`, `PUT/DELETE /api/estanques/{id}`, `POST /api/estanques/{id}/lotes`, `PUT /api/lotes/{id}/peso`, `POST /api/lotes/{id}/cerrar` | Piscicultor |
 | RF-03 | `POST /api/lecturas`, `GET /api/lecturas?estanque_id=`, `GET /api/estanques/{id}/ultima-lectura`, `GET /api/panel` | Operario |
 | RF-04 | `GET /api/alertas?estado=&estanque_id=`, `POST /api/alertas/{id}/atender` | Operario |
+| RF-05 | `GET /api/estanques/{id}/historial?desde=&hasta=`, `GET /api/estanques/{id}/riesgo` | Operario |
+| RF-06 | `POST/GET /api/lotes/{id}/alimentacion`, `POST/GET /api/lotes/{id}/mortalidad`, `GET /api/lotes/{id}/produccion` | Operario |
+| RF-07 | `GET /api/lotes/{id}/racion` | Operario |
+| RF-08 | `GET /api/reportes/{calidad-agua\|produccion}.{csv\|pdf}?desde=&hasta=` | Piscicultor |
+
+### Reglas de negocio (valores de referencia, `config/*.yaml`)
+
+- **Índice de riesgo (RF-05):** `min(100, 40 × parámetros críticos + 15 × en precaución + 10 × alertas críticas abiertas)`; verde 0–29, amarillo 30–59, rojo ≥ 60.
+- **Biomasa y FCR (RF-06):** biomasa = peces vivos × peso medio; FCR = alimento total / ganancia de biomasa ("no calculable" si la ganancia es 0).
+- **Ración (RF-07):** biomasa × tasa (% según peso medio: < 10 g 5 %, 10–50 g 3 %, 50–200 g 2 %, ≥ 200 g 1.2 %) × factor de temperatura × factor de oxígeno (normal 1, precaución 0.7/0.5, crítico 0 = suspender).
+- **Reportes (RF-08):** vista previa en `/reportes` y descarga en PDF o CSV (UTF-8 con BOM para Excel).
 
 ## Pruebas y calidad
 

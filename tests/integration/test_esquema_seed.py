@@ -85,3 +85,26 @@ def test_mensajes_de_alertas_del_seed_siguen_el_formato_del_dominio(bd):
     for parametro, nivel, valor, mensaje in filas:
         esperado = UMBRALES.de(Parametro(parametro)).describir(valor, Nivel(nivel))
         assert mensaje == esperado
+
+
+def test_filtro_por_dia_completo_incluye_las_00_00_del_seed(tmp_path):
+    """Regresión Issue #19: el seed cargado en SQLite respeta los límites inclusivos de fecha."""
+    from datetime import UTC, datetime, time
+
+    from src.adapters.outbound.persistence.db import BaseDatos
+    from src.adapters.outbound.persistence.repositorio_lectura_sql import RepositorioLecturaSQL
+
+    ruta = tmp_path / "seed.db"
+    with sqlite3.connect(ruta) as cx:
+        cargar_sqlite(cx)
+    bd = BaseDatos(f"sqlite:///{ruta.as_posix()}")
+    dia = datetime(2026, 10, 16, tzinfo=UTC).date()
+    with bd.sesion() as s:
+        lecturas = RepositorioLecturaSQL(s).de_estanque(
+            1,
+            datetime.combine(dia, time.min, tzinfo=UTC),
+            datetime.combine(dia, time.max, tzinfo=UTC),
+        )
+    bd.motor.dispose()
+    assert len(lecturas) == 8  # cada 3 h: 00:00, 03:00, ..., 21:00
+    assert lecturas[-1].medido_en == datetime(2026, 10, 16, 0, 0, tzinfo=UTC)

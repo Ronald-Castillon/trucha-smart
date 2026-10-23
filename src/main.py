@@ -19,6 +19,7 @@ from src.adapters.inbound.rest import (
     racion,
     reportes,
     salud,
+    simulador,
 )
 from src.adapters.inbound.rest.dependencias import Recursos
 from src.adapters.inbound.rest.errores import registrar_manejadores
@@ -62,6 +63,7 @@ def crear_app(config: Configuracion | None = None, recursos: Recursos | None = N
         if app.state.recursos is None:
             app.state.recursos = crear_recursos(config or Configuracion.desde_entorno())
         yield
+        app.state.simulador.detener_todas()
 
     app = FastAPI(
         title="TruchaSmart API",
@@ -70,8 +72,10 @@ def crear_app(config: Configuracion | None = None, recursos: Recursos | None = N
         lifespan=ciclo_de_vida,
     )
     app.state.recursos = recursos
+    app.state.simulador = simulador.crear_simulador(app)
     registrar_manejadores(app)
     app.include_router(salud.router)
+    app.include_router(simulador.router)
     app.include_router(auth.router)
     app.include_router(estanques.router)
     app.include_router(lecturas.router)

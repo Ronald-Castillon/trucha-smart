@@ -263,6 +263,22 @@ class LecturaRegistradaSalida(LecturaSalida):
     alertas: list[AlertaSalida]
 
 
+class PuntoTendencia(BaseModel):
+    medido_en: datetime
+    temperatura_c: float
+    oxigeno_mg_l: float
+    ph: float
+
+    @classmethod
+    def de(cls, lec: LecturaAgua) -> PuntoTendencia:
+        return cls(
+            medido_en=lec.medido_en,
+            temperatura_c=lec.temperatura_c,
+            oxigeno_mg_l=lec.oxigeno_mg_l,
+            ph=lec.ph,
+        )
+
+
 class EstadoEstanque(BaseModel):
     """Resumen de un estanque para el panel (se refresca cada 1 s)."""
 
@@ -272,6 +288,12 @@ class EstadoEstanque(BaseModel):
     niveles: dict[Parametro, Nivel]
     alertas_abiertas: list[AlertaSalida]
     riesgo: RiesgoSalida
+    tendencia: list[PuntoTendencia] = Field(
+        default_factory=list, description="Últimas lecturas, de la más antigua a la más reciente"
+    )
+    simulacion: str | None = Field(
+        default=None, description="Escenario del sensor simulado activo, si lo hay"
+    )
 
 
 # ------------------------------------------------------------------- alimentación y producción

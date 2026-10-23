@@ -116,7 +116,14 @@ alimentación diaria y mortalidad.
 
 > Credenciales solo de demostración. Cambiarlas en cualquier entorno compartido.
 
-### Simulador de sensores (ADR-004)
+### Interfaz en vivo
+
+- **Panel:** se actualiza cada segundo, con un mini gráfico de tendencia por estanque y un destello en los valores que cambian.
+- **Avisos:** en cualquier página aparece un aviso emergente (y un pitido corto) cuando se crea una alerta nueva.
+- **Alertas e historial:** se actualizan solos; el historial solo lo hace si el rango incluye el día de hoy.
+- **Simulador desde la web:** el Piscicultor o el Administrador pueden iniciar y detener el sensor simulado de cada estanque desde su tarjeta del panel. Escenarios: normal, oxígeno cayendo y temperatura subiendo; envía una lectura cada 2 s.
+
+### Simulador de sensores por línea de comandos (ADR-004)
 
 Con la app en marcha:
 
@@ -148,6 +155,7 @@ HttpOnly). Todos los errores JSON devuelven `{"error", "detalle", "campo"}` con 
 | RF-06 | `POST/GET /api/lotes/{id}/alimentacion`, `POST/GET /api/lotes/{id}/mortalidad`, `GET /api/lotes/{id}/produccion` | Operario |
 | RF-07 | `GET /api/lotes/{id}/racion` | Operario |
 | RF-08 | `GET /api/reportes/{calidad-agua\|produccion}.{csv\|pdf}?desde=&hasta=` | Piscicultor |
+| Demo | `GET/POST /api/simulador`, `DELETE /api/simulador/{estanque_id}` (sensor simulado desde la web) | Piscicultor |
 
 ### Reglas de negocio (valores de referencia, `config/*.yaml`)
 

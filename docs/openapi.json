@@ -256,6 +256,26 @@
           "riesgo": {
             "$ref": "#/components/schemas/RiesgoSalida"
           },
+          "simulacion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Escenario del sensor simulado activo, si lo hay",
+            "title": "Simulacion"
+          },
+          "tendencia": {
+            "description": "Últimas lecturas, de la más antigua a la más reciente",
+            "items": {
+              "$ref": "#/components/schemas/PuntoTendencia"
+            },
+            "title": "Tendencia",
+            "type": "array"
+          },
           "ultima_lectura": {
             "anyOf": [
               {
@@ -1108,6 +1128,35 @@
         "title": "ProduccionSalida",
         "type": "object"
       },
+      "PuntoTendencia": {
+        "properties": {
+          "medido_en": {
+            "format": "date-time",
+            "title": "Medido En",
+            "type": "string"
+          },
+          "oxigeno_mg_l": {
+            "title": "Oxigeno Mg L",
+            "type": "number"
+          },
+          "ph": {
+            "title": "Ph",
+            "type": "number"
+          },
+          "temperatura_c": {
+            "title": "Temperatura C",
+            "type": "number"
+          }
+        },
+        "required": [
+          "medido_en",
+          "temperatura_c",
+          "oxigeno_mg_l",
+          "ph"
+        ],
+        "title": "PuntoTendencia",
+        "type": "object"
+      },
       "RacionSalida": {
         "properties": {
           "advertencias": {
@@ -1311,6 +1360,81 @@
         ],
         "title": "Semaforo",
         "type": "string"
+      },
+      "SimulacionEntrada": {
+        "properties": {
+          "escenario": {
+            "default": "normal",
+            "examples": [
+              "normal",
+              "critico_oxigeno",
+              "critico_temperatura"
+            ],
+            "title": "Escenario",
+            "type": "string"
+          },
+          "estanque_id": {
+            "title": "Estanque Id",
+            "type": "integer"
+          },
+          "intervalo_s": {
+            "default": 3.0,
+            "description": "Entre 1 y 60 segundos",
+            "title": "Intervalo S",
+            "type": "number"
+          }
+        },
+        "required": [
+          "estanque_id"
+        ],
+        "title": "SimulacionEntrada",
+        "type": "object"
+      },
+      "SimulacionSalida": {
+        "properties": {
+          "escenario": {
+            "title": "Escenario",
+            "type": "string"
+          },
+          "estanque_id": {
+            "title": "Estanque Id",
+            "type": "integer"
+          },
+          "iniciada_en": {
+            "format": "date-time",
+            "title": "Iniciada En",
+            "type": "string"
+          },
+          "intervalo_s": {
+            "title": "Intervalo S",
+            "type": "number"
+          },
+          "lecturas_enviadas": {
+            "title": "Lecturas Enviadas",
+            "type": "integer"
+          },
+          "ultimo_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ultimo Error"
+          }
+        },
+        "required": [
+          "estanque_id",
+          "escenario",
+          "intervalo_s",
+          "iniciada_en",
+          "lecturas_enviadas",
+          "ultimo_error"
+        ],
+        "title": "SimulacionSalida",
+        "type": "object"
       },
       "TipoEstanque": {
         "enum": [
@@ -3834,6 +3958,22 @@
       "get": {
         "description": "Estado de todos los estanques activos; el panel web lo consulta cada 1 s.",
         "operationId": "estado_panel_api_panel_get",
+        "parameters": [
+          {
+            "description": "Lecturas para la tendencia",
+            "in": "query",
+            "name": "puntos",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Lecturas para la tendencia",
+              "maximum": 200,
+              "minimum": 0,
+              "title": "Puntos",
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -4042,6 +4182,251 @@
         "summary": "Estado del servicio",
         "tags": [
           "salud"
+        ]
+      }
+    },
+    "/api/simulador": {
+      "get": {
+        "operationId": "simulaciones_activas_api_simulador_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SimulacionSalida"
+                  },
+                  "title": "Response Simulaciones Activas Api Simulador Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Simulaciones Activas",
+        "tags": [
+          "simulador"
+        ]
+      },
+      "post": {
+        "description": "Inicia (o reinicia) el sensor simulado de un estanque. Piscicultor o Administrador.",
+        "operationId": "iniciar_simulacion_api_simulador_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulacionEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulacionSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Iniciar Simulacion",
+        "tags": [
+          "simulador"
+        ]
+      }
+    },
+    "/api/simulador/{estanque_id}": {
+      "delete": {
+        "operationId": "detener_simulacion_api_simulador__estanque_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "estanque_id",
+            "required": true,
+            "schema": {
+              "title": "Estanque Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Detener Simulacion",
+        "tags": [
+          "simulador"
         ]
       }
     },

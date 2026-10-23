@@ -361,6 +361,7 @@ def historial(
         h=h,
         serie=serie,
         riesgo=c.historial.riesgo(estanque_id, usuario),
+        en_vivo=h.hasta >= c.recursos.reloj.ahora().date(),
         error=error,
     )
 

@@ -26,3 +26,6 @@ reportes_generados/
 .idea/
 Thumbs.db
 .DS_Store
+
+# Configuración local de Claude Code
+.claude/

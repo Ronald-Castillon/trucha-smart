@@ -46,6 +46,11 @@ class ServicioUsuarios:
         solicitante.exigir(Permiso.GESTIONAR_USUARIOS)
         return self._repo.listar()
 
+    def nombres(self, solicitante: Usuario) -> dict[int, str]:
+        """Nombre completo por id, para mostrar quién registró o atendió algo (B-04, B-06)."""
+        solicitante.exigir(Permiso.CONSULTAR)
+        return {u.id: u.nombre_completo for u in self._repo.listar()}
+
     # -- Autenticar --------------------------------------------------------
     def autenticar(self, nombre_usuario: str, password: str) -> Usuario:
         usuario = self._repo.por_nombre_usuario(nombre_usuario.strip().lower())

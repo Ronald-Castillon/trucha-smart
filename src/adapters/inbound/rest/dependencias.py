@@ -24,6 +24,7 @@ from src.domain.model.usuario import Usuario
 from src.domain.service.evaluador_calidad_agua import EvaluadorCalidadAgua
 from src.domain.service.servicio_alertas import ServicioAlertas
 from src.domain.service.servicio_estanques import ServicioEstanques
+from src.domain.service.servicio_historial import ServicioHistorial
 from src.domain.service.servicio_lecturas import ServicioLecturas
 from src.domain.service.servicio_usuarios import ServicioUsuarios
 from src.ports.outbound.hasher_password import HasherPassword
@@ -99,6 +100,17 @@ class Contenedor:
     @cached_property
     def alertas(self) -> ServicioAlertas:
         return ServicioAlertas(self.repo_alertas, self.recursos.reloj)
+
+    @cached_property
+    def historial(self) -> ServicioHistorial:
+        r = self.recursos
+        return ServicioHistorial(
+            self.repo_lecturas,
+            self.repo_estanques,
+            self.repo_alertas,
+            EvaluadorCalidadAgua(r.umbrales),
+            r.reloj,
+        )
 
 
 def recursos(request: Request) -> Recursos:

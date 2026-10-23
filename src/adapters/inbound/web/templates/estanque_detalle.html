@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block titulo %}{{ estanque.nombre }}{% endblock %}
 {% block contenido %}
-<p><a href="/estanques">← Estanques</a></p>
+<p><a href="/estanques">← Estanques</a> · <a href="/estanques/{{ estanque.id }}/historial">Ver historial y riesgo</a></p>
 <h1>{{ estanque.nombre }} <span class="suave">({{ estanque.tipo.value | title }})</span></h1>
 <div class="rejilla">
   <section class="tarjeta" id="lote-activo">

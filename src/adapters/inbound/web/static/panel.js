@@ -39,6 +39,14 @@
         ).join("");
   }
 
+  function pintarRiesgo(tarjeta, r) {
+    const et = tarjeta.querySelector(".riesgo");
+    if (!et || !r) return;
+    et.className = `etiqueta riesgo ${r.semaforo.toLowerCase()}`;
+    et.title = r.formula;
+    et.textContent = `Riesgo ${r.valor} · ${r.nivel}`;
+  }
+
   async function refrescar() {
     try {
       const r = await fetch("/api/panel", { credentials: "same-origin" });
@@ -49,6 +57,7 @@
         if (!tarjeta) continue;
         pintarLectura(tarjeta, e.ultima_lectura, e.niveles);
         pintarAlertas(tarjeta, e.alertas_abiertas);
+        pintarRiesgo(tarjeta, e.riesgo);
       }
       document.getElementById("actualizado").textContent =
         "actualizado " + new Date().toLocaleTimeString();

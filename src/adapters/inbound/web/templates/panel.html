@@ -5,10 +5,12 @@
 <p class="suave">Bienvenido/a, <strong>{{ usuario.nombre_completo }}</strong> · Rol: {{ usuario.rol.value | title }} ·
   <span id="actualizado">actualización automática cada 1 s</span></p>
 <div class="rejilla" id="tarjetas-estanques">
-  {% for e, lote, estado in filas %}
+  {% for e, lote, estado, riesgo in filas %}
   {% set lectura = estado.lectura %}
   <article class="tarjeta" data-estanque="{{ e.id }}">
     <h2><a href="/estanques/{{ e.id }}">{{ e.nombre }}</a></h2>
+    <p><span class="etiqueta riesgo {{ riesgo.semaforo.value | lower }}" title="{{ riesgo.formula }}">Riesgo {{ riesgo.valor }} · {{ riesgo.nivel }}</span>
+       · <a href="/estanques/{{ e.id }}/historial">Historial</a></p>
     <p class="suave">{{ e.tipo.value | title }}{% if e.ubicacion %} · {{ e.ubicacion }}{% endif %}</p>
     <p>{% if lote %}Lote <strong>{{ lote.codigo }}</strong> · {{ lote.num_peces_inicial }} peces · {{ lote.peso_medio_actual_g }} g{% else %}Sin lote activo{% endif %}</p>
     <div class="ultima-lectura">

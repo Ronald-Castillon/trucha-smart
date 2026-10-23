@@ -123,6 +123,29 @@
         "title": "CierreEntrada",
         "type": "object"
       },
+      "EstadisticaSalida": {
+        "properties": {
+          "maximo": {
+            "title": "Maximo",
+            "type": "number"
+          },
+          "minimo": {
+            "title": "Minimo",
+            "type": "number"
+          },
+          "promedio": {
+            "title": "Promedio",
+            "type": "number"
+          }
+        },
+        "required": [
+          "minimo",
+          "maximo",
+          "promedio"
+        ],
+        "title": "EstadisticaSalida",
+        "type": "object"
+      },
       "EstadoAlerta": {
         "enum": [
           "ABIERTA",
@@ -159,6 +182,9 @@
             "title": "Nombre",
             "type": "string"
           },
+          "riesgo": {
+            "$ref": "#/components/schemas/RiesgoSalida"
+          },
           "ultima_lectura": {
             "anyOf": [
               {
@@ -175,7 +201,8 @@
           "nombre",
           "ultima_lectura",
           "niveles",
-          "alertas_abiertas"
+          "alertas_abiertas",
+          "riesgo"
         ],
         "title": "EstadoEstanque",
         "type": "object"
@@ -347,6 +374,60 @@
         "title": "FuenteLectura",
         "type": "string"
       },
+      "HistorialSalida": {
+        "properties": {
+          "desde": {
+            "format": "date",
+            "title": "Desde",
+            "type": "string"
+          },
+          "estadisticas": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/EstadisticaSalida"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/Parametro"
+            },
+            "title": "Estadisticas",
+            "type": "object"
+          },
+          "estanque": {
+            "title": "Estanque",
+            "type": "string"
+          },
+          "estanque_id": {
+            "title": "Estanque Id",
+            "type": "integer"
+          },
+          "hasta": {
+            "format": "date",
+            "title": "Hasta",
+            "type": "string"
+          },
+          "lecturas": {
+            "items": {
+              "$ref": "#/components/schemas/LecturaHistorial"
+            },
+            "title": "Lecturas",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "estanque_id",
+          "estanque",
+          "desde",
+          "hasta",
+          "total",
+          "lecturas",
+          "estadisticas"
+        ],
+        "title": "HistorialSalida",
+        "type": "object"
+      },
       "LecturaEntrada": {
         "properties": {
           "estanque_id": {
@@ -405,6 +486,72 @@
           "ph"
         ],
         "title": "LecturaEntrada",
+        "type": "object"
+      },
+      "LecturaHistorial": {
+        "properties": {
+          "estanque_id": {
+            "title": "Estanque Id",
+            "type": "integer"
+          },
+          "fuente": {
+            "$ref": "#/components/schemas/FuenteLectura"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "medido_en": {
+            "format": "date-time",
+            "title": "Medido En",
+            "type": "string"
+          },
+          "niveles": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Nivel"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/Parametro"
+            },
+            "title": "Niveles",
+            "type": "object"
+          },
+          "oxigeno_mg_l": {
+            "title": "Oxigeno Mg L",
+            "type": "number"
+          },
+          "ph": {
+            "title": "Ph",
+            "type": "number"
+          },
+          "registrado_por": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registrado Por"
+          },
+          "temperatura_c": {
+            "title": "Temperatura C",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "estanque_id",
+          "temperatura_c",
+          "oxigeno_mg_l",
+          "ph",
+          "fuente",
+          "registrado_por",
+          "medido_en",
+          "niveles"
+        ],
+        "title": "LecturaHistorial",
         "type": "object"
       },
       "LecturaRegistradaSalida": {
@@ -724,6 +871,51 @@
         "title": "RespuestaError",
         "type": "object"
       },
+      "RiesgoSalida": {
+        "properties": {
+          "alertas_criticas_abiertas": {
+            "title": "Alertas Criticas Abiertas",
+            "type": "integer"
+          },
+          "formula": {
+            "title": "Formula",
+            "type": "string"
+          },
+          "nivel": {
+            "description": "bajo | medio | alto",
+            "title": "Nivel",
+            "type": "string"
+          },
+          "parametros_criticos": {
+            "title": "Parametros Criticos",
+            "type": "integer"
+          },
+          "parametros_precaucion": {
+            "title": "Parametros Precaucion",
+            "type": "integer"
+          },
+          "semaforo": {
+            "$ref": "#/components/schemas/Semaforo"
+          },
+          "valor": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Valor",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "valor",
+          "semaforo",
+          "nivel",
+          "parametros_criticos",
+          "parametros_precaucion",
+          "alertas_criticas_abiertas",
+          "formula"
+        ],
+        "title": "RiesgoSalida",
+        "type": "object"
+      },
       "Rol": {
         "enum": [
           "ADMINISTRADOR",
@@ -731,6 +923,15 @@
           "OPERARIO"
         ],
         "title": "Rol",
+        "type": "string"
+      },
+      "Semaforo": {
+        "enum": [
+          "VERDE",
+          "AMARILLO",
+          "ROJO"
+        ],
+        "title": "Semaforo",
         "type": "string"
       },
       "TipoEstanque": {
@@ -1730,6 +1931,128 @@
         ]
       }
     },
+    "/api/estanques/{estanque_id}/historial": {
+      "get": {
+        "description": "Lecturas del estanque entre `desde` y `hasta` (fechas UTC, inclusivas; por defecto los\núltimos 7 días), con el nivel de cada parámetro y min/máx/promedio por parámetro.",
+        "operationId": "historial_api_estanques__estanque_id__historial_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "estanque_id",
+            "required": true,
+            "schema": {
+              "title": "Estanque Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Desde"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Hasta"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistorialSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Historial",
+        "tags": [
+          "historial y riesgo"
+        ]
+      }
+    },
     "/api/estanques/{estanque_id}/lotes": {
       "get": {
         "operationId": "lotes_de_estanque_api_estanques__estanque_id__lotes_get",
@@ -1914,6 +2237,94 @@
         "summary": "Sembrar Lote",
         "tags": [
           "estanques y lotes"
+        ]
+      }
+    },
+    "/api/estanques/{estanque_id}/riesgo": {
+      "get": {
+        "description": "Índice de riesgo 0–100 con semáforo (verde < 30, amarillo 30–59, rojo >= 60).",
+        "operationId": "riesgo_api_estanques__estanque_id__riesgo_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "estanque_id",
+            "required": true,
+            "schema": {
+              "title": "Estanque Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiesgoSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Riesgo",
+        "tags": [
+          "historial y riesgo"
         ]
       }
     },

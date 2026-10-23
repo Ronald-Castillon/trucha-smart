@@ -7,7 +7,9 @@ from collections.abc import Iterator
 import pytest
 from fastapi.testclient import TestClient
 
+from src.adapters.config import RAIZ, cargar_umbrales
 from src.adapters.inbound.rest.dependencias import Recursos
+from src.adapters.outbound.notification.notificador_log import NotificadorLog
 from src.adapters.outbound.persistence.db import BaseDatos
 from src.adapters.outbound.persistence.repositorio_usuario_sql import RepositorioUsuarioSQL
 from src.adapters.outbound.security.bcrypt_hasher import HasherBcrypt
@@ -52,6 +54,8 @@ def recursos(reloj) -> Iterator[Recursos]:
         hasher=hasher,
         tokens=ServicioTokens("clave-de-pruebas-de-32-bytes-o-mas!", 60),
         reloj=reloj,
+        umbrales=cargar_umbrales(RAIZ / "config" / "umbrales.yaml"),
+        notificador=NotificadorLog(),
     )
     bd.motor.dispose()
 

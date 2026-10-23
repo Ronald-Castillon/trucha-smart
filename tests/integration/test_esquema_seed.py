@@ -72,3 +72,16 @@ def test_modelos_orm_coinciden_con_schema_sql(bd):
         columnas_sql = {fila[1] for fila in bd.execute(f"PRAGMA table_info({nombre})")}
         assert columnas_sql, f"La tabla {nombre} no existe en schema.sql"
         assert {c.name for c in tabla.columns} == columnas_sql, nombre
+
+
+def test_mensajes_de_alertas_del_seed_siguen_el_formato_del_dominio(bd):
+    """Regresión Issue #11: el seed usa el mismo formato de mensaje que Umbral.describir."""
+    from src.domain.model.lectura_agua import Parametro
+    from src.domain.model.umbral import Nivel
+    from tests.umbrales import UMBRALES
+
+    filas = bd.execute("SELECT parametro, nivel, valor, mensaje FROM alertas").fetchall()
+    assert filas
+    for parametro, nivel, valor, mensaje in filas:
+        esperado = UMBRALES.de(Parametro(parametro)).describir(valor, Nivel(nivel))
+        assert mensaje == esperado

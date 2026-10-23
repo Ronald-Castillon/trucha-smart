@@ -8,12 +8,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from src.adapters.config import Configuracion
-from src.adapters.inbound.rest import auth, estanques, lecturas, salud
+from src.adapters.config import Configuracion, cargar_umbrales
+from src.adapters.inbound.rest import alertas, auth, estanques, lecturas, salud
 from src.adapters.inbound.rest.dependencias import Recursos
 from src.adapters.inbound.rest.errores import registrar_manejadores
 from src.adapters.inbound.web import rutas as web
 from src.adapters.inbound.web.plantillas import CARPETA as CARPETA_WEB
+from src.adapters.outbound.notification.notificador_log import NotificadorLog
 from src.adapters.outbound.persistence.db import BaseDatos
 from src.adapters.outbound.reloj_sistema import RelojSistema
 from src.adapters.outbound.security.bcrypt_hasher import HasherBcrypt
@@ -35,6 +36,8 @@ def crear_recursos(config: Configuracion) -> Recursos:
         hasher=HasherBcrypt(),
         tokens=ServicioTokens(config.jwt_secret, config.jwt_expira_minutos),
         reloj=RelojSistema(),
+        umbrales=cargar_umbrales(config.umbrales_path),
+        notificador=NotificadorLog(),
     )
 
 
@@ -59,6 +62,7 @@ def crear_app(config: Configuracion | None = None, recursos: Recursos | None = N
     app.include_router(auth.router)
     app.include_router(estanques.router)
     app.include_router(lecturas.router)
+    app.include_router(alertas.router)
     app.include_router(web.router)
     app.mount("/static", StaticFiles(directory=CARPETA_WEB / "static"), name="static")
     return app

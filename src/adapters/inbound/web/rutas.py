@@ -15,6 +15,7 @@ from src.adapters.inbound.rest.dependencias import (
 )
 from src.adapters.inbound.web.plantillas import render
 from src.domain.errores import CredencialesInvalidas, ErrorDominio, ErrorValidacion
+from src.domain.model.alerta import EstadoAlerta
 from src.domain.model.estanque import TipoEstanque
 from src.domain.model.lectura_agua import FuenteLectura
 from src.domain.model.usuario import Rol, Usuario
@@ -94,7 +95,7 @@ def _estanques_con_lote(c: Contenedor, usuario: Usuario):
 
 def _vista_panel(request, c: Contenedor, usuario: Usuario, **extra):
     filas = [
-        (e, lote, c.lecturas.ultima(e.id, usuario)) for e, lote in _estanques_con_lote(c, usuario)
+        (e, lote, c.lecturas.estado(e.id, usuario)) for e, lote in _estanques_con_lote(c, usuario)
     ]
     return render(request, "panel.html", usuario=usuario, filas=filas, **extra)
 
@@ -157,12 +158,58 @@ def registrar_lectura(
             ph=_numero("ph", ph),
             fuente=FuenteLectura.MANUAL,
         )
-        c.lecturas.registrar(comando, usuario)
+        resultado = c.lecturas.registrar(comando, usuario)
         c.confirmar()
     except ErrorDominio as e:
         c.sesion.rollback()
         return _vista_lectura(request, c, usuario, 422, error=e.mensaje, form=form)
-    return _vista_panel(request, c, usuario, aviso="Lectura registrada")
+    aviso = "Lectura registrada"
+    if resultado.alertas_nuevas:
+        aviso += f" · {len(resultado.alertas_nuevas)} alerta(s) generada(s)"
+    return _vista_panel(request, c, usuario, aviso=aviso)
+
+
+# --------------------------------------------------------------------------- alertas (RF-04)
+
+
+def _vista_alertas(request, c: Contenedor, usuario: Usuario, estado=200, **extra):
+    return render(
+        request,
+        "alertas.html",
+        estado,
+        usuario=usuario,
+        abiertas=c.alertas.listar(usuario, estado=EstadoAlerta.ABIERTA),
+        atendidas=c.alertas.listar(usuario, estado=EstadoAlerta.ATENDIDA, limite=30),
+        nombres={e.id: e.nombre for e in c.repo_estanques.listar(solo_activos=False)},
+        usuarios=c.usuarios.nombres(usuario),
+        **extra,
+    )
+
+
+@router.get("/alertas")
+def alertas(
+    request: Request,
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    return _vista_alertas(request, c, usuario)
+
+
+@router.post("/alertas/{alerta_id}/atender")
+def atender_alerta(
+    request: Request,
+    alerta_id: int,
+    observacion: str = Form(""),
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    try:
+        c.alertas.atender(alerta_id, observacion, usuario)
+        c.confirmar()
+    except ErrorDominio as e:
+        c.sesion.rollback()
+        return _vista_alertas(request, c, usuario, 409, error=e.mensaje)
+    return _vista_alertas(request, c, usuario, aviso=f"Alerta {alerta_id} atendida")
 
 
 # --------------------------------------------------------------------------- estanques (RF-02)

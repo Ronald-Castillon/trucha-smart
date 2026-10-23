@@ -97,3 +97,35 @@ class LecturaAguaORM(Base):
     fuente: Mapped[str] = mapped_column(String(10), nullable=False)
     registrado_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"))
     medido_en: Mapped[datetime] = mapped_column(FechaHoraUTC, nullable=False)
+
+
+class AlertaORM(Base):
+    __tablename__ = "alertas"
+    __table_args__ = (
+        CheckConstraint(
+            "parametro IN ('TEMPERATURA', 'OXIGENO_DISUELTO', 'PH')", name="ck_parametro"
+        ),
+        CheckConstraint("nivel IN ('PRECAUCION', 'CRITICA')", name="ck_nivel"),
+        CheckConstraint("estado IN ('ABIERTA', 'ATENDIDA')", name="ck_estado"),
+        CheckConstraint(
+            "estado = 'ABIERTA' OR (atendida_por IS NOT NULL AND atendida_en IS NOT NULL)",
+            name="ck_atencion",
+        ),
+        Index("ix_alertas_estanque_fecha", "estanque_id", "creada_en"),
+        Index("ix_alertas_abiertas", "estanque_id", "parametro", "nivel", "estado"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    estanque_id: Mapped[int] = mapped_column(ForeignKey("estanques.id"), nullable=False)
+    lectura_id: Mapped[int] = mapped_column(
+        ForeignKey("lecturas_agua.id", ondelete="CASCADE"), nullable=False
+    )
+    parametro: Mapped[str] = mapped_column(String(20), nullable=False)
+    nivel: Mapped[str] = mapped_column(String(12), nullable=False)
+    valor: Mapped[float] = mapped_column(_decimal(6, 2), nullable=False)
+    mensaje: Mapped[str] = mapped_column(String(255), nullable=False)
+    estado: Mapped[str] = mapped_column(String(10), nullable=False, default="ABIERTA")
+    creada_en: Mapped[datetime] = mapped_column(FechaHoraUTC, nullable=False)
+    atendida_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"))
+    atendida_en: Mapped[datetime | None] = mapped_column(FechaHoraUTC)
+    observacion: Mapped[str | None] = mapped_column(String(255))

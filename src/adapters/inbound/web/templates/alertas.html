@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block titulo %}Alertas{% endblock %}
+{% block contenido %}
+<h1>Alertas de calidad de agua</h1>
+<section class="tarjeta tabla-scroll">
+  <h2>Abiertas ({{ abiertas | length }})</h2>
+  <table id="alertas-abiertas">
+    <thead><tr><th>Fecha (UTC)</th><th>Estanque</th><th>Nivel</th><th>Detalle</th><th>Atender</th></tr></thead>
+    <tbody>
+    {% for a in abiertas %}
+      <tr data-alerta="{{ a.id }}">
+        <td>{{ a.creada_en.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td>{{ nombres.get(a.estanque_id, a.estanque_id) }}</td>
+        <td><span class="etiqueta {{ a.nivel.value }}">{{ 'CRÍTICA' if a.nivel.value == 'CRITICA' else 'PRECAUCIÓN' }}</span></td>
+        <td>{{ a.mensaje }}</td>
+        <td>
+          {% if usuario.puede(P.ATENDER_ALERTA) %}
+          <form method="post" action="/alertas/{{ a.id }}/atender" style="display:flex; gap:.4rem; flex-wrap:wrap">
+            <input name="observacion" placeholder="Acción tomada" aria-label="Observación">
+            <button type="submit">Atender</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5">No hay alertas abiertas.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+<section class="tarjeta tabla-scroll">
+  <h2>Atendidas recientemente</h2>
+  <table id="alertas-atendidas">
+    <thead><tr><th>Creada (UTC)</th><th>Estanque</th><th>Nivel</th><th>Detalle</th><th>Atendida por</th><th>Atendida (UTC)</th><th>Observación</th></tr></thead>
+    <tbody>
+    {% for a in atendidas %}
+      <tr data-alerta="{{ a.id }}">
+        <td>{{ a.creada_en.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td>{{ nombres.get(a.estanque_id, a.estanque_id) }}</td>
+        <td><span class="etiqueta {{ a.nivel.value }}">{{ 'CRÍTICA' if a.nivel.value == 'CRITICA' else 'PRECAUCIÓN' }}</span></td>
+        <td>{{ a.mensaje }}</td>
+        <td class="atendida-por">{{ usuarios.get(a.atendida_por, a.atendida_por) }}</td>
+        <td class="atendida-en">{{ a.atendida_en.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+        <td>{{ a.observacion or '—' }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="7">Sin alertas atendidas.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

@@ -209,10 +209,15 @@ def m2_3() -> Metrica:
             "{:.1f} %",
             "coverage.xml no encontrado: ejecutar pytest con --cov-report=xml",
         )
+    raiz_xml = ET.parse(ruta).getroot()
+    # Las rutas de <class filename> son relativas a <source>; se reconstruye la ruta completa
+    # para quedarse solo con los archivos de src/domain.
+    fuentes = [s.text.replace("\\", "/").rstrip("/") for s in raiz_xml.iter("source") if s.text]
     total = cubiertas = 0
-    for clase in ET.parse(ruta).getroot().iter("class"):
+    for clase in raiz_xml.iter("class"):
         archivo = clase.get("filename", "").replace("\\", "/")
-        if "domain/" not in archivo and not archivo.startswith(("model/", "service/")):
+        completas = [f"{f}/{archivo}" for f in fuentes] or [archivo]
+        if not any("src/domain/" in c or c.startswith("domain/") for c in completas):
             continue
         for linea in clase.iter("line"):
             total += 1

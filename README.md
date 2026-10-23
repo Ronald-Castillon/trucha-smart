@@ -124,7 +124,26 @@ Con la app en marcha:
 python -m src.adapters.inbound.simulator --estanque 1 --escenario normal --intervalo 5
 ```
 
-Escenarios: `normal`, `critico_oxigeno`, `critico_temperatura`.
+Escenarios: `normal`, `critico_oxigeno` (el OD cae 0.4 mg/L por lectura hasta 3.5) y
+`critico_temperatura` (la temperatura sube 0.5 °C por lectura hasta 20). Opciones:
+`--cantidad N` (0 = sin fin), `--url`, `--usuario`/`--password` (o `SIM_URL`, `SIM_USUARIO`,
+`SIM_PASSWORD`) y `--semilla`. Cada lectura se evalúa contra los umbrales y el simulador
+muestra las alertas generadas; el panel web se refresca cada 2 s.
+
+## API REST (resumen)
+
+Contrato completo: [`docs/openapi.json`](docs/openapi.json) o <http://localhost:8000/docs>.
+Autenticación con `POST /api/auth/login` → `Authorization: Bearer <token>` (la web usa cookie
+HttpOnly). Todos los errores devuelven `{"error", "detalle", "campo"}` con 401, 403, 404, 409 o 422.
+
+| RF | Método y ruta | Rol mínimo |
+|---|---|---|
+| RF-01 | `POST /api/auth/login`, `GET /api/auth/yo`, `POST /api/auth/logout` | — |
+| RF-01 | `GET/POST /api/usuarios` | Administrador |
+| RF-02 | `GET /api/estanques`, `GET /api/estanques/{id}`, `GET /api/estanques/{id}/lotes`, `GET /api/lotes/{id}` | Operario |
+| RF-02 | `POST /api/estanques`, `PUT/DELETE /api/estanques/{id}`, `POST /api/estanques/{id}/lotes`, `PUT /api/lotes/{id}/peso`, `POST /api/lotes/{id}/cerrar` | Piscicultor |
+| RF-03 | `POST /api/lecturas`, `GET /api/lecturas?estanque_id=`, `GET /api/estanques/{id}/ultima-lectura`, `GET /api/panel` | Operario |
+| RF-04 | `GET /api/alertas?estado=&estanque_id=`, `POST /api/alertas/{id}/atender` | Operario |
 
 ## Pruebas y calidad
 

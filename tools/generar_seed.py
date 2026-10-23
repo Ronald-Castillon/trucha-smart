@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import math
 import random
+import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -22,6 +23,10 @@ import bcrypt
 
 RAIZ = Path(__file__).resolve().parent.parent
 DESTINO = RAIZ / "db" / "seed.sql"
+sys.path.insert(0, str(RAIZ))
+
+from src.adapters.config import cargar_umbrales  # noqa: E402
+from src.domain.model.umbral import Nivel  # noqa: E402
 
 # Sal fija para que el archivo generado sea reproducible (solo datos de demostración).
 SAL_DEMO = b"$2b$12$TruchaSmartDemoSaltSee"
@@ -59,6 +64,7 @@ def ts(d: datetime) -> str:
 
 def generar() -> str:
     rnd = random.Random(20261023)
+    umbral_od = cargar_umbrales(RAIZ / "config" / "umbrales.yaml").oxigeno_disuelto
     out: list[str] = [
         "-- Generado por tools/generar_seed.py. No editar a mano: regenerar.",
         "-- Datos de demostración (contraseñas en el README).",
@@ -145,7 +151,8 @@ def generar() -> str:
     )
     filas = []
     for a in alertas:
-        msg = f"Oxígeno disuelto en precaución: {a['valor']:.2f} mg/L (normal >= 7.0)"
+        # Mismo formato que las alertas generadas por el sistema (Issue #11).
+        msg = umbral_od.describir(round(a["valor"], 2), Nivel.PRECAUCION)
         if "atendida" in a:
             filas.append(
                 f"  ({a['id']}, 3, {a['lectura']}, 'OXIGENO_DISUELTO', 'PRECAUCION', "

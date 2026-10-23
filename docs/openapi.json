@@ -1,6 +1,114 @@
 {
   "components": {
     "schemas": {
+      "AlertaSalida": {
+        "properties": {
+          "atendida_en": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Atendida En"
+          },
+          "atendida_por": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Atendida Por"
+          },
+          "creada_en": {
+            "format": "date-time",
+            "title": "Creada En",
+            "type": "string"
+          },
+          "estado": {
+            "$ref": "#/components/schemas/EstadoAlerta"
+          },
+          "estanque_id": {
+            "title": "Estanque Id",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "lectura_id": {
+            "title": "Lectura Id",
+            "type": "integer"
+          },
+          "mensaje": {
+            "title": "Mensaje",
+            "type": "string"
+          },
+          "nivel": {
+            "$ref": "#/components/schemas/Nivel"
+          },
+          "observacion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observacion"
+          },
+          "parametro": {
+            "$ref": "#/components/schemas/Parametro"
+          },
+          "valor": {
+            "title": "Valor",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "estanque_id",
+          "lectura_id",
+          "parametro",
+          "nivel",
+          "valor",
+          "mensaje",
+          "estado",
+          "creada_en",
+          "atendida_por",
+          "atendida_en",
+          "observacion"
+        ],
+        "title": "AlertaSalida",
+        "type": "object"
+      },
+      "AtencionEntrada": {
+        "properties": {
+          "observacion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "Se encendió el aireador"
+            ],
+            "title": "Observacion"
+          }
+        },
+        "title": "AtencionEntrada",
+        "type": "object"
+      },
       "CierreEntrada": {
         "properties": {
           "fecha_cierre": {
@@ -15,12 +123,37 @@
         "title": "CierreEntrada",
         "type": "object"
       },
+      "EstadoAlerta": {
+        "enum": [
+          "ABIERTA",
+          "ATENDIDA"
+        ],
+        "title": "EstadoAlerta",
+        "type": "string"
+      },
       "EstadoEstanque": {
         "description": "Resumen de un estanque para el panel (se refresca cada 2 s).",
         "properties": {
+          "alertas_abiertas": {
+            "items": {
+              "$ref": "#/components/schemas/AlertaSalida"
+            },
+            "title": "Alertas Abiertas",
+            "type": "array"
+          },
           "estanque_id": {
             "title": "Estanque Id",
             "type": "integer"
+          },
+          "niveles": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Nivel"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/Parametro"
+            },
+            "title": "Niveles",
+            "type": "object"
           },
           "nombre": {
             "title": "Nombre",
@@ -40,7 +173,9 @@
         "required": [
           "estanque_id",
           "nombre",
-          "ultima_lectura"
+          "ultima_lectura",
+          "niveles",
+          "alertas_abiertas"
         ],
         "title": "EstadoEstanque",
         "type": "object"
@@ -178,6 +313,32 @@
         "title": "EstanqueSalida",
         "type": "object"
       },
+      "EvaluacionSalida": {
+        "properties": {
+          "mensaje": {
+            "title": "Mensaje",
+            "type": "string"
+          },
+          "nivel": {
+            "$ref": "#/components/schemas/Nivel"
+          },
+          "parametro": {
+            "$ref": "#/components/schemas/Parametro"
+          },
+          "valor": {
+            "title": "Valor",
+            "type": "number"
+          }
+        },
+        "required": [
+          "parametro",
+          "valor",
+          "nivel",
+          "mensaje"
+        ],
+        "title": "EvaluacionSalida",
+        "type": "object"
+      },
       "FuenteLectura": {
         "enum": [
           "MANUAL",
@@ -244,6 +405,78 @@
           "ph"
         ],
         "title": "LecturaEntrada",
+        "type": "object"
+      },
+      "LecturaRegistradaSalida": {
+        "description": "Lectura guardada + evaluación contra umbrales + alertas creadas (RF-04).",
+        "properties": {
+          "alertas": {
+            "items": {
+              "$ref": "#/components/schemas/AlertaSalida"
+            },
+            "title": "Alertas",
+            "type": "array"
+          },
+          "estanque_id": {
+            "title": "Estanque Id",
+            "type": "integer"
+          },
+          "evaluacion": {
+            "items": {
+              "$ref": "#/components/schemas/EvaluacionSalida"
+            },
+            "title": "Evaluacion",
+            "type": "array"
+          },
+          "fuente": {
+            "$ref": "#/components/schemas/FuenteLectura"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "medido_en": {
+            "format": "date-time",
+            "title": "Medido En",
+            "type": "string"
+          },
+          "oxigeno_mg_l": {
+            "title": "Oxigeno Mg L",
+            "type": "number"
+          },
+          "ph": {
+            "title": "Ph",
+            "type": "number"
+          },
+          "registrado_por": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registrado Por"
+          },
+          "temperatura_c": {
+            "title": "Temperatura C",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "estanque_id",
+          "temperatura_c",
+          "oxigeno_mg_l",
+          "ph",
+          "fuente",
+          "registrado_por",
+          "medido_en",
+          "evaluacion",
+          "alertas"
+        ],
+        "title": "LecturaRegistradaSalida",
         "type": "object"
       },
       "LecturaSalida": {
@@ -427,6 +660,24 @@
         "title": "LoteSalida",
         "type": "object"
       },
+      "Nivel": {
+        "enum": [
+          "NORMAL",
+          "PRECAUCION",
+          "CRITICA"
+        ],
+        "title": "Nivel",
+        "type": "string"
+      },
+      "Parametro": {
+        "enum": [
+          "TEMPERATURA",
+          "OXIGENO_DISUELTO",
+          "PH"
+        ],
+        "title": "Parametro",
+        "type": "string"
+      },
       "PesoEntrada": {
         "properties": {
           "peso_medio_g": {
@@ -598,6 +849,238 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/alertas": {
+      "get": {
+        "description": "Alertas de la más reciente a la más antigua; filtra por estado y estanque.",
+        "operationId": "listar_alertas_api_alertas_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "estado",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/EstadoAlerta"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Estado"
+            }
+          },
+          {
+            "in": "query",
+            "name": "estanque_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Estanque Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limite",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limite",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AlertaSalida"
+                  },
+                  "title": "Response Listar Alertas Api Alertas Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Listar Alertas",
+        "tags": [
+          "alertas"
+        ]
+      }
+    },
+    "/api/alertas/{alerta_id}/atender": {
+      "post": {
+        "description": "Marca la alerta como ATENDIDA registrando el usuario y la fecha/hora (B-06).\nUna alerta ya atendida devuelve 409.",
+        "operationId": "atender_alerta_api_alertas__alerta_id__atender_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alerta_id",
+            "required": true,
+            "schema": {
+              "title": "Alerta Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/AtencionEntrada"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Datos"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertaSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Atender Alerta",
+        "tags": [
+          "alertas"
+        ]
+      }
+    },
     "/api/auth/login": {
       "post": {
         "description": "Valida credenciales y devuelve un JWT para usar como `Authorization: Bearer`.",
@@ -1633,7 +2116,7 @@
         ]
       },
       "post": {
-        "description": "Registra una lectura (formulario o sensor simulado). Valores físicamente imposibles\n(pH fuera de 0–14, OD < 0, temperatura fuera de 0–40 °C) se rechazan con 422.",
+        "description": "Registra una lectura (formulario o sensor simulado). Valores físicamente imposibles\n(pH fuera de 0–14, OD < 0, temperatura fuera de 0–40 °C) se rechazan con 422.\n\nLa lectura se evalúa contra config/umbrales.yaml y, si un parámetro está en\nPRECAUCIÓN o CRÍTICA, se crea una alerta (sin duplicar una abierta del mismo\nestanque, parámetro y nivel).",
         "operationId": "registrar_lectura_api_lecturas_post",
         "requestBody": {
           "content": {
@@ -1650,7 +2133,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LecturaSalida"
+                  "$ref": "#/components/schemas/LecturaRegistradaSalida"
                 }
               }
             },

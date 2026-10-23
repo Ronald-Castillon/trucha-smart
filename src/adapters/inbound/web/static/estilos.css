@@ -32,6 +32,10 @@ th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(
 .NORMAL, .verde { background: var(--verde); }
 .PRECAUCION, .amarillo { background: var(--amarillo); }
 .CRITICA, .rojo { background: var(--rojo); }
+.nivel-PRECAUCION { color: var(--amarillo); font-weight: 700; }
+.nivel-CRITICA { color: var(--rojo); font-weight: 700; }
+.alertas-abiertas { display: grid; gap: .3rem; margin-top: .5rem; font-size: .9rem; }
 .suave { color: var(--suave); font-size: 0.88rem; }
 .centro { min-height: 70vh; display: grid; place-items: center; }
 @media (max-width: 600px) { header { flex-direction: column; align-items: flex-start; } }
+.tarjeta h2 a { color: var(--primario); text-decoration: none; }

@@ -26,11 +26,13 @@ from src.adapters.outbound.security.jwt_tokens import ServicioTokens
 from src.domain.model.umbral import ConjuntoUmbrales
 from src.domain.model.usuario import Usuario
 from src.domain.service.evaluador_calidad_agua import EvaluadorCalidadAgua
+from src.domain.service.recomendador_racion import RecomendadorRacion, TablaAlimentacion
 from src.domain.service.servicio_alertas import ServicioAlertas
 from src.domain.service.servicio_estanques import ServicioEstanques
 from src.domain.service.servicio_historial import ServicioHistorial
 from src.domain.service.servicio_lecturas import ServicioLecturas
 from src.domain.service.servicio_produccion import ServicioProduccion
+from src.domain.service.servicio_racion import ServicioRacion
 from src.domain.service.servicio_usuarios import ServicioUsuarios
 from src.ports.outbound.hasher_password import HasherPassword
 from src.ports.outbound.notificador import Notificador
@@ -53,6 +55,7 @@ class Recursos:
     reloj: Reloj
     umbrales: ConjuntoUmbrales
     notificador: Notificador
+    alimentacion: TablaAlimentacion
 
 
 class Contenedor:
@@ -118,6 +121,17 @@ class Contenedor:
     def produccion(self) -> ServicioProduccion:
         return ServicioProduccion(
             self.repo_lotes, self.repo_alimentacion, self.repo_mortalidad, self.recursos.reloj
+        )
+
+    @cached_property
+    def racion(self) -> ServicioRacion:
+        r = self.recursos
+        return ServicioRacion(
+            self.repo_lotes,
+            self.repo_mortalidad,
+            self.repo_lecturas,
+            EvaluadorCalidadAgua(r.umbrales),
+            RecomendadorRacion(r.alimentacion),
         )
 
     @cached_property

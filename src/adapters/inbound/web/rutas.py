@@ -184,6 +184,7 @@ def _vista_produccion(request, c: Contenedor, usuario: Usuario, lote_id: int, es
         lote=lote,
         estanque=c.estanques.obtener(lote.estanque_id, usuario),
         resumen=c.produccion.produccion(lote_id, usuario),
+        racion=c.racion.recomendar(lote_id, usuario) if lote.activo else None,
         alimentaciones=c.produccion.alimentaciones(lote_id, usuario)[:15],
         mortalidades=c.produccion.mortalidades(lote_id, usuario)[:15],
         **extra,

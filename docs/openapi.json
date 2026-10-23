@@ -1100,6 +1100,118 @@
         "title": "ProduccionSalida",
         "type": "object"
       },
+      "RacionSalida": {
+        "properties": {
+          "advertencias": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Advertencias",
+            "type": "array"
+          },
+          "biomasa_kg": {
+            "title": "Biomasa Kg",
+            "type": "number"
+          },
+          "codigo": {
+            "title": "Codigo",
+            "type": "string"
+          },
+          "factor_oxigeno": {
+            "title": "Factor Oxigeno",
+            "type": "number"
+          },
+          "factor_temperatura": {
+            "title": "Factor Temperatura",
+            "type": "number"
+          },
+          "lectura_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Lectura de agua usada para los factores",
+            "title": "Lectura Id"
+          },
+          "lote_id": {
+            "title": "Lote Id",
+            "type": "integer"
+          },
+          "nivel_oxigeno": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Nivel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "nivel_temperatura": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Nivel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "peces_vivos": {
+            "title": "Peces Vivos",
+            "type": "integer"
+          },
+          "peso_medio_g": {
+            "title": "Peso Medio G",
+            "type": "number"
+          },
+          "racion_kg": {
+            "description": "kg de alimento por día",
+            "title": "Racion Kg",
+            "type": "number"
+          },
+          "regla": {
+            "title": "Regla",
+            "type": "string"
+          },
+          "suspender": {
+            "title": "Suspender",
+            "type": "boolean"
+          },
+          "tasa_pct": {
+            "title": "Tasa Pct",
+            "type": "number"
+          },
+          "tramo": {
+            "title": "Tramo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lote_id",
+          "codigo",
+          "peces_vivos",
+          "biomasa_kg",
+          "peso_medio_g",
+          "tasa_pct",
+          "tramo",
+          "lectura_id",
+          "nivel_temperatura",
+          "nivel_oxigeno",
+          "factor_temperatura",
+          "factor_oxigeno",
+          "racion_kg",
+          "suspender",
+          "regla",
+          "advertencias"
+        ],
+        "title": "RacionSalida",
+        "type": "object"
+      },
       "RespuestaError": {
         "properties": {
           "campo": {
@@ -3611,6 +3723,94 @@
         "summary": "Produccion",
         "tags": [
           "alimentación y producción"
+        ]
+      }
+    },
+    "/api/lotes/{lote_id}/racion": {
+      "get": {
+        "description": "Ración diaria = biomasa × tasa(% según peso medio) × factor temperatura × factor oxígeno,\ncon la regla aplicada. Con temperatura u oxígeno CRÍTICOS la ración es 0 (suspender).",
+        "operationId": "recomendar_racion_api_lotes__lote_id__racion_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lote_id",
+            "required": true,
+            "schema": {
+              "title": "Lote Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RacionSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Recomendar Racion",
+        "tags": [
+          "ración"
         ]
       }
     },

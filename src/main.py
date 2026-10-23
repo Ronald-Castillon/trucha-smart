@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from src.adapters.config import Configuracion, cargar_umbrales
+from src.adapters.config import Configuracion, cargar_alimentacion, cargar_umbrales
 from src.adapters.inbound.rest import (
     alertas,
     auth,
@@ -16,6 +16,7 @@ from src.adapters.inbound.rest import (
     historial,
     lecturas,
     produccion,
+    racion,
     salud,
 )
 from src.adapters.inbound.rest.dependencias import Recursos
@@ -46,6 +47,7 @@ def crear_recursos(config: Configuracion) -> Recursos:
         reloj=RelojSistema(),
         umbrales=cargar_umbrales(config.umbrales_path),
         notificador=NotificadorLog(),
+        alimentacion=cargar_alimentacion(config.alimentacion_path),
     )
 
 
@@ -73,6 +75,7 @@ def crear_app(config: Configuracion | None = None, recursos: Recursos | None = N
     app.include_router(alertas.router)
     app.include_router(historial.router)
     app.include_router(produccion.router)
+    app.include_router(racion.router)
     app.include_router(web.router)
     app.mount("/static", StaticFiles(directory=CARPETA_WEB / "static"), name="static")
     return app

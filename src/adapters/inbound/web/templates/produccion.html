@@ -20,6 +20,21 @@
     </table>
     <p class="suave" id="fcr-detalle">{{ resumen.fcr_detalle }}<br>Biomasa = peces vivos × peso medio · FCR = alimento total / ganancia de biomasa</p>
   </section>
+  {% if racion %}
+  {% set rec = racion.recomendacion %}
+  <section class="tarjeta" id="racion">
+    <h2>Ración diaria recomendada</h2>
+    <p class="semaforo-grande {{ 'rojo' if rec.suspender else ('amarillo' if rec.factor_temperatura < 1 or rec.factor_oxigeno < 1 else 'verde') }}">
+      <span class="valor" id="racion-kg">{{ '%.3f' % rec.racion_kg }}</span> kg/día
+      {% if rec.suspender %}· <strong>suspender alimentación</strong>{% endif %}
+    </p>
+    <p id="racion-regla">{{ rec.regla }}</p>
+    {% for a in rec.advertencias %}<p class="mensaje error">{{ a }}</p>{% endfor %}
+    <p class="suave">{% if racion.lectura %}Según la lectura del {{ racion.lectura.medido_en.strftime('%d/%m/%Y %H:%M') }} UTC
+      (T {{ '%.2f' % racion.lectura.temperatura_c }} °C, OD {{ '%.2f' % racion.lectura.oxigeno_mg_l }} mg/L).{% endif %}
+      Valores de referencia de config/alimentacion.yaml: la decisión final es del piscicultor.</p>
+  </section>
+  {% endif %}
   {% if lote.activo and usuario.puede(P.REGISTRAR_ALIMENTACION) %}
   <section class="tarjeta">
     <h2>Registrar alimentación</h2>

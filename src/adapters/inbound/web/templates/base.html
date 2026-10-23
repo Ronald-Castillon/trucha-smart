@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}TruchaSmart{% endblock %} · TruchaSmart</title>
+  <link rel="stylesheet" href="/static/estilos.css">
+  {% block cabeza %}{% endblock %}
+</head>
+<body>
+{% if usuario %}
+<header>
+  <nav>
+    <span class="marca">🐟 TruchaSmart</span>&nbsp;&nbsp;
+    <a href="/panel">Panel</a>
+    {% if usuario.puede(P.GESTIONAR_USUARIOS) %}<a href="/usuarios">Usuarios</a>{% endif %}
+  </nav>
+  <form method="post" action="/logout">
+    <span id="usuario-actual">{{ usuario.nombre_completo }} ({{ usuario.rol.value | title }})</span>
+    <button class="secundario" type="submit">Salir</button>
+  </form>
+</header>
+{% endif %}
+<main>
+  {% if error %}<div class="mensaje error" role="alert">{{ error }}</div>{% endif %}
+  {% if aviso %}<div class="mensaje ok" role="status">{{ aviso }}</div>{% endif %}
+  {% block contenido %}{% endblock %}
+</main>
+{% block scripts %}{% endblock %}
+</body>
+</html>

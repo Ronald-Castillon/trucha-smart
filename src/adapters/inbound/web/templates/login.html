@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block titulo %}Iniciar sesión{% endblock %}
+{% block contenido %}
+<div class="centro">
+  <div class="tarjeta" style="width: min(420px, 100%)">
+    <h1>🐟 TruchaSmart</h1>
+    <p class="suave">Monitoreo de calidad de agua y producción de trucha</p>
+    <form class="apilado" method="post" action="/login">
+      <label>Usuario <input name="nombre_usuario" autocomplete="username" required value="{{ nombre_usuario or '' }}"></label>
+      <label>Contraseña <input name="password" type="password" autocomplete="current-password" required></label>
+      <button type="submit">Ingresar</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

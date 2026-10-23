@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block titulo %}Panel{% endblock %}
+{% block contenido %}
+<h1>Panel</h1>
+<p>Bienvenido/a, <strong>{{ usuario.nombre_completo }}</strong>. Rol: <strong>{{ usuario.rol.value | title }}</strong>.</p>
+{% endblock %}

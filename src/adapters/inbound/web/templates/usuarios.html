@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block titulo %}Usuarios{% endblock %}
+{% block contenido %}
+<h1>Usuarios</h1>
+<div class="rejilla">
+  <section class="tarjeta">
+    <h2>Registrar usuario</h2>
+    <form class="apilado" method="post" action="/usuarios">
+      <label>Usuario <input name="nombre_usuario" required></label>
+      <label>Nombre completo <input name="nombre_completo" required></label>
+      <label>Contraseña (mín. 8) <input name="password" type="password" required></label>
+      <label>Rol
+        <select name="rol">
+          {% for r in roles %}<option value="{{ r.value }}">{{ r.value | title }}</option>{% endfor %}
+        </select>
+      </label>
+      <button type="submit">Registrar</button>
+    </form>
+  </section>
+  <section class="tarjeta tabla-scroll">
+    <h2>Registrados</h2>
+    <table>
+      <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th></tr></thead>
+      <tbody>
+      {% for u in usuarios %}
+        <tr><td>{{ u.nombre_usuario }}</td><td>{{ u.nombre_completo }}</td><td>{{ u.rol.value | title }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

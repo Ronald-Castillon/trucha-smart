@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 
@@ -12,8 +14,10 @@ from src.adapters.inbound.rest.dependencias import (
     usuario_actual,
 )
 from src.adapters.inbound.web.plantillas import render
-from src.domain.errores import CredencialesInvalidas, ErrorDominio
+from src.domain.errores import CredencialesInvalidas, ErrorDominio, ErrorValidacion
+from src.domain.model.estanque import TipoEstanque
 from src.domain.model.usuario import Rol, Usuario
+from src.ports.inbound.gestionar_estanque import ComandoSembrarLote, DatosEstanque
 from src.ports.inbound.registrar_usuario import ComandoRegistrarUsuario
 
 router = APIRouter(include_in_schema=False)
@@ -62,9 +66,219 @@ def logout():
     return respuesta
 
 
+def _numero(campo: str, valor: str, tipo=float, opcional: bool = False):
+    """Convierte un campo de formulario; los errores se informan con el nombre del campo."""
+    valor = (valor or "").strip().replace(",", ".")
+    if not valor:
+        if opcional:
+            return None
+        raise ErrorValidacion(campo, f"El campo {campo} es obligatorio")
+    try:
+        return tipo(valor)
+    except ValueError:
+        raise ErrorValidacion(campo, f"El campo {campo} debe ser numérico") from None
+
+
+def _fecha(campo: str, valor: str) -> date:
+    try:
+        return date.fromisoformat(valor)
+    except ValueError:
+        raise ErrorValidacion(campo, f"El campo {campo} no es una fecha válida") from None
+
+
+def _estanques_con_lote(c: Contenedor, usuario: Usuario):
+    return [(e, c.estanques.lote_activo(e.id, usuario)) for e in c.estanques.listar(usuario)]
+
+
 @router.get("/panel")
-def panel(request: Request, usuario: Usuario = Depends(usuario_actual)):
-    return render(request, "panel.html", usuario=usuario)
+def panel(
+    request: Request,
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    return render(request, "panel.html", usuario=usuario, filas=_estanques_con_lote(c, usuario))
+
+
+# --------------------------------------------------------------------------- estanques (RF-02)
+
+
+def _vista_estanques(request, c: Contenedor, usuario: Usuario, estado=200, **extra):
+    extra.setdefault("form", {})
+    return render(
+        request,
+        "estanques.html",
+        estado,
+        usuario=usuario,
+        filas=_estanques_con_lote(c, usuario),
+        **extra,
+    )
+
+
+@router.get("/estanques")
+def estanques(
+    request: Request,
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    return _vista_estanques(request, c, usuario)
+
+
+@router.post("/estanques")
+def crear_estanque(
+    request: Request,
+    nombre: str = Form(""),
+    tipo: TipoEstanque = Form(TipoEstanque.ESTANQUE),
+    volumen_m3: str = Form(""),
+    ubicacion: str = Form(""),
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    form = {"nombre": nombre, "tipo": tipo.value, "volumen_m3": volumen_m3, "ubicacion": ubicacion}
+    try:
+        datos = DatosEstanque(
+            nombre, tipo, _numero("volumen_m3", volumen_m3, opcional=True), ubicacion or None
+        )
+        nuevo = c.estanques.crear(datos, usuario)
+        c.confirmar()
+    except ErrorDominio as e:
+        c.sesion.rollback()
+        return _vista_estanques(request, c, usuario, 422, error=e.mensaje, form=form)
+    return _vista_estanques(request, c, usuario, aviso=f"Estanque {nuevo.nombre} creado")
+
+
+def _vista_detalle(request, c: Contenedor, usuario: Usuario, estanque_id: int, estado=200, **extra):
+    extra.setdefault("form", {})
+    return render(
+        request,
+        "estanque_detalle.html",
+        estado,
+        usuario=usuario,
+        estanque=c.estanques.obtener(estanque_id, usuario),
+        lote=c.estanques.lote_activo(estanque_id, usuario),
+        lotes=c.estanques.lotes_de(estanque_id, usuario),
+        hoy=c.recursos.reloj.ahora().date().isoformat(),
+        **extra,
+    )
+
+
+@router.get("/estanques/{estanque_id}")
+def detalle_estanque(
+    request: Request,
+    estanque_id: int,
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    return _vista_detalle(request, c, usuario, estanque_id)
+
+
+@router.post("/estanques/{estanque_id}")
+def actualizar_estanque(
+    request: Request,
+    estanque_id: int,
+    nombre: str = Form(""),
+    tipo: TipoEstanque = Form(TipoEstanque.ESTANQUE),
+    volumen_m3: str = Form(""),
+    ubicacion: str = Form(""),
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    try:
+        datos = DatosEstanque(
+            nombre, tipo, _numero("volumen_m3", volumen_m3, opcional=True), ubicacion or None
+        )
+        c.estanques.actualizar(estanque_id, datos, usuario)
+        c.confirmar()
+    except ErrorDominio as e:
+        c.sesion.rollback()
+        return _vista_detalle(request, c, usuario, estanque_id, 422, error=e.mensaje)
+    return _vista_detalle(request, c, usuario, estanque_id, aviso="Cambios guardados")
+
+
+@router.post("/estanques/{estanque_id}/baja")
+def baja_estanque(
+    request: Request,
+    estanque_id: int,
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    try:
+        c.estanques.desactivar(estanque_id, usuario)
+        c.confirmar()
+    except ErrorDominio as e:
+        c.sesion.rollback()
+        return _vista_detalle(request, c, usuario, estanque_id, 409, error=e.mensaje)
+    return _vista_estanques(request, c, usuario, aviso="Estanque dado de baja")
+
+
+@router.post("/estanques/{estanque_id}/lotes")
+def sembrar_lote(
+    request: Request,
+    estanque_id: int,
+    codigo: str = Form(""),
+    num_peces: str = Form(""),
+    peso_medio_g: str = Form(""),
+    fecha_siembra: str = Form(""),
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    form = {
+        "codigo": codigo,
+        "num_peces": num_peces,
+        "peso_medio_g": peso_medio_g,
+        "fecha_siembra": fecha_siembra,
+    }
+    try:
+        comando = ComandoSembrarLote(
+            estanque_id,
+            codigo,
+            _numero("num_peces", num_peces, int),
+            _numero("peso_medio_g", peso_medio_g),
+            _fecha("fecha_siembra", fecha_siembra),
+        )
+        lote = c.estanques.sembrar_lote(comando, usuario)
+        c.confirmar()
+    except ErrorDominio as e:
+        c.sesion.rollback()
+        return _vista_detalle(request, c, usuario, estanque_id, 422, error=e.mensaje, form=form)
+    return _vista_detalle(request, c, usuario, estanque_id, aviso=f"Lote {lote.codigo} sembrado")
+
+
+@router.post("/lotes/{lote_id}/peso")
+def actualizar_peso(
+    request: Request,
+    lote_id: int,
+    peso_medio_g: str = Form(""),
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    lote = c.estanques.obtener_lote(lote_id, usuario)
+    try:
+        c.estanques.actualizar_peso(lote_id, _numero("peso_medio_g", peso_medio_g), usuario)
+        c.confirmar()
+    except ErrorDominio as e:
+        c.sesion.rollback()
+        return _vista_detalle(request, c, usuario, lote.estanque_id, 422, error=e.mensaje)
+    return _vista_detalle(request, c, usuario, lote.estanque_id, aviso="Peso medio actualizado")
+
+
+@router.post("/lotes/{lote_id}/cerrar")
+def cerrar_lote(
+    request: Request,
+    lote_id: int,
+    fecha_cierre: str = Form(""),
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    lote = c.estanques.obtener_lote(lote_id, usuario)
+    try:
+        c.estanques.cerrar_lote(lote_id, _fecha("fecha_cierre", fecha_cierre), usuario)
+        c.confirmar()
+    except ErrorDominio as e:
+        c.sesion.rollback()
+        return _vista_detalle(request, c, usuario, lote.estanque_id, 422, error=e.mensaje)
+    return _vista_detalle(
+        request, c, usuario, lote.estanque_id, aviso=f"Lote {lote.codigo} cerrado"
+    )
 
 
 def _vista_usuarios(request, c: Contenedor, usuario: Usuario, estado=200, **extra):

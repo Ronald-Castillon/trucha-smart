@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block titulo %}Estanques{% endblock %}
+{% block contenido %}
+<h1>Estanques y jaulas</h1>
+<div class="rejilla">
+  {% if usuario.puede(P.GESTIONAR_ESTANQUES) %}
+  <section class="tarjeta">
+    <h2>Nuevo estanque / jaula</h2>
+    <form class="apilado" method="post" action="/estanques">
+      <label>Nombre <input name="nombre" required value="{{ form.nombre or '' }}"></label>
+      <label>Tipo
+        <select name="tipo">
+          <option value="ESTANQUE">Estanque</option>
+          <option value="JAULA" {% if form.tipo == 'JAULA' %}selected{% endif %}>Jaula</option>
+        </select>
+      </label>
+      <label>Volumen (m³) <input name="volumen_m3" inputmode="decimal" value="{{ form.volumen_m3 or '' }}"></label>
+      <label>Ubicación <input name="ubicacion" value="{{ form.ubicacion or '' }}"></label>
+      <button type="submit">Crear</button>
+    </form>
+  </section>
+  {% endif %}
+  <section class="tarjeta tabla-scroll" style="grid-column: span 2">
+    <h2>Registrados</h2>
+    <table id="tabla-estanques">
+      <thead><tr><th>Nombre</th><th>Tipo</th><th>Volumen</th><th>Lote activo</th><th>Peces</th><th>Peso medio</th></tr></thead>
+      <tbody>
+      {% for e, lote in filas %}
+        <tr>
+          <td><a href="/estanques/{{ e.id }}">{{ e.nombre }}</a></td>
+          <td>{{ e.tipo.value | title }}</td>
+          <td>{{ e.volumen_m3 ~ ' m³' if e.volumen_m3 else '—' }}</td>
+          <td>{{ lote.codigo if lote else 'Sin lote' }}</td>
+          <td>{{ lote.num_peces_inicial if lote else '—' }}</td>
+          <td>{{ (lote.peso_medio_actual_g ~ ' g') if lote else '—' }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6">No hay estanques registrados.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

@@ -2,5 +2,16 @@
 {% block titulo %}Panel{% endblock %}
 {% block contenido %}
 <h1>Panel</h1>
-<p>Bienvenido/a, <strong>{{ usuario.nombre_completo }}</strong>. Rol: <strong>{{ usuario.rol.value | title }}</strong>.</p>
+<p class="suave">Bienvenido/a, <strong>{{ usuario.nombre_completo }}</strong> · Rol: {{ usuario.rol.value | title }}</p>
+<div class="rejilla" id="tarjetas-estanques">
+  {% for e, lote in filas %}
+  <article class="tarjeta" data-estanque="{{ e.id }}">
+    <h2><a href="/estanques/{{ e.id }}">{{ e.nombre }}</a></h2>
+    <p class="suave">{{ e.tipo.value | title }}{% if e.ubicacion %} · {{ e.ubicacion }}{% endif %}</p>
+    <p>{% if lote %}Lote <strong>{{ lote.codigo }}</strong> · {{ lote.num_peces_inicial }} peces · {{ lote.peso_medio_actual_g }} g{% else %}Sin lote activo{% endif %}</p>
+  </article>
+  {% else %}
+  <p>No hay estanques registrados.</p>
+  {% endfor %}
+</div>
 {% endblock %}

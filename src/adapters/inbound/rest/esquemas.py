@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
+from src.domain.model.estanque import Estanque, TipoEstanque
+from src.domain.model.lote import Lote
 from src.domain.model.usuario import Rol, Usuario
 
 # --------------------------------------------------------------------------- usuarios
@@ -48,3 +50,68 @@ class UsuarioEntrada(BaseModel):
     nombre_completo: str
     password: str
     rol: Rol
+
+
+# --------------------------------------------------------------------------- estanques y lotes
+
+
+class EstanqueEntrada(BaseModel):
+    nombre: str = Field(examples=["Estanque B1"])
+    tipo: TipoEstanque = TipoEstanque.ESTANQUE
+    volumen_m3: float | None = Field(default=None, examples=[120.0])
+    ubicacion: str | None = Field(default=None, examples=["Sector sur"])
+
+
+class LoteSalida(BaseModel):
+    id: int
+    estanque_id: int
+    codigo: str
+    num_peces_inicial: int
+    peso_medio_inicial_g: float
+    peso_medio_actual_g: float
+    fecha_siembra: date
+    activo: bool
+    fecha_cierre: date | None
+
+    @classmethod
+    def de(cls, lo: Lote) -> LoteSalida:
+        return cls(**{k: getattr(lo, k) for k in cls.model_fields})
+
+
+class EstanqueSalida(BaseModel):
+    id: int
+    nombre: str
+    tipo: TipoEstanque
+    volumen_m3: float | None
+    ubicacion: str | None
+    activo: bool
+    creado_en: datetime
+    lote_activo: LoteSalida | None = None
+
+    @classmethod
+    def de(cls, e: Estanque, lote: Lote | None = None) -> EstanqueSalida:
+        return cls(
+            id=e.id,
+            nombre=e.nombre,
+            tipo=e.tipo,
+            volumen_m3=e.volumen_m3,
+            ubicacion=e.ubicacion,
+            activo=e.activo,
+            creado_en=e.creado_en,
+            lote_activo=LoteSalida.de(lote) if lote else None,
+        )
+
+
+class LoteEntrada(BaseModel):
+    codigo: str = Field(examples=["L-2026-10"])
+    num_peces: int = Field(examples=[5000], description="Debe ser mayor que 0")
+    peso_medio_g: float = Field(examples=[12.5], description="Debe ser mayor que 0")
+    fecha_siembra: date
+
+
+class PesoEntrada(BaseModel):
+    peso_medio_g: float = Field(examples=[85.0], description="Peso medio de la biometría")
+
+
+class CierreEntrada(BaseModel):
+    fecha_cierre: date

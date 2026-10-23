@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from src.adapters.config import Configuracion
-from src.adapters.inbound.rest import auth, salud
+from src.adapters.inbound.rest import auth, estanques, salud
 from src.adapters.inbound.rest.dependencias import Recursos
 from src.adapters.inbound.rest.errores import registrar_manejadores
 from src.adapters.inbound.web import rutas as web
@@ -57,6 +57,7 @@ def crear_app(config: Configuracion | None = None, recursos: Recursos | None = N
     registrar_manejadores(app)
     app.include_router(salud.router)
     app.include_router(auth.router)
+    app.include_router(estanques.router)
     app.include_router(web.router)
     app.mount("/static", StaticFiles(directory=CARPETA_WEB / "static"), name="static")
     return app

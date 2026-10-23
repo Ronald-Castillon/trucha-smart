@@ -11,9 +11,14 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from src.adapters.outbound.persistence.db import BaseDatos
+from src.adapters.outbound.persistence.repositorio_estanque_sql import (
+    RepositorioEstanqueSQL,
+    RepositorioLoteSQL,
+)
 from src.adapters.outbound.persistence.repositorio_usuario_sql import RepositorioUsuarioSQL
 from src.adapters.outbound.security.jwt_tokens import ServicioTokens
 from src.domain.model.usuario import Usuario
+from src.domain.service.servicio_estanques import ServicioEstanques
 from src.domain.service.servicio_usuarios import ServicioUsuarios
 from src.ports.outbound.hasher_password import HasherPassword
 from src.ports.outbound.reloj import Reloj
@@ -49,6 +54,18 @@ class Contenedor:
     def usuarios(self) -> ServicioUsuarios:
         r = self.recursos
         return ServicioUsuarios(RepositorioUsuarioSQL(self.sesion), r.hasher, r.reloj)
+
+    @cached_property
+    def repo_estanques(self) -> RepositorioEstanqueSQL:
+        return RepositorioEstanqueSQL(self.sesion)
+
+    @cached_property
+    def repo_lotes(self) -> RepositorioLoteSQL:
+        return RepositorioLoteSQL(self.sesion)
+
+    @cached_property
+    def estanques(self) -> ServicioEstanques:
+        return ServicioEstanques(self.repo_estanques, self.repo_lotes, self.recursos.reloj)
 
 
 def recursos(request: Request) -> Recursos:

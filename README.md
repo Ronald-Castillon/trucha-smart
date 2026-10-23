@@ -154,8 +154,8 @@ HttpOnly). Todos los errores JSON devuelven `{"error", "detalle", "campo"}` con 
 | RF-05 | `GET /api/estanques/{id}/historial?desde=&hasta=`, `GET /api/estanques/{id}/riesgo` | Operario |
 | RF-06 | `POST/GET /api/lotes/{id}/alimentacion`, `POST/GET /api/lotes/{id}/mortalidad`, `GET /api/lotes/{id}/produccion` | Operario |
 | RF-07 | `GET /api/lotes/{id}/racion` | Operario |
-| RF-08 | `GET /api/reportes/{calidad-agua
-| Demo | `GET/POST /api/simulador`, `DELETE /api/simulador/{estanque_id}` (sensor simulado desde la web) | Piscicultor |\|produccion}.{csv\|pdf}?desde=&hasta=` | Piscicultor |
+| RF-08 | `GET /api/reportes/{calidad-agua\|produccion}.{csv\|pdf}?desde=&hasta=` | Piscicultor |
+| Demo | `GET/POST /api/simulador`, `DELETE /api/simulador/{estanque_id}` (sensor simulado desde la web) | Piscicultor |
 
 ### Reglas de negocio (valores de referencia, `config/*.yaml`)
 

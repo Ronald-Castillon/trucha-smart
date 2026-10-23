@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block titulo %}Producción · {{ lote.codigo }}{% endblock %}
+{% block contenido %}
+<p><a href="/estanques/{{ estanque.id }}">← {{ estanque.nombre }}</a></p>
+<h1>Lote {{ lote.codigo }} · {{ estanque.nombre }}</h1>
+<div class="rejilla">
+  <section class="tarjeta" id="resumen-produccion">
+    <h2>Producción</h2>
+    <table>
+      <tbody>
+        <tr><th>Peces sembrados</th><td>{{ resumen.peces_sembrados }}</td></tr>
+        <tr><th>Mortalidad acumulada</th><td id="mortalidad-total">{{ resumen.mortalidad_total }}</td></tr>
+        <tr><th>Peces vivos</th><td id="peces-vivos">{{ resumen.peces_vivos }} ({{ '%.2f' % resumen.supervivencia_pct }} %)</td></tr>
+        <tr><th>Peso medio actual</th><td>{{ resumen.peso_medio_actual_g }} g (inicial {{ resumen.peso_medio_inicial_g }} g)</td></tr>
+        <tr><th>Biomasa estimada</th><td id="biomasa">{{ '%.3f' % resumen.biomasa_kg }} kg</td></tr>
+        <tr><th>Ganancia de biomasa</th><td id="ganancia">{{ '%.3f' % resumen.ganancia_biomasa_kg }} kg</td></tr>
+        <tr><th>Alimento suministrado</th><td id="alimento-total">{{ '%.3f' % resumen.alimento_total_kg }} kg</td></tr>
+        <tr><th>FCR</th><td id="fcr"><strong>{{ resumen.fcr_texto }}</strong></td></tr>
+      </tbody>
+    </table>
+    <p class="suave" id="fcr-detalle">{{ resumen.fcr_detalle }}<br>Biomasa = peces vivos × peso medio · FCR = alimento total / ganancia de biomasa</p>
+  </section>
+  {% if lote.activo and usuario.puede(P.REGISTRAR_ALIMENTACION) %}
+  <section class="tarjeta">
+    <h2>Registrar alimentación</h2>
+    <form class="apilado" method="post" action="/lotes/{{ lote.id }}/alimentacion" id="form-alimentacion">
+      <label>Alimento suministrado (kg) <input name="cantidad_kg" inputmode="decimal" required value="{{ form.cantidad_kg or '' }}"></label>
+      <button type="submit">Registrar alimentación</button>
+    </form>
+    <h2 style="margin-top:1.2rem">Registrar mortalidad</h2>
+    <form class="apilado" method="post" action="/lotes/{{ lote.id }}/mortalidad" id="form-mortalidad">
+      <label>N.º de peces muertos <input name="cantidad" inputmode="numeric" required value="{{ form.cantidad or '' }}"></label>
+      <label>Causa (opcional) <input name="causa" value="{{ form.causa or '' }}"></label>
+      <button type="submit">Registrar mortalidad</button>
+    </form>
+  </section>
+  {% endif %}
+  <section class="tarjeta tabla-scroll">
+    <h2>Últimos registros</h2>
+    <h3>Alimentación</h3>
+    <table id="tabla-alimentacion">
+      <thead><tr><th>Fecha (UTC)</th><th>kg</th></tr></thead>
+      <tbody>
+      {% for r in alimentaciones %}<tr><td>{{ r.registrado_en.strftime('%d/%m/%Y %H:%M') }}</td><td>{{ '%.3f' % r.cantidad_kg }}</td></tr>
+      {% else %}<tr><td colspan="2">Sin registros.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    <h3>Mortalidad</h3>
+    <table id="tabla-mortalidad">
+      <thead><tr><th>Fecha (UTC)</th><th>Peces</th><th>Causa</th></tr></thead>
+      <tbody>
+      {% for r in mortalidades %}<tr><td>{{ r.registrado_en.strftime('%d/%m/%Y %H:%M') }}</td><td>{{ r.cantidad }}</td><td>{{ r.causa or '—' }}</td></tr>
+      {% else %}<tr><td colspan="3">Sin registros.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

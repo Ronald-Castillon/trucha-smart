@@ -10,8 +10,11 @@ from src.domain.model.alerta import Alerta, EstadoAlerta
 from src.domain.model.estanque import Estanque, TipoEstanque
 from src.domain.model.lectura_agua import FuenteLectura, LecturaAgua, Parametro
 from src.domain.model.lote import Lote
+from src.domain.model.registro_alimentacion import RegistroAlimentacion
+from src.domain.model.registro_mortalidad import RegistroMortalidad
 from src.domain.model.umbral import Nivel
 from src.domain.model.usuario import Rol, Usuario
+from src.domain.service.calculadora_fcr import ResumenProduccion
 from src.domain.service.evaluador_calidad_agua import Evaluacion
 from src.domain.service.indice_riesgo import IndiceRiesgo, Semaforo
 from src.ports.inbound.consultar_historial import Historial
@@ -268,3 +271,65 @@ class EstadoEstanque(BaseModel):
     niveles: dict[Parametro, Nivel]
     alertas_abiertas: list[AlertaSalida]
     riesgo: RiesgoSalida
+
+
+# ------------------------------------------------------------------- alimentación y producción
+
+
+class AlimentacionEntrada(BaseModel):
+    cantidad_kg: float = Field(examples=[25.5], description="kg de alimento (> 0)")
+    registrado_en: datetime | None = Field(default=None, description="Por defecto, ahora")
+
+
+class AlimentacionSalida(BaseModel):
+    id: int
+    lote_id: int
+    cantidad_kg: float
+    registrado_por: int | None
+    registrado_en: datetime
+
+    @classmethod
+    def de(cls, r: RegistroAlimentacion) -> AlimentacionSalida:
+        return cls(**{k: getattr(r, k) for k in cls.model_fields})
+
+
+class MortalidadEntrada(BaseModel):
+    cantidad: int = Field(examples=[12], description="n.º de peces muertos (> 0)")
+    causa: str | None = Field(default=None, examples=["Manipulación en biometría"])
+    registrado_en: datetime | None = None
+
+
+class MortalidadSalida(BaseModel):
+    id: int
+    lote_id: int
+    cantidad: int
+    causa: str | None
+    registrado_por: int | None
+    registrado_en: datetime
+
+    @classmethod
+    def de(cls, r: RegistroMortalidad) -> MortalidadSalida:
+        return cls(**{k: getattr(r, k) for k in cls.model_fields})
+
+
+class ProduccionSalida(BaseModel):
+    lote_id: int
+    codigo: str
+    peces_sembrados: int
+    mortalidad_total: int
+    peces_vivos: int
+    supervivencia_pct: float
+    peso_medio_inicial_g: float
+    peso_medio_actual_g: float
+    biomasa_inicial_kg: float
+    biomasa_kg: float
+    ganancia_biomasa_kg: float
+    alimento_total_kg: float
+    fcr: float | None = Field(description="null cuando no es calculable")
+    fcr_texto: str
+    fcr_detalle: str
+
+    @classmethod
+    def de(cls, r: ResumenProduccion) -> ProduccionSalida:
+        datos = {k: getattr(r, k) for k in cls.model_fields}
+        return cls(**datos)

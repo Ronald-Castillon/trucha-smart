@@ -12,7 +12,7 @@
     <p><span class="etiqueta riesgo {{ riesgo.semaforo.value | lower }}" title="{{ riesgo.formula }}">Riesgo {{ riesgo.valor }} · {{ riesgo.nivel }}</span>
        · <a href="/estanques/{{ e.id }}/historial">Historial</a></p>
     <p class="suave">{{ e.tipo.value | title }}{% if e.ubicacion %} · {{ e.ubicacion }}{% endif %}</p>
-    <p>{% if lote %}Lote <strong>{{ lote.codigo }}</strong> · {{ lote.num_peces_inicial }} peces · {{ lote.peso_medio_actual_g }} g{% else %}Sin lote activo{% endif %}</p>
+    <p>{% if lote %}Lote <a href="/lotes/{{ lote.id }}/produccion"><strong>{{ lote.codigo }}</strong></a> · {{ lote.num_peces_inicial }} peces · {{ lote.peso_medio_actual_g }} g{% else %}Sin lote activo{% endif %}</p>
     <div class="ultima-lectura">
       {% if lectura %}
         🌡️ <span class="temperatura nivel-{{ estado.niveles['TEMPERATURA'].value }}">{{ '%.2f' % lectura.temperatura_c }}</span> °C ·

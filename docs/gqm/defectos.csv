@@ -1,2 +1,3 @@
 id,incremento,rf,titulo,estado,issue
 D-001,1,RF-04,Las alertas de db/seed.sql usaban otro formato de mensaje que el evaluador,cerrado,#11
+D-002,2,RF-08,Con SQLite las lecturas del seed a las 00:00:00 quedaban fuera de los filtros por fecha,cerrado,#19

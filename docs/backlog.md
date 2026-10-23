@@ -22,10 +22,11 @@ Descomposición **Épica → Historia de usuario → Tareas**. Cada HU tiene su 
 | HU-02 | #2 | #10 | ✅ Terminada (Inc. 1) | — |
 | HU-03 | #3 | #12 | ✅ Terminada (Inc. 1) | — |
 | HU-04 | #4 | #13 | ✅ Terminada (Inc. 1) | #11 (formato de mensajes del seed) |
-| HU-05 | #5 | — | Pendiente (Inc. 2) | — |
-| HU-06 | #6 | — | Pendiente (Inc. 2) | — |
-| HU-07 | #7 | — | Pendiente (Inc. 2) | — |
-| HU-08 | #8 | — | Pendiente (Inc. 2) | — |
+| HU-05 | #5 | #16 | ✅ Terminada (Inc. 2) | — |
+| HU-06 | #6 | #17 | ✅ Terminada (Inc. 2) | — |
+| HU-07 | #7 | #18 | ✅ Terminada (Inc. 2) | — |
+| HU-08 | #8 | #20 | ✅ Terminada (Inc. 2) | #19 (fechas del seed en SQLite) |
+| Mejora continua | — | #15 | ✅ Inicio del Inc. 2 | — |
 
 ## Épicas
 

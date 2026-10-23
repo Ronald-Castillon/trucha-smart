@@ -13,6 +13,7 @@ from src.adapters.inbound.rest.dependencias import Recursos
 from src.adapters.outbound.notification.notificador_log import NotificadorLog
 from src.adapters.outbound.persistence.db import Base, BaseDatos
 from src.adapters.outbound.persistence.repositorio_usuario_sql import RepositorioUsuarioSQL
+from src.adapters.outbound.reports.generador_archivos import GeneradorReportesArchivo
 from src.adapters.outbound.security.bcrypt_hasher import HasherBcrypt
 from src.adapters.outbound.security.jwt_tokens import ServicioTokens
 from src.domain.model.usuario import Rol, Usuario
@@ -63,6 +64,7 @@ def recursos(reloj) -> Iterator[Recursos]:
         umbrales=cargar_umbrales(RAIZ / "config" / "umbrales.yaml"),
         notificador=NotificadorLog(),
         alimentacion=cargar_alimentacion(RAIZ / "config" / "alimentacion.yaml"),
+        generador_reportes=GeneradorReportesArchivo(),
     )
     Base.metadata.drop_all(bd.motor)
     bd.motor.dispose()

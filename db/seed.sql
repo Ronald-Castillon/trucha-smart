@@ -187,8 +187,8 @@ INSERT INTO lecturas_agua (id, estanque_id, temperatura_c, oxigeno_mg_l, ph, fue
   (168, 3, 12.27, 6.05, 7.48, 'SENSOR', NULL, '2026-10-22 21:00:00+00');
 
 INSERT INTO alertas (id, estanque_id, lectura_id, parametro, nivel, valor, mensaje, estado, creada_en, atendida_por, atendida_en, observacion) VALUES
-  (1, 3, 130, 'OXIGENO_DISUELTO', 'PRECAUCION', 6.45, 'Oxígeno disuelto en precaución: 6.45 mg/L (normal >= 7.0)', 'ATENDIDA', '2026-10-18 03:00:00+00', 3, '2026-10-18 04:00:00+00', 'Se encendió el aireador'),
-  (2, 3, 165, 'OXIGENO_DISUELTO', 'PRECAUCION', 6.16, 'Oxígeno disuelto en precaución: 6.16 mg/L (normal >= 7.0)', 'ABIERTA', '2026-10-22 12:00:00+00', NULL, NULL, NULL);
+  (1, 3, 130, 'OXIGENO_DISUELTO', 'PRECAUCION', 6.45, 'Oxígeno disuelto en PRECAUCIÓN: 6.45 mg/L (normal >= 7 mg/L)', 'ATENDIDA', '2026-10-18 03:00:00+00', 3, '2026-10-18 04:00:00+00', 'Se encendió el aireador'),
+  (2, 3, 165, 'OXIGENO_DISUELTO', 'PRECAUCION', 6.16, 'Oxígeno disuelto en PRECAUCIÓN: 6.16 mg/L (normal >= 7 mg/L)', 'ABIERTA', '2026-10-22 12:00:00+00', NULL, NULL, NULL);
 
 INSERT INTO registros_alimentacion (id, lote_id, cantidad_kg, registrado_por, registrado_en) VALUES
   (1, 1, 5.928, 3, '2026-10-16 08:00:00+00'),

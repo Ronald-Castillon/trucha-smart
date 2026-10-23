@@ -1,5 +1,6 @@
-"""E2E de la interfaz en vivo (Issue #23): simulador desde la web, gráficos, avisos y
-auto-refresco de alertas. Captura en evidencias/mejoras/."""
+"""E2E de la interfaz en vivo (Issue #23). El nombre del archivo hace que corra después de las
+E2E de los RF, para que sus estanques de prueba no aparezcan en las capturas de evidencia.
+Simulador desde la web, gráficos, avisos y auto-refresco; captura en evidencias/mejoras/."""
 
 from contextlib import contextmanager
 

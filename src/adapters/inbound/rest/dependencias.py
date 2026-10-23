@@ -15,10 +15,12 @@ from src.adapters.outbound.persistence.repositorio_estanque_sql import (
     RepositorioEstanqueSQL,
     RepositorioLoteSQL,
 )
+from src.adapters.outbound.persistence.repositorio_lectura_sql import RepositorioLecturaSQL
 from src.adapters.outbound.persistence.repositorio_usuario_sql import RepositorioUsuarioSQL
 from src.adapters.outbound.security.jwt_tokens import ServicioTokens
 from src.domain.model.usuario import Usuario
 from src.domain.service.servicio_estanques import ServicioEstanques
+from src.domain.service.servicio_lecturas import ServicioLecturas
 from src.domain.service.servicio_usuarios import ServicioUsuarios
 from src.ports.outbound.hasher_password import HasherPassword
 from src.ports.outbound.reloj import Reloj
@@ -66,6 +68,14 @@ class Contenedor:
     @cached_property
     def estanques(self) -> ServicioEstanques:
         return ServicioEstanques(self.repo_estanques, self.repo_lotes, self.recursos.reloj)
+
+    @cached_property
+    def repo_lecturas(self) -> RepositorioLecturaSQL:
+        return RepositorioLecturaSQL(self.sesion)
+
+    @cached_property
+    def lecturas(self) -> ServicioLecturas:
+        return ServicioLecturas(self.repo_lecturas, self.repo_estanques, self.recursos.reloj)
 
 
 def recursos(request: Request) -> Recursos:

@@ -7,6 +7,7 @@ from datetime import date, datetime
 from pydantic import BaseModel, Field
 
 from src.domain.model.estanque import Estanque, TipoEstanque
+from src.domain.model.lectura_agua import FuenteLectura, LecturaAgua
 from src.domain.model.lote import Lote
 from src.domain.model.usuario import Rol, Usuario
 
@@ -115,3 +116,40 @@ class PesoEntrada(BaseModel):
 
 class CierreEntrada(BaseModel):
     fecha_cierre: date
+
+
+# --------------------------------------------------------------------------- lecturas
+
+
+class LecturaEntrada(BaseModel):
+    estanque_id: int = Field(examples=[1])
+    temperatura_c: float = Field(examples=[12.8], description="0 a 40 °C")
+    oxigeno_mg_l: float = Field(examples=[8.1], description=">= 0 mg/L")
+    ph: float = Field(examples=[7.4], description="0 a 14")
+    fuente: FuenteLectura = FuenteLectura.SENSOR
+    medido_en: datetime | None = Field(
+        default=None, description="Fecha/hora ISO 8601 con zona horaria; por defecto, ahora"
+    )
+
+
+class LecturaSalida(BaseModel):
+    id: int
+    estanque_id: int
+    temperatura_c: float
+    oxigeno_mg_l: float
+    ph: float
+    fuente: FuenteLectura
+    registrado_por: int | None
+    medido_en: datetime
+
+    @classmethod
+    def de(cls, lec: LecturaAgua) -> LecturaSalida:
+        return cls(**{k: getattr(lec, k) for k in cls.model_fields})
+
+
+class EstadoEstanque(BaseModel):
+    """Resumen de un estanque para el panel (se refresca cada 2 s)."""
+
+    estanque_id: int
+    nombre: str
+    ultima_lectura: LecturaSalida | None

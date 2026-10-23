@@ -1,0 +1,21 @@
+# Tabla de alimentación por peso medio y factores de ajuste (ADR-005).
+# VALORES DE REFERENCIA: validar con el técnico de la piscigranja.
+
+# Tasa de alimentación en % de la biomasa por día, según peso medio (g).
+# Cada tramo aplica cuando  desde_g <= peso < hasta_g  (hasta_g null = sin límite).
+tasas:
+  - {desde_g: 0,   hasta_g: 10,   tasa_pct: 5.0}
+  - {desde_g: 10,  hasta_g: 50,   tasa_pct: 3.0}
+  - {desde_g: 50,  hasta_g: 200,  tasa_pct: 2.0}
+  - {desde_g: 200, hasta_g: null, tasa_pct: 1.2}
+
+# Factor multiplicador según el nivel de la última lectura.
+factor_temperatura:
+  normal: 1.0
+  precaucion: 0.7
+  critica: 0.0   # suspender alimentación
+
+factor_oxigeno:
+  normal: 1.0
+  precaucion: 0.5
+  critica: 0.0   # suspender alimentación

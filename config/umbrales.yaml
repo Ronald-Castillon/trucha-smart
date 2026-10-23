@@ -1,0 +1,22 @@
+# Umbrales de calidad de agua para trucha arcoíris (Oncorhynchus mykiss).
+# VALORES DE REFERENCIA: validar con el técnico de la piscigranja antes de usar en producción.
+# Semántica de cada parámetro:
+#   normal:      [min, max]  -> rango sin alerta (límites inclusivos)
+#   precaucion:  [min, max]  -> fuera de "normal" pero dentro de este rango => PRECAUCIÓN
+#   fuera de "precaucion"                                               => CRÍTICA
+# Un límite null significa "sin límite" en esa dirección.
+
+temperatura:
+  unidad: "°C"
+  normal: [10.0, 16.0]
+  precaucion: [8.0, 18.0]
+
+oxigeno_disuelto:
+  unidad: "mg/L"
+  normal: [7.0, null]
+  precaucion: [5.0, null]
+
+ph:
+  unidad: "pH"
+  normal: [6.5, 8.5]
+  precaucion: [6.0, 9.0]

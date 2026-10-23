@@ -17,6 +17,7 @@ from src.adapters.inbound.rest import (
     lecturas,
     produccion,
     racion,
+    reportes,
     salud,
 )
 from src.adapters.inbound.rest.dependencias import Recursos
@@ -26,6 +27,7 @@ from src.adapters.inbound.web.plantillas import CARPETA as CARPETA_WEB
 from src.adapters.outbound.notification.notificador_log import NotificadorLog
 from src.adapters.outbound.persistence.db import BaseDatos
 from src.adapters.outbound.reloj_sistema import RelojSistema
+from src.adapters.outbound.reports.generador_archivos import GeneradorReportesArchivo
 from src.adapters.outbound.security.bcrypt_hasher import HasherBcrypt
 from src.adapters.outbound.security.jwt_tokens import ServicioTokens
 
@@ -48,6 +50,7 @@ def crear_recursos(config: Configuracion) -> Recursos:
         umbrales=cargar_umbrales(config.umbrales_path),
         notificador=NotificadorLog(),
         alimentacion=cargar_alimentacion(config.alimentacion_path),
+        generador_reportes=GeneradorReportesArchivo(),
     )
 
 
@@ -76,6 +79,7 @@ def crear_app(config: Configuracion | None = None, recursos: Recursos | None = N
     app.include_router(historial.router)
     app.include_router(produccion.router)
     app.include_router(racion.router)
+    app.include_router(reportes.router)
     app.include_router(web.router)
     app.mount("/static", StaticFiles(directory=CARPETA_WEB / "static"), name="static")
     return app

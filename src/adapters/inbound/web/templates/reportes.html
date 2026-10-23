@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block titulo %}Reportes{% endblock %}
+{% block contenido %}
+<h1>Reportes</h1>
+<section class="tarjeta">
+  <h2>Exportar reporte</h2>
+  <form class="apilado" method="get" action="/reportes/vista" id="form-reporte">
+    <label>Tipo
+      <select name="tipo">
+        <option value="calidad-agua" {% if form.tipo == 'calidad-agua' %}selected{% endif %}>Calidad de agua</option>
+        <option value="produccion" {% if form.tipo == 'produccion' %}selected{% endif %}>Producción</option>
+      </select>
+    </label>
+    <label>Desde <input type="date" name="desde" required value="{{ form.desde }}"></label>
+    <label>Hasta <input type="date" name="hasta" required value="{{ form.hasta }}"></label>
+    <button type="submit">Generar reporte</button>
+  </form>
+  <p class="suave">Fechas en UTC, ambas inclusivas. Se muestra una vista previa con botones para descargar en PDF o CSV. El CSV incluye todo el detalle; el PDF, un resumen y hasta 1500 lecturas.</p>
+</section>
+{% endblock %}

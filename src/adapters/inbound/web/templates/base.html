@@ -16,6 +16,7 @@
     <a href="/estanques">Estanques</a>
     {% if usuario.puede(P.REGISTRAR_LECTURA) %}<a href="/lecturas/nueva">Registrar lectura</a>{% endif %}
     <a href="/alertas">Alertas</a>
+    {% if usuario.puede(P.GESTIONAR_REPORTES) %}<a href="/reportes">Reportes</a>{% endif %}
     {% if usuario.puede(P.GESTIONAR_USUARIOS) %}<a href="/usuarios">Usuarios</a>{% endif %}
   </nav>
   <form method="post" action="/logout">

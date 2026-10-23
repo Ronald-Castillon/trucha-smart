@@ -34,12 +34,15 @@ def reloj() -> RelojFijo:
 
 
 # TEST_DATABASE_URL permite correr las pruebas de integración contra PostgreSQL (CI, ADR-003).
-URL_PRUEBAS = os.getenv("TEST_DATABASE_URL", "sqlite://")
+# Por defecto, SQLite en un archivo temporal: igual que en producción, cada hilo usa su propia
+# conexión. Con SQLite en memoria todas las sesiones comparten una sola conexión y el rollback
+# de una petición podía deshacer la inserción concurrente del simulador en proceso.
+URL_PRUEBAS = os.getenv("TEST_DATABASE_URL")
 
 
 @pytest.fixture
-def recursos(reloj) -> Iterator[Recursos]:
-    bd = BaseDatos(URL_PRUEBAS)
+def recursos(reloj, tmp_path) -> Iterator[Recursos]:
+    bd = BaseDatos(URL_PRUEBAS or f"sqlite:///{(tmp_path / 'pruebas.db').as_posix()}")
     Base.metadata.drop_all(bd.motor)
     bd.crear_tablas()
     hasher = HasherBcrypt(rondas=4)

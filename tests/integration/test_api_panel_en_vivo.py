@@ -54,7 +54,11 @@ def test_iniciar_y_detener_sensor_simulado(cliente, como_piscicultor, como_opera
         datos = cliente.get(f"/api/lecturas?estanque_id={estanque_id}", headers=como_operario)
         return len(datos.json()) >= 1
 
-    assert _esperar(hay_lectura), "el simulador no registró lecturas"
+    estado = cliente.app.state.simulador._simulaciones.get(estanque_id)
+    assert _esperar(hay_lectura), (
+        f"el simulador no registró lecturas: activa={estado.activa}, "
+        f"error={estado.ultimo_error!r}, enviadas={estado.lecturas_enviadas}"
+    )
     lectura = cliente.get(f"/api/lecturas?estanque_id={estanque_id}", headers=como_operario).json()
     assert lectura[0]["fuente"] == "SENSOR" and lectura[0]["oxigeno_mg_l"] == 8.0
     panel = cliente.get("/api/panel", headers=como_operario).json()

@@ -15,6 +15,36 @@
         "title": "CierreEntrada",
         "type": "object"
       },
+      "EstadoEstanque": {
+        "description": "Resumen de un estanque para el panel (se refresca cada 2 s).",
+        "properties": {
+          "estanque_id": {
+            "title": "Estanque Id",
+            "type": "integer"
+          },
+          "nombre": {
+            "title": "Nombre",
+            "type": "string"
+          },
+          "ultima_lectura": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LecturaSalida"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "estanque_id",
+          "nombre",
+          "ultima_lectura"
+        ],
+        "title": "EstadoEstanque",
+        "type": "object"
+      },
       "EstadoSalud": {
         "properties": {
           "estado": {
@@ -146,6 +176,129 @@
           "creado_en"
         ],
         "title": "EstanqueSalida",
+        "type": "object"
+      },
+      "FuenteLectura": {
+        "enum": [
+          "MANUAL",
+          "SENSOR"
+        ],
+        "title": "FuenteLectura",
+        "type": "string"
+      },
+      "LecturaEntrada": {
+        "properties": {
+          "estanque_id": {
+            "examples": [
+              1
+            ],
+            "title": "Estanque Id",
+            "type": "integer"
+          },
+          "fuente": {
+            "$ref": "#/components/schemas/FuenteLectura",
+            "default": "SENSOR"
+          },
+          "medido_en": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Fecha/hora ISO 8601 con zona horaria; por defecto, ahora",
+            "title": "Medido En"
+          },
+          "oxigeno_mg_l": {
+            "description": ">= 0 mg/L",
+            "examples": [
+              8.1
+            ],
+            "title": "Oxigeno Mg L",
+            "type": "number"
+          },
+          "ph": {
+            "description": "0 a 14",
+            "examples": [
+              7.4
+            ],
+            "title": "Ph",
+            "type": "number"
+          },
+          "temperatura_c": {
+            "description": "0 a 40 °C",
+            "examples": [
+              12.8
+            ],
+            "title": "Temperatura C",
+            "type": "number"
+          }
+        },
+        "required": [
+          "estanque_id",
+          "temperatura_c",
+          "oxigeno_mg_l",
+          "ph"
+        ],
+        "title": "LecturaEntrada",
+        "type": "object"
+      },
+      "LecturaSalida": {
+        "properties": {
+          "estanque_id": {
+            "title": "Estanque Id",
+            "type": "integer"
+          },
+          "fuente": {
+            "$ref": "#/components/schemas/FuenteLectura"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "medido_en": {
+            "format": "date-time",
+            "title": "Medido En",
+            "type": "string"
+          },
+          "oxigeno_mg_l": {
+            "title": "Oxigeno Mg L",
+            "type": "number"
+          },
+          "ph": {
+            "title": "Ph",
+            "type": "number"
+          },
+          "registrado_por": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registrado Por"
+          },
+          "temperatura_c": {
+            "title": "Temperatura C",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "estanque_id",
+          "temperatura_c",
+          "oxigeno_mg_l",
+          "ph",
+          "fuente",
+          "registrado_por",
+          "medido_en"
+        ],
+        "title": "LecturaSalida",
         "type": "object"
       },
       "LoginEntrada": {
@@ -1281,6 +1434,290 @@
         ]
       }
     },
+    "/api/estanques/{estanque_id}/ultima-lectura": {
+      "get": {
+        "operationId": "ultima_lectura_api_estanques__estanque_id__ultima_lectura_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "estanque_id",
+            "required": true,
+            "schema": {
+              "title": "Estanque Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/LecturaSalida"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Ultima Lectura Api Estanques  Estanque Id  Ultima Lectura Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Ultima Lectura",
+        "tags": [
+          "lecturas"
+        ]
+      }
+    },
+    "/api/lecturas": {
+      "get": {
+        "description": "Lecturas más recientes de un estanque (la primera es la última registrada).",
+        "operationId": "lecturas_recientes_api_lecturas_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "estanque_id",
+            "required": true,
+            "schema": {
+              "title": "Estanque Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limite",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limite",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LecturaSalida"
+                  },
+                  "title": "Response Lecturas Recientes Api Lecturas Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Lecturas Recientes",
+        "tags": [
+          "lecturas"
+        ]
+      },
+      "post": {
+        "description": "Registra una lectura (formulario o sensor simulado). Valores físicamente imposibles\n(pH fuera de 0–14, OD < 0, temperatura fuera de 0–40 °C) se rechazan con 422.",
+        "operationId": "registrar_lectura_api_lecturas_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LecturaEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LecturaSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Registrar Lectura",
+        "tags": [
+          "lecturas"
+        ]
+      }
+    },
     "/api/lotes/{lote_id}": {
       "get": {
         "operationId": "obtener_lote_api_lotes__lote_id__get",
@@ -1560,6 +1997,88 @@
         "summary": "Actualizar Peso Lote",
         "tags": [
           "estanques y lotes"
+        ]
+      }
+    },
+    "/api/panel": {
+      "get": {
+        "description": "Estado de todos los estanques activos; el panel web lo consulta cada 2 s.",
+        "operationId": "estado_panel_api_panel_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EstadoEstanque"
+                  },
+                  "title": "Response Estado Panel Api Panel Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Estado Panel",
+        "tags": [
+          "lecturas",
+          "panel"
         ]
       }
     },

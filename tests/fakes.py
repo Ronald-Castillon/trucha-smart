@@ -130,3 +130,26 @@ class NotificadorFalso:
 
     def notificar(self, alerta) -> None:
         self.enviadas.append(alerta)
+
+
+class _RepositorioRegistrosLote(RepositorioMemoria):
+    def de_lote(self, lote_id, desde=None, hasta=None):
+        res = [
+            replace(r)
+            for r in self.datos.values()
+            if r.lote_id == lote_id
+            and (desde is None or r.registrado_en >= desde)
+            and (hasta is None or r.registrado_en <= hasta)
+        ]
+        res.sort(key=lambda r: (r.registrado_en, r.id), reverse=True)
+        return res
+
+
+class RepositorioAlimentacionMemoria(_RepositorioRegistrosLote):
+    def total_kg(self, lote_id):
+        return sum(r.cantidad_kg for r in self.datos.values() if r.lote_id == lote_id)
+
+
+class RepositorioMortalidadMemoria(_RepositorioRegistrosLote):
+    def total(self, lote_id):
+        return sum(r.cantidad for r in self.datos.values() if r.lote_id == lote_id)

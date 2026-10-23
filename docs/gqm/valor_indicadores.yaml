@@ -1,36 +1,56 @@
 # Indicadores de valor para la métrica M3.2 (mejora % respecto del AS-IS).
 #
-# >>> COMPLETAR POR EL EQUIPO <<<
-#   as_is: línea base medida en la piscigranja ANTES del sistema (no inventar).
-#   to_be_inc1 / to_be_inc2: valor medido con el sistema al cierre de cada incremento.
-# Mientras falte algún valor, tools/gqm_metrics.py muestra "pendiente".
+# AS-IS (línea base, antes del sistema)
+#   as_is_tipo: medido   -> medido en la piscigranja (cuaderno, cronómetro, entrevista).
+#               estimado -> derivado del enunciado del caso; NO es una medición de campo.
+#   Mientras algún AS-IS sea "estimado" o falte, M3.2 se reporta como ESTIMADO/PARCIAL y no
+#   acredita la meta. >>> El equipo debe reemplazar los estimados por mediciones reales. <<<
 #
-# sentido: menor_es_mejor -> mejora % = (as_is - to_be) / as_is x 100
-#          mayor_es_mejor -> mejora % = (to_be - as_is) / as_is x 100
+# TO-BE (con el sistema): medidos con tools/medir_indicadores.py sobre la app en ejecución.
+#   Muestras crudas en docs/gqm/mediciones/medicion_inc1.json (tag v1.0-PMV)
+#   y docs/gqm/mediciones/medicion_inc2.json (tag v2.0-Inc2).
+#
+# sentido: menor_es_mejor -> mejora % = (as_is - to_be) / as_is x 100        (máx. 100 %)
+#          mayor_es_mejor -> mejora % = (to_be - as_is) / as_is x 100, acotada a 100 % para
+#                            que un solo indicador no domine el promedio.
 indicadores:
   - id: IV-1
-    nombre: "Tiempo desde que ocurre una condición crítica de agua hasta que se detecta"
+    nombre: "Tiempo desde que ocurre una condición crítica de agua hasta que se detecta (peor caso)"
     unidad: "minutos"
     sentido: menor_es_mejor
-    as_is: null        # p. ej. horas entre mediciones manuales (cuaderno del operario)
-    to_be_inc1: null   # p. ej. tiempo lectura -> alerta visible en el panel
-    to_be_inc2: null
-    fuente: "Cuaderno de mediciones (AS-IS); registro de alertas del sistema (TO-BE)"
+    as_is: 720
+    as_is_tipo: estimado
+    as_is_fuente: >-
+      Enunciado: "mide temperatura y oxígeno 1 o 2 veces al día". En el mejor caso (2 mediciones
+      diarias) pasan hasta 12 h = 720 min entre mediciones, que es el peor caso de detección.
+      Reemplazar por el intervalo real anotado en el cuaderno del operario.
+    to_be_inc1: 0.0398   # 2.39 s: máximo de 5 muestras, panel con refresco cada 2 s
+    to_be_inc2: 0.0229   # 1.373 s: máximo de 5 muestras, panel con refresco cada 1 s (MC-01)
+    to_be_fuente: "tools/medir_indicadores.py: lectura crítica por API -> alerta visible en el panel (Playwright)"
 
   - id: IV-2
     nombre: "Tiempo para elaborar el reporte mensual de producción y calidad de agua"
     unidad: "horas"
     sentido: menor_es_mejor
-    as_is: null        # tiempo que hoy toma armarlo en Excel
-    to_be_inc1: null   # en Inc. 1 aún no hay exportación: medir el proceso vigente
-    to_be_inc2: null   # tiempo con la exportación PDF/CSV
-    fuente: "Entrevista / cronometraje al piscicultor"
+    as_is: null
+    as_is_tipo: null
+    as_is_fuente: >-
+      Pendiente: el enunciado solo dice que se arma en Excel a fin de mes, sin duración.
+      Medir con el piscicultor (cronometrar o entrevista) y registrar aquí.
+    to_be_inc1: null     # el Incremento 1 no incluye exportación de reportes (RF-08 es del Inc. 2)
+    to_be_inc2: 0.000021 # 0.074 s: calidad de agua + producción, PDF y CSV, octubre 2026
+    to_be_fuente: "tools/medir_indicadores.py: descarga de los 4 archivos del mes por la API"
 
   - id: IV-3
     nombre: "Lecturas de calidad de agua registradas por estanque y día"
     unidad: "lecturas/día"
     sentido: mayor_es_mejor
-    as_is: null        # hoy 1 o 2 por día según el operario: confirmar con el cuaderno
-    to_be_inc1: null
-    to_be_inc2: null
-    fuente: "Cuaderno (AS-IS); conteo en la tabla lecturas_agua (TO-BE)"
+    as_is: 2
+    as_is_tipo: estimado
+    as_is_fuente: >-
+      Enunciado: "1 o 2 veces al día"; se toma el mejor caso (2). Confirmar con el cuaderno.
+    to_be_inc1: 19716.7  # simulador a 5 s: 7 lecturas en 30.675 s, extrapolado a 24 h
+    to_be_inc2: 19759.5  # simulador a 5 s: 7 lecturas en 30.608 s, extrapolado a 24 h
+    to_be_fuente: >-
+      tools/medir_indicadores.py: simulador (ADR-004) con --intervalo 5; es la capacidad del
+      sistema con sensor simulado, no la operación real con sondas.

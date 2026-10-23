@@ -177,9 +177,14 @@ python tools/gqm_metrics.py --incremento 1   # escribe docs/gqm/reporte_inc1.md
 python tools/gqm_metrics.py --incremento 2   # escribe docs/gqm/reporte_inc2.md
 ```
 
-Antes de generarlo, ejecutar las pruebas con `--cov-report=xml` y las E2E. **El equipo debe
-completar las líneas base AS-IS** en `docs/gqm/valor_indicadores.yaml`; mientras falten, M3.2 se
-reporta como "pendiente". Los defectos se cuentan desde GitHub Issues (`bug` + `inc1`/`inc2`) o,
+Antes de generarlo, ejecutar las pruebas con `--cov-report=xml` y las E2E.
+
+Los indicadores de valor TO-BE (IV-1 a IV-3) se **miden** sobre la app en ejecución con
+`python tools/medir_indicadores.py --etiqueta inc2` (muestras crudas en `docs/gqm/mediciones/`).
+Las líneas base AS-IS de `docs/gqm/valor_indicadores.yaml` están marcadas como **estimadas**
+(derivadas del enunciado) o pendientes: **el equipo debe reemplazarlas por mediciones de campo**
+(`as_is_tipo: medido`). Mientras haya un AS-IS estimado o falte alguno, M3.2 se muestra con su
+valor pero con el estado "⚠️ no acredita". Los defectos se cuentan desde GitHub Issues (`bug` + `inc1`/`inc2`) o,
 si `gh` no está disponible, desde `docs/gqm/defectos.csv`.
 
 ## Flujo de trabajo (Scrum + DevOps)

@@ -1,0 +1,37 @@
+# Entorno de despliegue de pruebas: app + PostgreSQL 16 (opcional; las pruebas usan SQLite).
+# Uso:  docker compose up --build   ->  http://localhost:8000
+# El esquema y el seed se cargan automáticamente la primera vez que se crea el volumen.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-trucha}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trucha}
+      POSTGRES_DB: ${POSTGRES_DB:-truchasmart}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trucha} -d ${POSTGRES_DB:-truchasmart}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-trucha}:${POSTGRES_PASSWORD:-trucha}@db:5432/${POSTGRES_DB:-truchasmart}
+      JWT_SECRET: ${JWT_SECRET:-cambia-esta-clave-por-una-larga-y-aleatoria}
+      UMBRALES_PATH: config/umbrales.yaml
+      ALIMENTACION_PATH: config/alimentacion.yaml
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:

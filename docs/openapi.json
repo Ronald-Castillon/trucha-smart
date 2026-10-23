@@ -1,6 +1,20 @@
 {
   "components": {
     "schemas": {
+      "CierreEntrada": {
+        "properties": {
+          "fecha_cierre": {
+            "format": "date",
+            "title": "Fecha Cierre",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fecha_cierre"
+        ],
+        "title": "CierreEntrada",
+        "type": "object"
+      },
       "EstadoSalud": {
         "properties": {
           "estado": {
@@ -17,6 +31,121 @@
           "servicio"
         ],
         "title": "EstadoSalud",
+        "type": "object"
+      },
+      "EstanqueEntrada": {
+        "properties": {
+          "nombre": {
+            "examples": [
+              "Estanque B1"
+            ],
+            "title": "Nombre",
+            "type": "string"
+          },
+          "tipo": {
+            "$ref": "#/components/schemas/TipoEstanque",
+            "default": "ESTANQUE"
+          },
+          "ubicacion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "Sector sur"
+            ],
+            "title": "Ubicacion"
+          },
+          "volumen_m3": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              120.0
+            ],
+            "title": "Volumen M3"
+          }
+        },
+        "required": [
+          "nombre"
+        ],
+        "title": "EstanqueEntrada",
+        "type": "object"
+      },
+      "EstanqueSalida": {
+        "properties": {
+          "activo": {
+            "title": "Activo",
+            "type": "boolean"
+          },
+          "creado_en": {
+            "format": "date-time",
+            "title": "Creado En",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "lote_activo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LoteSalida"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "nombre": {
+            "title": "Nombre",
+            "type": "string"
+          },
+          "tipo": {
+            "$ref": "#/components/schemas/TipoEstanque"
+          },
+          "ubicacion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ubicacion"
+          },
+          "volumen_m3": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Volumen M3"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "tipo",
+          "volumen_m3",
+          "ubicacion",
+          "activo",
+          "creado_en"
+        ],
+        "title": "EstanqueSalida",
         "type": "object"
       },
       "LoginEntrada": {
@@ -41,6 +170,125 @@
           "password"
         ],
         "title": "LoginEntrada",
+        "type": "object"
+      },
+      "LoteEntrada": {
+        "properties": {
+          "codigo": {
+            "examples": [
+              "L-2026-10"
+            ],
+            "title": "Codigo",
+            "type": "string"
+          },
+          "fecha_siembra": {
+            "format": "date",
+            "title": "Fecha Siembra",
+            "type": "string"
+          },
+          "num_peces": {
+            "description": "Debe ser mayor que 0",
+            "examples": [
+              5000
+            ],
+            "title": "Num Peces",
+            "type": "integer"
+          },
+          "peso_medio_g": {
+            "description": "Debe ser mayor que 0",
+            "examples": [
+              12.5
+            ],
+            "title": "Peso Medio G",
+            "type": "number"
+          }
+        },
+        "required": [
+          "codigo",
+          "num_peces",
+          "peso_medio_g",
+          "fecha_siembra"
+        ],
+        "title": "LoteEntrada",
+        "type": "object"
+      },
+      "LoteSalida": {
+        "properties": {
+          "activo": {
+            "title": "Activo",
+            "type": "boolean"
+          },
+          "codigo": {
+            "title": "Codigo",
+            "type": "string"
+          },
+          "estanque_id": {
+            "title": "Estanque Id",
+            "type": "integer"
+          },
+          "fecha_cierre": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fecha Cierre"
+          },
+          "fecha_siembra": {
+            "format": "date",
+            "title": "Fecha Siembra",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "num_peces_inicial": {
+            "title": "Num Peces Inicial",
+            "type": "integer"
+          },
+          "peso_medio_actual_g": {
+            "title": "Peso Medio Actual G",
+            "type": "number"
+          },
+          "peso_medio_inicial_g": {
+            "title": "Peso Medio Inicial G",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "estanque_id",
+          "codigo",
+          "num_peces_inicial",
+          "peso_medio_inicial_g",
+          "peso_medio_actual_g",
+          "fecha_siembra",
+          "activo",
+          "fecha_cierre"
+        ],
+        "title": "LoteSalida",
+        "type": "object"
+      },
+      "PesoEntrada": {
+        "properties": {
+          "peso_medio_g": {
+            "description": "Peso medio de la biometría",
+            "examples": [
+              85.0
+            ],
+            "title": "Peso Medio G",
+            "type": "number"
+          }
+        },
+        "required": [
+          "peso_medio_g"
+        ],
+        "title": "PesoEntrada",
         "type": "object"
       },
       "RespuestaError": {
@@ -79,6 +327,14 @@
           "OPERARIO"
         ],
         "title": "Rol",
+        "type": "string"
+      },
+      "TipoEstanque": {
+        "enum": [
+          "ESTANQUE",
+          "JAULA"
+        ],
+        "title": "TipoEstanque",
         "type": "string"
       },
       "TokenSalida": {
@@ -409,6 +665,901 @@
         "summary": "Yo",
         "tags": [
           "autenticación"
+        ]
+      }
+    },
+    "/api/estanques": {
+      "get": {
+        "description": "Estanques activos con su lote activo (si lo tienen).",
+        "operationId": "listar_estanques_api_estanques_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EstanqueSalida"
+                  },
+                  "title": "Response Listar Estanques Api Estanques Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Listar Estanques",
+        "tags": [
+          "estanques y lotes"
+        ]
+      },
+      "post": {
+        "operationId": "crear_estanque_api_estanques_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EstanqueEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstanqueSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Crear Estanque",
+        "tags": [
+          "estanques y lotes"
+        ]
+      }
+    },
+    "/api/estanques/{estanque_id}": {
+      "delete": {
+        "description": "Baja lógica: se conserva el historial. Falla con 409 si tiene un lote activo.",
+        "operationId": "desactivar_estanque_api_estanques__estanque_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "estanque_id",
+            "required": true,
+            "schema": {
+              "title": "Estanque Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Desactivar Estanque",
+        "tags": [
+          "estanques y lotes"
+        ]
+      },
+      "get": {
+        "operationId": "obtener_estanque_api_estanques__estanque_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "estanque_id",
+            "required": true,
+            "schema": {
+              "title": "Estanque Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstanqueSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Obtener Estanque",
+        "tags": [
+          "estanques y lotes"
+        ]
+      },
+      "put": {
+        "operationId": "actualizar_estanque_api_estanques__estanque_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "estanque_id",
+            "required": true,
+            "schema": {
+              "title": "Estanque Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EstanqueEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstanqueSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Actualizar Estanque",
+        "tags": [
+          "estanques y lotes"
+        ]
+      }
+    },
+    "/api/estanques/{estanque_id}/lotes": {
+      "get": {
+        "operationId": "lotes_de_estanque_api_estanques__estanque_id__lotes_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "estanque_id",
+            "required": true,
+            "schema": {
+              "title": "Estanque Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LoteSalida"
+                  },
+                  "title": "Response Lotes De Estanque Api Estanques  Estanque Id  Lotes Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Lotes De Estanque",
+        "tags": [
+          "estanques y lotes"
+        ]
+      },
+      "post": {
+        "description": "Siembra un lote (n.º de peces > 0, peso medio > 0). Un único lote activo por estanque.",
+        "operationId": "sembrar_lote_api_estanques__estanque_id__lotes_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "estanque_id",
+            "required": true,
+            "schema": {
+              "title": "Estanque Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoteEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoteSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Sembrar Lote",
+        "tags": [
+          "estanques y lotes"
+        ]
+      }
+    },
+    "/api/lotes/{lote_id}": {
+      "get": {
+        "operationId": "obtener_lote_api_lotes__lote_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lote_id",
+            "required": true,
+            "schema": {
+              "title": "Lote Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoteSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Obtener Lote",
+        "tags": [
+          "estanques y lotes"
+        ]
+      }
+    },
+    "/api/lotes/{lote_id}/cerrar": {
+      "post": {
+        "operationId": "cerrar_lote_api_lotes__lote_id__cerrar_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lote_id",
+            "required": true,
+            "schema": {
+              "title": "Lote Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CierreEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoteSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Cerrar Lote",
+        "tags": [
+          "estanques y lotes"
+        ]
+      }
+    },
+    "/api/lotes/{lote_id}/peso": {
+      "put": {
+        "description": "Registra el peso medio de la última biometría.",
+        "operationId": "actualizar_peso_lote_api_lotes__lote_id__peso_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lote_id",
+            "required": true,
+            "schema": {
+              "title": "Lote Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PesoEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoteSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Actualizar Peso Lote",
+        "tags": [
+          "estanques y lotes"
         ]
       }
     },

@@ -17,6 +17,10 @@ from src.adapters.outbound.persistence.repositorio_estanque_sql import (
     RepositorioLoteSQL,
 )
 from src.adapters.outbound.persistence.repositorio_lectura_sql import RepositorioLecturaSQL
+from src.adapters.outbound.persistence.repositorio_produccion_sql import (
+    RepositorioAlimentacionSQL,
+    RepositorioMortalidadSQL,
+)
 from src.adapters.outbound.persistence.repositorio_usuario_sql import RepositorioUsuarioSQL
 from src.adapters.outbound.security.jwt_tokens import ServicioTokens
 from src.domain.model.umbral import ConjuntoUmbrales
@@ -26,6 +30,7 @@ from src.domain.service.servicio_alertas import ServicioAlertas
 from src.domain.service.servicio_estanques import ServicioEstanques
 from src.domain.service.servicio_historial import ServicioHistorial
 from src.domain.service.servicio_lecturas import ServicioLecturas
+from src.domain.service.servicio_produccion import ServicioProduccion
 from src.domain.service.servicio_usuarios import ServicioUsuarios
 from src.ports.outbound.hasher_password import HasherPassword
 from src.ports.outbound.notificador import Notificador
@@ -100,6 +105,20 @@ class Contenedor:
     @cached_property
     def alertas(self) -> ServicioAlertas:
         return ServicioAlertas(self.repo_alertas, self.recursos.reloj)
+
+    @cached_property
+    def repo_alimentacion(self) -> RepositorioAlimentacionSQL:
+        return RepositorioAlimentacionSQL(self.sesion)
+
+    @cached_property
+    def repo_mortalidad(self) -> RepositorioMortalidadSQL:
+        return RepositorioMortalidadSQL(self.sesion)
+
+    @cached_property
+    def produccion(self) -> ServicioProduccion:
+        return ServicioProduccion(
+            self.repo_lotes, self.repo_alimentacion, self.repo_mortalidad, self.recursos.reloj
+        )
 
     @cached_property
     def historial(self) -> ServicioHistorial:

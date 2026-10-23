@@ -170,6 +170,87 @@ def registrar_lectura(
     return _vista_panel(request, c, usuario, aviso=aviso)
 
 
+# --------------------------------------------------------------------------- producción (RF-06)
+
+
+def _vista_produccion(request, c: Contenedor, usuario: Usuario, lote_id: int, estado=200, **extra):
+    lote = c.estanques.obtener_lote(lote_id, usuario)
+    extra.setdefault("form", {})
+    return render(
+        request,
+        "produccion.html",
+        estado,
+        usuario=usuario,
+        lote=lote,
+        estanque=c.estanques.obtener(lote.estanque_id, usuario),
+        resumen=c.produccion.produccion(lote_id, usuario),
+        alimentaciones=c.produccion.alimentaciones(lote_id, usuario)[:15],
+        mortalidades=c.produccion.mortalidades(lote_id, usuario)[:15],
+        **extra,
+    )
+
+
+@router.get("/lotes/{lote_id}/produccion")
+def produccion(
+    request: Request,
+    lote_id: int,
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    return _vista_produccion(request, c, usuario, lote_id)
+
+
+@router.post("/lotes/{lote_id}/alimentacion")
+def registrar_alimentacion(
+    request: Request,
+    lote_id: int,
+    cantidad_kg: str = Form(""),
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    try:
+        cantidad = _numero("cantidad_kg", cantidad_kg)
+        c.produccion.registrar_alimentacion(lote_id, cantidad, usuario)
+        c.confirmar()
+    except ErrorDominio as e:
+        c.sesion.rollback()
+        return _vista_produccion(
+            request, c, usuario, lote_id, 422, error=e.mensaje, form={"cantidad_kg": cantidad_kg}
+        )
+    return _vista_produccion(
+        request, c, usuario, lote_id, aviso=f"Alimentación de {cantidad:g} kg registrada"
+    )
+
+
+@router.post("/lotes/{lote_id}/mortalidad")
+def registrar_mortalidad(
+    request: Request,
+    lote_id: int,
+    cantidad: str = Form(""),
+    causa: str = Form(""),
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    try:
+        n = _numero("cantidad", cantidad, int)
+        c.produccion.registrar_mortalidad(lote_id, n, causa, usuario)
+        c.confirmar()
+    except ErrorDominio as e:
+        c.sesion.rollback()
+        return _vista_produccion(
+            request,
+            c,
+            usuario,
+            lote_id,
+            422,
+            error=e.mensaje,
+            form={"cantidad": cantidad, "causa": causa},
+        )
+    return _vista_produccion(
+        request, c, usuario, lote_id, aviso=f"Mortalidad de {n} peces registrada"
+    )
+
+
 # --------------------------------------------------------------------------- historial (RF-05)
 
 

@@ -89,6 +89,77 @@
         "title": "AlertaSalida",
         "type": "object"
       },
+      "AlimentacionEntrada": {
+        "properties": {
+          "cantidad_kg": {
+            "description": "kg de alimento (> 0)",
+            "examples": [
+              25.5
+            ],
+            "title": "Cantidad Kg",
+            "type": "number"
+          },
+          "registrado_en": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Por defecto, ahora",
+            "title": "Registrado En"
+          }
+        },
+        "required": [
+          "cantidad_kg"
+        ],
+        "title": "AlimentacionEntrada",
+        "type": "object"
+      },
+      "AlimentacionSalida": {
+        "properties": {
+          "cantidad_kg": {
+            "title": "Cantidad Kg",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "lote_id": {
+            "title": "Lote Id",
+            "type": "integer"
+          },
+          "registrado_en": {
+            "format": "date-time",
+            "title": "Registrado En",
+            "type": "string"
+          },
+          "registrado_por": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registrado Por"
+          }
+        },
+        "required": [
+          "id",
+          "lote_id",
+          "cantidad_kg",
+          "registrado_por",
+          "registrado_en"
+        ],
+        "title": "AlimentacionSalida",
+        "type": "object"
+      },
       "AtencionEntrada": {
         "properties": {
           "observacion": {
@@ -807,6 +878,102 @@
         "title": "LoteSalida",
         "type": "object"
       },
+      "MortalidadEntrada": {
+        "properties": {
+          "cantidad": {
+            "description": "n.º de peces muertos (> 0)",
+            "examples": [
+              12
+            ],
+            "title": "Cantidad",
+            "type": "integer"
+          },
+          "causa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "Manipulación en biometría"
+            ],
+            "title": "Causa"
+          },
+          "registrado_en": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registrado En"
+          }
+        },
+        "required": [
+          "cantidad"
+        ],
+        "title": "MortalidadEntrada",
+        "type": "object"
+      },
+      "MortalidadSalida": {
+        "properties": {
+          "cantidad": {
+            "title": "Cantidad",
+            "type": "integer"
+          },
+          "causa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Causa"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "lote_id": {
+            "title": "Lote Id",
+            "type": "integer"
+          },
+          "registrado_en": {
+            "format": "date-time",
+            "title": "Registrado En",
+            "type": "string"
+          },
+          "registrado_por": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registrado Por"
+          }
+        },
+        "required": [
+          "id",
+          "lote_id",
+          "cantidad",
+          "causa",
+          "registrado_por",
+          "registrado_en"
+        ],
+        "title": "MortalidadSalida",
+        "type": "object"
+      },
       "Nivel": {
         "enum": [
           "NORMAL",
@@ -840,6 +1007,97 @@
           "peso_medio_g"
         ],
         "title": "PesoEntrada",
+        "type": "object"
+      },
+      "ProduccionSalida": {
+        "properties": {
+          "alimento_total_kg": {
+            "title": "Alimento Total Kg",
+            "type": "number"
+          },
+          "biomasa_inicial_kg": {
+            "title": "Biomasa Inicial Kg",
+            "type": "number"
+          },
+          "biomasa_kg": {
+            "title": "Biomasa Kg",
+            "type": "number"
+          },
+          "codigo": {
+            "title": "Codigo",
+            "type": "string"
+          },
+          "fcr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null cuando no es calculable",
+            "title": "Fcr"
+          },
+          "fcr_detalle": {
+            "title": "Fcr Detalle",
+            "type": "string"
+          },
+          "fcr_texto": {
+            "title": "Fcr Texto",
+            "type": "string"
+          },
+          "ganancia_biomasa_kg": {
+            "title": "Ganancia Biomasa Kg",
+            "type": "number"
+          },
+          "lote_id": {
+            "title": "Lote Id",
+            "type": "integer"
+          },
+          "mortalidad_total": {
+            "title": "Mortalidad Total",
+            "type": "integer"
+          },
+          "peces_sembrados": {
+            "title": "Peces Sembrados",
+            "type": "integer"
+          },
+          "peces_vivos": {
+            "title": "Peces Vivos",
+            "type": "integer"
+          },
+          "peso_medio_actual_g": {
+            "title": "Peso Medio Actual G",
+            "type": "number"
+          },
+          "peso_medio_inicial_g": {
+            "title": "Peso Medio Inicial G",
+            "type": "number"
+          },
+          "supervivencia_pct": {
+            "title": "Supervivencia Pct",
+            "type": "number"
+          }
+        },
+        "required": [
+          "lote_id",
+          "codigo",
+          "peces_sembrados",
+          "mortalidad_total",
+          "peces_vivos",
+          "supervivencia_pct",
+          "peso_medio_inicial_g",
+          "peso_medio_actual_g",
+          "biomasa_inicial_kg",
+          "biomasa_kg",
+          "ganancia_biomasa_kg",
+          "alimento_total_kg",
+          "fcr",
+          "fcr_texto",
+          "fcr_detalle"
+        ],
+        "title": "ProduccionSalida",
         "type": "object"
       },
       "RespuestaError": {
@@ -2699,6 +2957,193 @@
         ]
       }
     },
+    "/api/lotes/{lote_id}/alimentacion": {
+      "get": {
+        "operationId": "listar_alimentacion_api_lotes__lote_id__alimentacion_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lote_id",
+            "required": true,
+            "schema": {
+              "title": "Lote Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AlimentacionSalida"
+                  },
+                  "title": "Response Listar Alimentacion Api Lotes  Lote Id  Alimentacion Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Listar Alimentacion",
+        "tags": [
+          "alimentación y producción"
+        ]
+      },
+      "post": {
+        "description": "Registra el alimento suministrado (kg > 0) a un lote activo.",
+        "operationId": "registrar_alimentacion_api_lotes__lote_id__alimentacion_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lote_id",
+            "required": true,
+            "schema": {
+              "title": "Lote Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlimentacionEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlimentacionSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Registrar Alimentacion",
+        "tags": [
+          "alimentación y producción"
+        ]
+      }
+    },
     "/api/lotes/{lote_id}/cerrar": {
       "post": {
         "operationId": "cerrar_lote_api_lotes__lote_id__cerrar_post",
@@ -2793,6 +3238,193 @@
         "summary": "Cerrar Lote",
         "tags": [
           "estanques y lotes"
+        ]
+      }
+    },
+    "/api/lotes/{lote_id}/mortalidad": {
+      "get": {
+        "operationId": "listar_mortalidad_api_lotes__lote_id__mortalidad_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lote_id",
+            "required": true,
+            "schema": {
+              "title": "Lote Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MortalidadSalida"
+                  },
+                  "title": "Response Listar Mortalidad Api Lotes  Lote Id  Mortalidad Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Listar Mortalidad",
+        "tags": [
+          "alimentación y producción"
+        ]
+      },
+      "post": {
+        "description": "Registra peces muertos (> 0 y sin superar los peces vivos).",
+        "operationId": "registrar_mortalidad_api_lotes__lote_id__mortalidad_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lote_id",
+            "required": true,
+            "schema": {
+              "title": "Lote Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MortalidadEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MortalidadSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Registrar Mortalidad",
+        "tags": [
+          "alimentación y producción"
         ]
       }
     },
@@ -2891,6 +3523,94 @@
         "summary": "Actualizar Peso Lote",
         "tags": [
           "estanques y lotes"
+        ]
+      }
+    },
+    "/api/lotes/{lote_id}/produccion": {
+      "get": {
+        "description": "Peces vivos, biomasa estimada (peces vivos × peso medio) y FCR\n(alimento total / ganancia de biomasa). Si la ganancia es 0, `fcr` es null y\n`fcr_texto` = \"no calculable\".",
+        "operationId": "produccion_api_lotes__lote_id__produccion_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lote_id",
+            "required": true,
+            "schema": {
+              "title": "Lote Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProduccionSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Produccion",
+        "tags": [
+          "alimentación y producción"
         ]
       }
     },

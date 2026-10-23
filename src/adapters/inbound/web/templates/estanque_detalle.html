@@ -9,6 +9,7 @@
     {% if lote %}
       <p><strong>{{ lote.codigo }}</strong> · sembrado el {{ lote.fecha_siembra.strftime('%d/%m/%Y') }}</p>
       <p>{{ lote.num_peces_inicial }} peces · peso medio inicial {{ lote.peso_medio_inicial_g }} g · actual {{ lote.peso_medio_actual_g }} g</p>
+      <p><a class="boton" href="/lotes/{{ lote.id }}/produccion">Alimentación, mortalidad y FCR</a></p>
       {% if usuario.puede(P.GESTIONAR_ESTANQUES) %}
       <form class="apilado" method="post" action="/lotes/{{ lote.id }}/peso">
         <label>Peso medio de la última biometría (g) <input name="peso_medio_g" inputmode="decimal" required></label>

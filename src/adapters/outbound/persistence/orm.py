@@ -129,3 +129,32 @@ class AlertaORM(Base):
     atendida_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"))
     atendida_en: Mapped[datetime | None] = mapped_column(FechaHoraUTC)
     observacion: Mapped[str | None] = mapped_column(String(255))
+
+
+class RegistroAlimentacionORM(Base):
+    __tablename__ = "registros_alimentacion"
+    __table_args__ = (
+        CheckConstraint("cantidad_kg > 0", name="ck_cantidad_kg"),
+        Index("ix_alimentacion_lote_fecha", "lote_id", "registrado_en"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    lote_id: Mapped[int] = mapped_column(ForeignKey("lotes.id"), nullable=False)
+    cantidad_kg: Mapped[float] = mapped_column(_decimal(10, 3), nullable=False)
+    registrado_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"))
+    registrado_en: Mapped[datetime] = mapped_column(FechaHoraUTC, nullable=False)
+
+
+class RegistroMortalidadORM(Base):
+    __tablename__ = "registros_mortalidad"
+    __table_args__ = (
+        CheckConstraint("cantidad > 0", name="ck_cantidad"),
+        Index("ix_mortalidad_lote_fecha", "lote_id", "registrado_en"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    lote_id: Mapped[int] = mapped_column(ForeignKey("lotes.id"), nullable=False)
+    cantidad: Mapped[int] = mapped_column(Integer, nullable=False)
+    causa: Mapped[str | None] = mapped_column(String(120))
+    registrado_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"))
+    registrado_en: Mapped[datetime] = mapped_column(FechaHoraUTC, nullable=False)

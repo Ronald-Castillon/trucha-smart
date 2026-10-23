@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titulo %}Registrar lectura{% endblock %}
+{% block contenido %}
+<h1>Registrar lectura de calidad de agua</h1>
+<section class="tarjeta">
+  <form class="apilado" method="post" action="/lecturas">
+    <label>Estanque / jaula
+      <select name="estanque_id" required>
+        {% for e in estanques %}
+        <option value="{{ e.id }}" {% if form.estanque_id|string == e.id|string %}selected{% endif %}>{{ e.nombre }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Temperatura (°C) <input name="temperatura_c" inputmode="decimal" required value="{{ form.temperatura_c or '' }}"></label>
+    <label>Oxígeno disuelto (mg/L) <input name="oxigeno_mg_l" inputmode="decimal" required value="{{ form.oxigeno_mg_l or '' }}"></label>
+    <label>pH <input name="ph" inputmode="decimal" required value="{{ form.ph or '' }}"></label>
+    <button type="submit">Registrar</button>
+  </form>
+  <p class="suave">Rangos físicamente válidos: temperatura 0–40 °C, oxígeno disuelto ≥ 0 mg/L, pH 0–14.</p>
+</section>
+{% endblock %}

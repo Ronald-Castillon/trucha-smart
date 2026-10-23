@@ -77,3 +77,23 @@ class LoteORM(Base):
     fecha_siembra: Mapped[date] = mapped_column(Date, nullable=False)
     activo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     fecha_cierre: Mapped[date | None] = mapped_column(Date)
+
+
+class LecturaAguaORM(Base):
+    __tablename__ = "lecturas_agua"
+    __table_args__ = (
+        CheckConstraint("temperatura_c BETWEEN 0 AND 40", name="ck_temperatura"),
+        CheckConstraint("oxigeno_mg_l >= 0", name="ck_oxigeno"),
+        CheckConstraint("ph BETWEEN 0 AND 14", name="ck_ph"),
+        CheckConstraint("fuente IN ('MANUAL', 'SENSOR')", name="ck_fuente"),
+        Index("ix_lecturas_estanque_fecha", "estanque_id", "medido_en"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    estanque_id: Mapped[int] = mapped_column(ForeignKey("estanques.id"), nullable=False)
+    temperatura_c: Mapped[float] = mapped_column(_decimal(5, 2), nullable=False)
+    oxigeno_mg_l: Mapped[float] = mapped_column(_decimal(5, 2), nullable=False)
+    ph: Mapped[float] = mapped_column(_decimal(4, 2), nullable=False)
+    fuente: Mapped[str] = mapped_column(String(10), nullable=False)
+    registrado_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"))
+    medido_en: Mapped[datetime] = mapped_column(FechaHoraUTC, nullable=False)

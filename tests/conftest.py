@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -28,7 +30,7 @@ def reloj() -> RelojFijo:
 
 
 @pytest.fixture
-def recursos(reloj) -> Recursos:
+def recursos(reloj) -> Iterator[Recursos]:
     bd = BaseDatos("sqlite://")
     bd.crear_tablas()
     hasher = HasherBcrypt(rondas=4)
@@ -45,7 +47,13 @@ def recursos(reloj) -> Recursos:
                 )
             )
         s.commit()
-    return Recursos(bd=bd, hasher=hasher, tokens=ServicioTokens("prueba", 60), reloj=reloj)
+    yield Recursos(
+        bd=bd,
+        hasher=hasher,
+        tokens=ServicioTokens("clave-de-pruebas-de-32-bytes-o-mas!", 60),
+        reloj=reloj,
+    )
+    bd.motor.dispose()
 
 
 @pytest.fixture

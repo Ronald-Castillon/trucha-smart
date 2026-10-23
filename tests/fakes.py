@@ -80,3 +80,20 @@ class RepositorioLoteMemoria(RepositorioMemoria):
 
     def de_estanque(self, estanque_id: int):
         return [replace(lo) for lo in self.datos.values() if lo.estanque_id == estanque_id]
+
+
+class RepositorioLecturaMemoria(RepositorioMemoria):
+    def ultima_de(self, estanque_id: int):
+        lecturas = self.de_estanque(estanque_id)
+        return lecturas[0] if lecturas else None
+
+    def de_estanque(self, estanque_id, desde=None, hasta=None, limite=None):
+        res = [
+            replace(x)
+            for x in self.datos.values()
+            if x.estanque_id == estanque_id
+            and (desde is None or x.medido_en >= desde)
+            and (hasta is None or x.medido_en <= hasta)
+        ]
+        res.sort(key=lambda x: (x.medido_en, x.id), reverse=True)
+        return res[:limite] if limite else res

@@ -2,16 +2,28 @@
 {% block titulo %}Panel{% endblock %}
 {% block contenido %}
 <h1>Panel</h1>
-<p class="suave">Bienvenido/a, <strong>{{ usuario.nombre_completo }}</strong> · Rol: {{ usuario.rol.value | title }}</p>
+<p class="suave">Bienvenido/a, <strong>{{ usuario.nombre_completo }}</strong> · Rol: {{ usuario.rol.value | title }} ·
+  <span id="actualizado">actualización automática cada 2 s</span></p>
 <div class="rejilla" id="tarjetas-estanques">
-  {% for e, lote in filas %}
+  {% for e, lote, lectura in filas %}
   <article class="tarjeta" data-estanque="{{ e.id }}">
     <h2><a href="/estanques/{{ e.id }}">{{ e.nombre }}</a></h2>
     <p class="suave">{{ e.tipo.value | title }}{% if e.ubicacion %} · {{ e.ubicacion }}{% endif %}</p>
     <p>{% if lote %}Lote <strong>{{ lote.codigo }}</strong> · {{ lote.num_peces_inicial }} peces · {{ lote.peso_medio_actual_g }} g{% else %}Sin lote activo{% endif %}</p>
+    <div class="ultima-lectura">
+      {% if lectura %}
+        🌡️ <span class="temperatura">{{ '%.2f' % lectura.temperatura_c }}</span> °C ·
+        💧 OD <span class="oxigeno">{{ '%.2f' % lectura.oxigeno_mg_l }}</span> mg/L ·
+        pH <span class="ph">{{ '%.2f' % lectura.ph }}</span><br>
+        <span class="suave">Última lectura: <time class="medido-en" datetime="{{ lectura.medido_en.isoformat() }}">{{ lectura.medido_en.strftime('%d/%m/%Y %H:%M:%S') }} UTC</time></span>
+      {% else %}
+        <span class="suave">Sin lecturas</span>
+      {% endif %}
+    </div>
   </article>
   {% else %}
   <p>No hay estanques registrados.</p>
   {% endfor %}
 </div>
 {% endblock %}
+{% block scripts %}<script src="/static/panel.js"></script>{% endblock %}

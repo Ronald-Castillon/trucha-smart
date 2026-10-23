@@ -35,7 +35,11 @@ def _puerto_libre() -> int:
 @pytest.fixture(scope="session")
 def url_base(tmp_path_factory) -> Iterator[str]:
     bd = tmp_path_factory.mktemp("e2e") / "e2e.db"
-    env = {**os.environ, "DATABASE_URL": f"sqlite:///{bd.as_posix()}", "JWT_SECRET": "e2e"}
+    env = {
+        **os.environ,
+        "DATABASE_URL": f"sqlite:///{bd.as_posix()}",
+        "JWT_SECRET": "clave-e2e-de-32-bytes-o-mas-1234567",
+    }
     subprocess.run(
         [sys.executable, "tools/init_db.py", "--url", env["DATABASE_URL"]],
         cwd=RAIZ,

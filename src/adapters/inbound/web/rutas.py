@@ -16,8 +16,10 @@ from src.adapters.inbound.rest.dependencias import (
 from src.adapters.inbound.web.plantillas import render
 from src.domain.errores import CredencialesInvalidas, ErrorDominio, ErrorValidacion
 from src.domain.model.estanque import TipoEstanque
+from src.domain.model.lectura_agua import FuenteLectura
 from src.domain.model.usuario import Rol, Usuario
 from src.ports.inbound.gestionar_estanque import ComandoSembrarLote, DatosEstanque
+from src.ports.inbound.registrar_lectura import ComandoRegistrarLectura
 from src.ports.inbound.registrar_usuario import ComandoRegistrarUsuario
 
 router = APIRouter(include_in_schema=False)
@@ -90,13 +92,77 @@ def _estanques_con_lote(c: Contenedor, usuario: Usuario):
     return [(e, c.estanques.lote_activo(e.id, usuario)) for e in c.estanques.listar(usuario)]
 
 
+def _vista_panel(request, c: Contenedor, usuario: Usuario, **extra):
+    filas = [
+        (e, lote, c.lecturas.ultima(e.id, usuario)) for e, lote in _estanques_con_lote(c, usuario)
+    ]
+    return render(request, "panel.html", usuario=usuario, filas=filas, **extra)
+
+
 @router.get("/panel")
 def panel(
     request: Request,
     usuario: Usuario = Depends(usuario_actual),
     c: Contenedor = Depends(contenedor),
 ):
-    return render(request, "panel.html", usuario=usuario, filas=_estanques_con_lote(c, usuario))
+    return _vista_panel(request, c, usuario)
+
+
+# --------------------------------------------------------------------------- lecturas (RF-03)
+
+
+def _vista_lectura(request, c: Contenedor, usuario: Usuario, estado=200, **extra):
+    extra.setdefault("form", {})
+    return render(
+        request,
+        "lectura_nueva.html",
+        estado,
+        usuario=usuario,
+        estanques=c.estanques.listar(usuario),
+        **extra,
+    )
+
+
+@router.get("/lecturas/nueva")
+def lectura_nueva(
+    request: Request,
+    estanque_id: int | None = None,
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    return _vista_lectura(request, c, usuario, form={"estanque_id": estanque_id or ""})
+
+
+@router.post("/lecturas")
+def registrar_lectura(
+    request: Request,
+    estanque_id: int = Form(...),
+    temperatura_c: str = Form(""),
+    oxigeno_mg_l: str = Form(""),
+    ph: str = Form(""),
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    form = {
+        "estanque_id": estanque_id,
+        "temperatura_c": temperatura_c,
+        "oxigeno_mg_l": oxigeno_mg_l,
+        "ph": ph,
+    }
+    try:
+        comando = ComandoRegistrarLectura(
+            estanque_id=estanque_id,
+            temperatura_c=_numero("temperatura_c", temperatura_c),
+            oxigeno_mg_l=_numero("oxigeno_mg_l", oxigeno_mg_l),
+            ph=_numero("ph", ph),
+            fuente=FuenteLectura.MANUAL,
+        )
+        c.lecturas.registrar(comando, usuario)
+        c.confirmar()
+    except ErrorDominio as e:
+        c.sesion.rollback()
+        return _vista_lectura(request, c, usuario, 422, error=e.mensaje, form=form)
+    return _vista_panel(request, c, usuario, aviso="Lectura registrada")
 
 
 # --------------------------------------------------------------------------- estanques (RF-02)

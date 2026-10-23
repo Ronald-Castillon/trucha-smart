@@ -50,6 +50,10 @@ markers = [
     "e2e: pruebas extremo a extremo con Playwright (requieren navegador)",
 ]
 addopts = "-ra"
+filterwarnings = [
+    # Aviso de Starlette sobre su cliente de pruebas; no afecta a la aplicación.
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+]
 
 [tool.coverage.run]
 source = ["src/domain"]

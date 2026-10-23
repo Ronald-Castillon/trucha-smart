@@ -14,6 +14,7 @@
     <span class="marca">🐟 TruchaSmart</span>&nbsp;&nbsp;
     <a href="/panel">Panel</a>
     <a href="/estanques">Estanques</a>
+    {% if usuario.puede(P.REGISTRAR_LECTURA) %}<a href="/lecturas/nueva">Registrar lectura</a>{% endif %}
     {% if usuario.puede(P.GESTIONAR_USUARIOS) %}<a href="/usuarios">Usuarios</a>{% endif %}
   </nav>
   <form method="post" action="/logout">

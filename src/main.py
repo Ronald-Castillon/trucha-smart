@@ -25,6 +25,7 @@ from src.adapters.inbound.rest import (
 )
 from src.adapters.inbound.rest.dependencias import Recursos
 from src.adapters.inbound.rest.errores import registrar_manejadores
+from src.adapters.inbound.rest.seguridad_http import CabecerasSeguridad
 from src.adapters.inbound.web import rutas as web
 from src.adapters.inbound.web.plantillas import CARPETA as CARPETA_WEB
 from src.adapters.outbound.notification.notificador_log import NotificadorLog
@@ -43,6 +44,7 @@ DESCRIPCION = (
 
 
 def crear_recursos(config: Configuracion) -> Recursos:
+    config.validar()  # RNF-+: no arrancar en producción con la clave JWT de ejemplo
     bd = BaseDatos(config.database_url)
     bd.crear_tablas()
     return Recursos(
@@ -54,6 +56,7 @@ def crear_recursos(config: Configuracion) -> Recursos:
         notificador=NotificadorLog(),
         alimentacion=cargar_alimentacion(config.alimentacion_path),
         generador_reportes=GeneradorReportesArchivo(),
+        cookie_segura=config.es_produccion,
     )
 
 
@@ -76,6 +79,7 @@ def crear_app(config: Configuracion | None = None, recursos: Recursos | None = N
     app.state.recursos = recursos
     app.state.simulador = simulador.crear_simulador(app)
     registrar_manejadores(app)
+    app.add_middleware(CabecerasSeguridad)
     app.include_router(salud.router)
     app.include_router(simulador.router)
     app.include_router(auth.router)

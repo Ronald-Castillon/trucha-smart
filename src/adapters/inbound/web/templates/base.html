@@ -8,6 +8,7 @@
   {% block cabeza %}{% endblock %}
 </head>
 <body>
+<a class="saltar" href="#contenido">Saltar al contenido</a>
 {% if usuario %}
 <header>
   <nav>
@@ -27,7 +28,7 @@
   </form>
 </header>
 {% endif %}
-<main>
+<main id="contenido" tabindex="-1">
   {% if error %}<div class="mensaje error" role="alert">{{ error }}</div>{% endif %}
   {% if aviso %}<div class="mensaje ok" role="status">{{ aviso }}</div>{% endif %}
   {% block contenido %}{% endblock %}

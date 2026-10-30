@@ -1,7 +1,8 @@
 :root {
   --fondo: #f4f7f9; --superficie: #ffffff; --texto: #1d2b36; --suave: #5b6b78;
   --primario: #0b6e8a; --borde: #d5dee5;
-  --verde: #1f8a4c; --amarillo: #c99700; --rojo: #c0392b;
+  /* Paleta validada con tools/contraste_paleta.py (WCAG 1.4.3 >= 4.5:1); ver docs/calidad/usabilidad.md */
+  --verde: #17773f; --amarillo: #f2c94c; --amarillo-texto: #8a6100; --rojo: #c0392b;
 }
 * { box-sizing: border-box; }
 body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -30,9 +31,9 @@ th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(
 .etiqueta { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.8rem;
             font-weight: 600; color: #fff; }
 .NORMAL, .verde { background: var(--verde); }
-.PRECAUCION, .amarillo { background: var(--amarillo); }
+.PRECAUCION, .amarillo { background: var(--amarillo); }  /* texto oscuro: ver regla al final */
 .CRITICA, .rojo { background: var(--rojo); }
-.nivel-PRECAUCION { color: var(--amarillo); font-weight: 700; }
+.nivel-PRECAUCION { color: var(--amarillo-texto); font-weight: 700; }
 .nivel-CRITICA { color: var(--rojo); font-weight: 700; }
 .alertas-abiertas { display: grid; gap: .3rem; margin-top: .5rem; font-size: .9rem; }
 .suave { color: var(--suave); font-size: 0.88rem; }
@@ -69,7 +70,7 @@ th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(
          box-shadow: 0 6px 20px rgba(0, 0, 0, .18); padding: .7rem 2rem .7rem .8rem;
          position: relative; font-size: .9rem; animation: entrar .35s ease-out; }
 .aviso.critica { border-left-color: var(--rojo); }
-.aviso.precaucion { border-left-color: var(--amarillo); }
+.aviso.precaucion { border-left-color: var(--amarillo-texto); }
 .aviso.error { border-left-color: var(--rojo); }
 .aviso.saliendo { opacity: 0; transform: translateX(30px); transition: all .5s; }
 .aviso .cerrar { position: absolute; top: .3rem; right: .4rem; background: none; color: var(--suave);
@@ -82,3 +83,10 @@ th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(
 /* RF-11: bitácora de seguridad */
 .solo-lector { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .evento-cuenta_bloqueada td, .evento-login_rechazado_bloqueo td { color: var(--rojo); font-weight: 600; }
+
+/* RNF-U (WCAG 2.1 AA): el ámbar de precaución lleva texto oscuro (9.1:1); foco visible y salto */
+.etiqueta.PRECAUCION, .etiqueta.amarillo, .semaforo-grande.amarillo { color: var(--texto); }
+:focus-visible { outline: 3px solid #f2c94c; outline-offset: 2px; box-shadow: 0 0 0 5px #1d2b36; }
+.saltar { position: absolute; left: -999px; top: 0; background: var(--texto); color: #fff;
+          padding: .5rem .8rem; z-index: 100; border-radius: 0 0 6px 0; }
+.saltar:focus { left: 0; }

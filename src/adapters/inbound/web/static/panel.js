@@ -83,7 +83,7 @@
           datasets: [
             { label: "T °C", data: series[0], borderColor: "#c0392b" },
             { label: "OD mg/L", data: series[1], borderColor: "#0b6e8a" },
-            { label: "pH", data: series[2], borderColor: "#1f8a4c" },
+            { label: "pH", data: series[2], borderColor: "#17773f" },
           ].map((d) => ({ ...d, borderWidth: 2, pointRadius: 0, tension: 0.35 })),
         },
         options: {

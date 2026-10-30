@@ -38,6 +38,9 @@ jobs:
       - name: Contratos de arquitectura (import-linter)
         run: lint-imports
 
+      - name: Contraste de la paleta WCAG 2.1 AA (RNF-U)
+        run: python tools/contraste_paleta.py
+
       - name: Pruebas unitarias e integración con cobertura del dominio (M2.3)
         run: >
           pytest -m "not e2e"

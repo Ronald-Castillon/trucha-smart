@@ -1,0 +1,160 @@
+{
+  "ejecutado_en": "2026-10-30T03:54:04+00:00",
+  "etiquetas": [
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa"
+  ],
+  "pantallas": [
+    {
+      "pantalla": "Inicio de sesión",
+      "ruta": "/login",
+      "reglas_aprobadas": 12,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Panel en vivo",
+      "ruta": "/panel",
+      "reglas_aprobadas": 19,
+      "violaciones": [
+        {
+          "regla": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Elements must meet minimum color contrast ratio thresholds",
+          "nodos": [
+            [
+              ".en-vivo"
+            ],
+            [
+              "article[data-estanque=\"1\"] > p:nth-child(2) > .riesgo.verde.etiqueta"
+            ],
+            [
+              "article[data-estanque=\"1\"] > .alertas-abiertas > .NORMAL.etiqueta"
+            ],
+            [
+              "article[data-estanque=\"2\"] > p:nth-child(2) > .riesgo.verde.etiqueta"
+            ],
+            [
+              "article[data-estanque=\"2\"] > .alertas-abiertas > .NORMAL.etiqueta"
+            ]
+          ]
+        }
+      ],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Registrar lectura",
+      "ruta": "/lecturas/nueva",
+      "reglas_aprobadas": 13,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Estanques",
+      "ruta": "/estanques",
+      "reglas_aprobadas": 16,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Detalle de estanque",
+      "ruta": "/estanques/1",
+      "reglas_aprobadas": 16,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Historial y predicción",
+      "ruta": "/estanques/1/historial?desde=2026-10-16&hasta=2026-10-22",
+      "reglas_aprobadas": 22,
+      "violaciones": [
+        {
+          "regla": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Elements must meet minimum color contrast ratio thresholds",
+          "nodos": [
+            [
+              ".semaforo-grande"
+            ],
+            [
+              ".semaforo-grande > strong"
+            ]
+          ]
+        }
+      ],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Producción del lote (FCR)",
+      "ruta": "/lotes/1/produccion",
+      "reglas_aprobadas": 15,
+      "violaciones": [
+        {
+          "regla": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Elements must meet minimum color contrast ratio thresholds",
+          "nodos": [
+            [
+              ".semaforo-grande"
+            ]
+          ]
+        }
+      ],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Alertas",
+      "ruta": "/alertas",
+      "reglas_aprobadas": 20,
+      "violaciones": [
+        {
+          "regla": "color-contrast",
+          "impacto": "serious",
+          "descripcion": "Elements must meet minimum color contrast ratio thresholds",
+          "nodos": [
+            [
+              ".en-vivo"
+            ],
+            [
+              "tr[data-alerta=\"2\"] > td:nth-child(3) > .etiqueta.PRECAUCION"
+            ],
+            [
+              "tr[data-alerta=\"1\"] > td:nth-child(3) > .etiqueta.PRECAUCION"
+            ]
+          ]
+        }
+      ],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Reportes",
+      "ruta": "/reportes",
+      "reglas_aprobadas": 13,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Usuarios",
+      "ruta": "/usuarios",
+      "reglas_aprobadas": 15,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Integraciones",
+      "ruta": "/integraciones",
+      "reglas_aprobadas": 15,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Auditoría",
+      "ruta": "/auditoria",
+      "reglas_aprobadas": 12,
+      "violaciones": [],
+      "axe": "4.12.1"
+    }
+  ]
+}

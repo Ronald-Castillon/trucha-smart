@@ -1,0 +1,95 @@
+{
+  "ejecutado_en": "2026-10-30T04:33:19+00:00",
+  "etiquetas": [
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa"
+  ],
+  "pantallas": [
+    {
+      "pantalla": "Inicio de sesión",
+      "ruta": "/login",
+      "reglas_aprobadas": 14,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Panel en vivo",
+      "ruta": "/panel",
+      "reglas_aprobadas": 19,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Registrar lectura",
+      "ruta": "/lecturas/nueva",
+      "reglas_aprobadas": 13,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Estanques",
+      "ruta": "/estanques",
+      "reglas_aprobadas": 24,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Detalle de estanque",
+      "ruta": "/estanques/1",
+      "reglas_aprobadas": 24,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Historial y predicción",
+      "ruta": "/estanques/1/historial?desde=2026-10-16&hasta=2026-10-22",
+      "reglas_aprobadas": 25,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Producción del lote (FCR)",
+      "ruta": "/lotes/1/produccion",
+      "reglas_aprobadas": 23,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Alertas",
+      "ruta": "/alertas",
+      "reglas_aprobadas": 23,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Reportes",
+      "ruta": "/reportes",
+      "reglas_aprobadas": 13,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Usuarios",
+      "ruta": "/usuarios",
+      "reglas_aprobadas": 23,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Integraciones",
+      "ruta": "/integraciones",
+      "reglas_aprobadas": 23,
+      "violaciones": [],
+      "axe": "4.12.1"
+    },
+    {
+      "pantalla": "Auditoría",
+      "ruta": "/auditoria",
+      "reglas_aprobadas": 20,
+      "violaciones": [],
+      "axe": "4.12.1"
+    }
+  ]
+}

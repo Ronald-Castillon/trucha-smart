@@ -9,7 +9,7 @@
   <a class="boton" id="descargar-csv" href="/reportes/descargar?{{ query }}&amp;formato=csv">Descargar CSV</a>
 </p>
 {% if r.tipo.value == 'calidad-agua' %}
-<section class="tarjeta tabla-scroll">
+<section class="tarjeta tabla-scroll" tabindex="0" role="region" aria-label="Tabla (desplazable)">
   <h2>Resumen por estanque</h2>
   <table id="resumen-reporte">
     <thead><tr><th>Estanque</th><th>Lecturas</th><th>T °C mín/prom/máx</th><th>OD mg/L mín/prom/máx</th><th>pH mín/prom/máx</th><th>Alertas P</th><th>Alertas C</th><th>Atendidas</th></tr></thead>
@@ -24,7 +24,7 @@
   <p id="total-filas"><strong>{{ r.filas_calidad | length }}</strong> lecturas en el periodo (el detalle completo está en el CSV).</p>
 </section>
 {% else %}
-<section class="tarjeta tabla-scroll">
+<section class="tarjeta tabla-scroll" tabindex="0" role="region" aria-label="Tabla (desplazable)">
   <h2>Producción por lote</h2>
   <table id="resumen-reporte">
     <thead><tr><th>Estanque</th><th>Lote</th><th>Estado</th><th>Vivos</th><th>Mort. periodo</th><th>Biomasa kg</th><th>Alim. periodo kg</th><th>Alim. total kg</th><th>FCR</th></tr></thead>

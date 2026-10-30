@@ -51,7 +51,7 @@
   <p>No hay lecturas en el rango seleccionado.</p>
   {% endif %}
 </section>
-<section class="tarjeta tabla-scroll">
+<section class="tarjeta tabla-scroll" tabindex="0" role="region" aria-label="Tabla (desplazable)">
   <h2>Lecturas</h2>
   <table id="tabla-historial">
     <thead><tr><th>Fecha (UTC)</th><th>Temperatura (°C)</th><th>OD (mg/L)</th><th>pH</th><th>Fuente</th></tr></thead>
@@ -87,7 +87,7 @@
       datasets: [
         { label: "Temperatura (°C)", data: serie.map(s => s.temperatura), borderColor: "#c0392b", yAxisID: "y", tension: 0.25, pointRadius: 2 },
         { label: "OD (mg/L)", data: serie.map(s => s.oxigeno), borderColor: "#0b6e8a", yAxisID: "y", tension: 0.25, pointRadius: 2 },
-        { label: "pH", data: serie.map(s => s.ph), borderColor: "#1f8a4c", yAxisID: "y2", tension: 0.25, pointRadius: 2 }
+        { label: "pH", data: serie.map(s => s.ph), borderColor: "#17773f", yAxisID: "y2", tension: 0.25, pointRadius: 2 }
       ]
     },
     options: {

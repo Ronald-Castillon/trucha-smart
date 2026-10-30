@@ -1,6 +1,6 @@
 # Auditoría axe-core (WCAG 2.0/2.1 A y AA)
 
-Generado por `tests/e2e/test_accesibilidad_axe.py` el 2026-10-30T04:33:19+00:00 con axe-core 4.12.1.
+Generado por `tests/e2e/test_accesibilidad_axe.py` el 2026-10-30T04:36:12+00:00 con axe-core 4.12.1.
 
 | Pantalla | Ruta | Reglas aprobadas | Violaciones |
 |---|---|---:|---:|

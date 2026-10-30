@@ -68,6 +68,7 @@ def login(
         max_age=c.recursos.tokens.expira_segundos,
         httponly=True,
         samesite="lax",
+        secure=c.recursos.cookie_segura,
     )
     return respuesta
 

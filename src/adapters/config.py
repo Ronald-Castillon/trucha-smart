@@ -32,13 +32,38 @@ def _ruta(valor: str) -> Path:
     return p if p.is_absolute() else RAIZ / p
 
 
+JWT_SECRET_POR_DEFECTO = "cambia-esta-clave-por-una-larga-y-aleatoria"
+LONGITUD_MINIMA_SECRETO = 32
+
+
+class ConfiguracionInsegura(RuntimeError):
+    """La configuración no es apta para producción (RNF-+, OWASP A02)."""
+
+
 @dataclass(frozen=True)
 class Configuracion:
     database_url: str = "sqlite:///./truchasmart.db"
-    jwt_secret: str = "cambia-esta-clave-por-una-larga-y-aleatoria"
+    jwt_secret: str = JWT_SECRET_POR_DEFECTO
     jwt_expira_minutos: int = 480
     umbrales_path: Path = RAIZ / "config" / "umbrales.yaml"
     alimentacion_path: Path = RAIZ / "config" / "alimentacion.yaml"
+    entorno: str = "desarrollo"  # APP_ENV: desarrollo | produccion
+
+    @property
+    def es_produccion(self) -> bool:
+        return self.entorno.lower() in ("produccion", "producción", "production")
+
+    def validar(self) -> None:
+        """En producción no se arranca con la clave JWT de ejemplo ni con una clave corta."""
+        if self.es_produccion and (
+            self.jwt_secret == JWT_SECRET_POR_DEFECTO
+            or len(self.jwt_secret) < LONGITUD_MINIMA_SECRETO
+        ):
+            raise ConfiguracionInsegura(
+                f"APP_ENV=produccion exige JWT_SECRET propio de al menos "
+                f'{LONGITUD_MINIMA_SECRETO} caracteres (p. ej. python -c "import secrets; '
+                f'print(secrets.token_urlsafe(48))")'
+            )
 
     @classmethod
     def desde_entorno(cls) -> Configuracion:
@@ -50,6 +75,7 @@ class Configuracion:
             jwt_expira_minutos=int(e.get("JWT_EXPIRA_MINUTOS", cls.jwt_expira_minutos)),
             umbrales_path=_ruta(e.get("UMBRALES_PATH", "config/umbrales.yaml")),
             alimentacion_path=_ruta(e.get("ALIMENTACION_PATH", "config/alimentacion.yaml")),
+            entorno=e.get("APP_ENV", cls.entorno),
         )
 
 

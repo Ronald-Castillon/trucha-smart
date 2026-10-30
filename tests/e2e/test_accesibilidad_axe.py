@@ -120,3 +120,24 @@ def test_teclado_saltar_al_contenido_y_foco_visible(pagina):
     assert estilo == "solid"
     pagina.keyboard.press("Enter")
     assert pagina.evaluate("document.activeElement.id") == "contenido"
+
+
+MOVIL = ["/usuarios", "/alertas", "/auditoria", "/estanques", "/integraciones"]
+
+
+@pytest.mark.parametrize("ruta", MOVIL)
+def test_tablas_en_movil_sin_violaciones(navegador, url_base, ruta):
+    """A 375 px las tablas desbordan: su zona desplazable debe poder usarse con teclado (#38)."""
+    contexto = navegador.new_context(base_url=url_base, viewport={"width": 375, "height": 740})
+    pagina = contexto.new_page()
+    try:
+        iniciar_sesion(pagina, "admin", "Admin123!")
+        pagina.wait_for_url("**/panel")
+        pagina.goto(ruta)
+        pagina.wait_for_load_state("networkidle")
+        violaciones = [
+            (v["id"], [n["target"] for n in v["nodes"]]) for v in auditar(pagina)["violations"]
+        ]
+        assert violaciones == []
+    finally:
+        contexto.close()

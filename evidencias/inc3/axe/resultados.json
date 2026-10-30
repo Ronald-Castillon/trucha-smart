@@ -1,5 +1,5 @@
 {
-  "ejecutado_en": "2026-10-30T03:55:33+00:00",
+  "ejecutado_en": "2026-10-30T04:33:19+00:00",
   "etiquetas": [
     "wcag2a",
     "wcag2aa",
@@ -31,35 +31,35 @@
     {
       "pantalla": "Estanques",
       "ruta": "/estanques",
-      "reglas_aprobadas": 16,
+      "reglas_aprobadas": 24,
       "violaciones": [],
       "axe": "4.12.1"
     },
     {
       "pantalla": "Detalle de estanque",
       "ruta": "/estanques/1",
-      "reglas_aprobadas": 16,
+      "reglas_aprobadas": 24,
       "violaciones": [],
       "axe": "4.12.1"
     },
     {
       "pantalla": "Historial y predicción",
       "ruta": "/estanques/1/historial?desde=2026-10-16&hasta=2026-10-22",
-      "reglas_aprobadas": 22,
+      "reglas_aprobadas": 25,
       "violaciones": [],
       "axe": "4.12.1"
     },
     {
       "pantalla": "Producción del lote (FCR)",
       "ruta": "/lotes/1/produccion",
-      "reglas_aprobadas": 15,
+      "reglas_aprobadas": 23,
       "violaciones": [],
       "axe": "4.12.1"
     },
     {
       "pantalla": "Alertas",
       "ruta": "/alertas",
-      "reglas_aprobadas": 20,
+      "reglas_aprobadas": 23,
       "violaciones": [],
       "axe": "4.12.1"
     },
@@ -73,21 +73,21 @@
     {
       "pantalla": "Usuarios",
       "ruta": "/usuarios",
-      "reglas_aprobadas": 15,
+      "reglas_aprobadas": 23,
       "violaciones": [],
       "axe": "4.12.1"
     },
     {
       "pantalla": "Integraciones",
       "ruta": "/integraciones",
-      "reglas_aprobadas": 15,
+      "reglas_aprobadas": 23,
       "violaciones": [],
       "axe": "4.12.1"
     },
     {
       "pantalla": "Auditoría",
       "ruta": "/auditoria",
-      "reglas_aprobadas": 12,
+      "reglas_aprobadas": 20,
       "violaciones": [],
       "axe": "4.12.1"
     }

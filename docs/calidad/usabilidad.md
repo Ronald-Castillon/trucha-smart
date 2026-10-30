@@ -1,6 +1,6 @@
 # Usabilidad (FURPS+ U): psicología del color y accesibilidad WCAG 2.1 AA
 
-Issue #30 (RNF-U) · defecto encontrado y corregido: #36 · Incremento 3
+Issue #30 (RNF-U) · defectos encontrados y corregidos: #36, #38 · Incremento 3
 
 ## 1. Paleta por dominio y su justificación
 
@@ -48,10 +48,18 @@ ejecución en `evidencias/inc3/axe/resumen.md` y `resultados.json`.
 | Ejecución | Violaciones | Pantallas con violaciones | Evidencia |
 |---|---:|---:|---|
 | Primera (paleta del Inc2) | 4 (`color-contrast`, serious) | 4 de 12 | `evidencias/inc3/axe/resumen_inicial_antes_de_corregir.md` |
-| Tras corregir la paleta (#36) | **0** | 0 de 12 | `evidencias/inc3/axe/resumen.md` |
+| Tras corregir la paleta (#36) | 0 | 0 de 12 | — |
+| CI del PR #37 (más usuarios creados por otras pruebas E2E) | 1 (`scrollable-region-focusable`, serious) en `/usuarios` | 1 de 12 | log del job E2E, Issue #38 |
+| Tras hacer enfocables las tablas desplazables (#38) | **0** | 0 de 12 (escritorio) y 0 de 5 (móvil, 375 px) | `evidencias/inc3/axe/resumen.md` |
+
+El defecto #38 no apareció en local porque allí la tabla de usuarios cabía en pantalla. Para que
+no dependa de los datos, `test_tablas_en_movil_sin_violaciones` audita 5 pantallas con tablas a
+375 px de ancho, donde siempre desbordan; se verificó que esa prueba falla si se revierte la
+corrección.
 
 ## 4. Teclado y foco (WCAG 2.1.1, 2.4.1, 2.4.7)
 
+- Las tablas anchas son regiones desplazables enfocables (`tabindex="0"`, `role="region"`).
 - Enlace **"Saltar al contenido"** como primer elemento enfocable de cada página.
 - Foco visible en todos los controles (`:focus-visible`: contorno ámbar con halo oscuro, legible
   sobre fondos claros y sobre el menú azul).

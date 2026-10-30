@@ -68,6 +68,7 @@ class Recursos:
     notificador: Notificador
     alimentacion: TablaAlimentacion
     generador_reportes: GeneradorReportes
+    cookie_segura: bool = False  # True con APP_ENV=produccion (se sirve detrás de HTTPS)
 
 
 class Contenedor:

@@ -46,6 +46,8 @@ ignore = ["B008"]  # Depends() en firmas de FastAPI
 [tool.ruff.lint.per-file-ignores]
 # Datos de prueba (XML/YAML) en línea.
 "tests/unit/test_gqm_metrics.py" = ["E501"]
+# Texto literal de las fórmulas de la Matriz 3.1.
+"tools/verificar_formulas_gqm.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

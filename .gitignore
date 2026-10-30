@@ -29,3 +29,6 @@ Thumbs.db
 
 # Configuración local de Claude Code
 .claude/
+resultados-ci/
+*.db-wal
+*.db-shm

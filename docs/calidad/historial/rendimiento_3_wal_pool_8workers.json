@@ -1,0 +1,102 @@
+{
+  "ejecutado_en": "2026-10-30T04:27:16+00:00",
+  "entorno": {
+    "so": "Windows 11",
+    "python": "3.13.16",
+    "nucleos_cpu": 20,
+    "memoria_total_gb": 31.8,
+    "base_de_datos": "sqlite",
+    "workers_uvicorn": 8,
+    "nota": "Locust y la API se ejecutan en la misma máquina y comparten CPU."
+  },
+  "parametros": {
+    "usuarios": 500,
+    "tasa_usuarios_s": 25.0,
+    "duracion_s": 120,
+    "escenario": "tests/carga/locustfile.py (90 % consulta, 10 % sensores)"
+  },
+  "peticiones": 23357,
+  "fallos": 3,
+  "errores_pct": 0.013,
+  "p50_ms": 28.0,
+  "p95_ms": 1900.0,
+  "p99_ms": 4100.0,
+  "rps": 195.2,
+  "memoria_servidor_mb": {
+    "promedio": 841.0,
+    "maxima": 881.7
+  },
+  "cpu_servidor_pct_max": 1408.8,
+  "duracion_real_s": 121.0,
+  "por_endpoint": [
+    {
+      "endpoint": "GET /api/alertas",
+      "peticiones": 4286,
+      "fallos": 0,
+      "mediana_ms": 8.0,
+      "p95_ms": 550.0,
+      "p99_ms": 2100.0,
+      "rps": 35.8
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/historial",
+      "peticiones": 2174,
+      "fallos": 0,
+      "mediana_ms": 11.0,
+      "p95_ms": 520.0,
+      "p99_ms": 2300.0,
+      "rps": 18.2
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/prediccion",
+      "peticiones": 2150,
+      "fallos": 0,
+      "mediana_ms": 16.0,
+      "p95_ms": 1100.0,
+      "p99_ms": 2800.0,
+      "rps": 18.0
+    },
+    {
+      "endpoint": "GET /api/panel",
+      "peticiones": 12724,
+      "fallos": 0,
+      "mediana_ms": 45.0,
+      "p95_ms": 2300.0,
+      "p99_ms": 4400.0,
+      "rps": 106.3
+    },
+    {
+      "endpoint": "POST /api/lecturas",
+      "peticiones": 1523,
+      "fallos": 3,
+      "mediana_ms": 11.0,
+      "p95_ms": 410.0,
+      "p99_ms": 1900.0,
+      "rps": 12.7
+    },
+    {
+      "endpoint": "login",
+      "peticiones": 500,
+      "fallos": 0,
+      "mediana_ms": 420.0,
+      "p95_ms": 4500.0,
+      "p99_ms": 5300.0,
+      "rps": 4.2
+    }
+  ],
+  "errores": [
+    {
+      "endpoint": "POST /api/lecturas",
+      "error": "RemoteDisconnected('Remote end closed connection without response')",
+      "veces": 3
+    }
+  ],
+  "metas": {
+    "p95_ms": 800,
+    "errores_pct": 1.0
+  },
+  "cumple": {
+    "p95": false,
+    "errores": true
+  }
+}

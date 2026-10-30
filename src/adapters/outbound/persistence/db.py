@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, Engine, create_engine, event, inspect, text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.types import TypeDecorator
@@ -36,17 +37,36 @@ class FechaHoraUTC(TypeDecorator):
 
 def crear_motor(url: str) -> Engine:
     if url.startswith("sqlite"):
-        opciones: dict = {"connect_args": {"check_same_thread": False}}
-        if url in ("sqlite://", "sqlite:///:memory:"):
+        opciones: dict = {"connect_args": {"check_same_thread": False, "timeout": 15}}
+        en_memoria = url in ("sqlite://", "sqlite:///:memory:")
+        if en_memoria:
             opciones["poolclass"] = StaticPool
+        else:
+            # Defecto #39: el pool por defecto (5 + 10) se agotaba con los 40 hilos de cada worker.
+            opciones.update(pool_size=20, max_overflow=30)
         motor = create_engine(url, **opciones)
 
         @event.listens_for(motor, "connect")
-        def _activar_fk(conexion, _):
+        def _configurar(conexion, _):
             conexion.execute("PRAGMA foreign_keys = ON")
+            if not en_memoria:
+                # Defecto #39: con el diario por defecto, una escritura bloquea a los lectores y
+                # bajo carga aparecían 500 "database is locked". WAL permite leer mientras se
+                # escribe; busy_timeout espera el turno en lugar de fallar.
+                # busy_timeout primero: varios workers arrancan a la vez y cambian el modo.
+                conexion.execute("PRAGMA busy_timeout = 15000")
+                conexion.execute("PRAGMA journal_mode = WAL")
 
         return motor
-    return create_engine(url, pool_pre_ping=True)
+    # pool_pre_ping descarta conexiones rotas: tras una caída de PostgreSQL reconecta (RNF-R)
+    # 4 workers x (10 + 15) = 100 conexiones como máximo, el límite por defecto de PostgreSQL.
+    return create_engine(
+        url,
+        pool_pre_ping=True,
+        pool_size=10,
+        max_overflow=15,
+        connect_args={"connect_timeout": 3},
+    )
 
 
 class BaseDatos:
@@ -75,6 +95,15 @@ class BaseDatos:
                 for nombre, tipo in columnas.items():
                     if nombre not in existentes:
                         conexion.execute(text(f"ALTER TABLE {tabla} ADD COLUMN {nombre} {tipo}"))
+
+    def disponible(self) -> bool:
+        """Comprueba la conexión con `SELECT 1` (usado por /api/salud, RNF-R)."""
+        try:
+            with self.motor.connect() as conexion:
+                conexion.execute(text("SELECT 1"))
+            return True
+        except SQLAlchemyError:
+            return False
 
     def sesion(self) -> Session:
         return self.fabrica()

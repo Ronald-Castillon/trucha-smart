@@ -76,15 +76,16 @@ class ServicioHistorial:
         self._estanque(estanque_id)
         ultima = self._lecturas.ultima_de(estanque_id)
         niveles = self._evaluador.niveles(ultima) if ultima else {}
-        criticas = [
-            a
-            for a in self._alertas.listar(estanque_id, EstadoAlerta.ABIERTA)
-            if a.nivel is Nivel.CRITICA
-        ]
-        return calcular_indice_riesgo(niveles, len(criticas))
+        return riesgo_de(niveles, self._alertas.listar(estanque_id, EstadoAlerta.ABIERTA))
 
     def _estanque(self, estanque_id: int):
         estanque = self._estanques.por_id(estanque_id)
         if estanque is None:
             raise NoEncontrado(f"No existe el estanque {estanque_id}")
         return estanque
+
+
+def riesgo_de(niveles, alertas_abiertas) -> IndiceRiesgo:
+    """Índice de riesgo a partir de niveles y alertas ya consultados (evita repetir consultas)."""
+    criticas = sum(1 for a in alertas_abiertas if a.nivel is Nivel.CRITICA)
+    return calcular_indice_riesgo(niveles, criticas)

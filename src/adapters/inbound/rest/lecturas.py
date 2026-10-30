@@ -17,6 +17,7 @@ from src.adapters.inbound.rest.esquemas import (
     RiesgoSalida,
 )
 from src.domain.model.usuario import Usuario
+from src.domain.service.servicio_historial import riesgo_de
 from src.ports.inbound.registrar_lectura import ComandoRegistrarLectura
 
 router = APIRouter(prefix="/api", tags=["lecturas"], responses=RESPUESTAS_ERROR)
@@ -97,7 +98,8 @@ def estado_panel(
                 ultima_lectura=LecturaSalida.de(estado.lectura) if estado.lectura else None,
                 niveles=estado.niveles,
                 alertas_abiertas=[AlertaSalida.de(a) for a in estado.alertas_abiertas],
-                riesgo=RiesgoSalida.de(c.historial.riesgo(e.id, usuario)),
+                # mismo cálculo que /riesgo, con el estado ya leído (RNF-P: menos consultas)
+                riesgo=RiesgoSalida.de(riesgo_de(estado.niveles, estado.alertas_abiertas)),
                 tendencia=[PuntoTendencia.de(x) for x in reversed(recientes)],
                 simulacion=simulacion.escenario if simulacion else None,
                 prediccion=pred.mensaje if con_aviso else None,

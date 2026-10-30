@@ -16,6 +16,7 @@ from src.adapters.inbound.rest import (
     historial,
     integraciones,
     lecturas,
+    prediccion,
     produccion,
     racion,
     reportes,
@@ -82,6 +83,7 @@ def crear_app(config: Configuracion | None = None, recursos: Recursos | None = N
     app.include_router(lecturas.router)
     app.include_router(alertas.router)
     app.include_router(historial.router)
+    app.include_router(prediccion.router)
     app.include_router(produccion.router)
     app.include_router(racion.router)
     app.include_router(reportes.router)

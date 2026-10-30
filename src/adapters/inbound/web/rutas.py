@@ -98,7 +98,13 @@ def _estanques_con_lote(c: Contenedor, usuario: Usuario):
 
 def _vista_panel(request, c: Contenedor, usuario: Usuario, **extra):
     filas = [
-        (e, lote, c.lecturas.estado(e.id, usuario), c.historial.riesgo(e.id, usuario))
+        (
+            e,
+            lote,
+            c.lecturas.estado(e.id, usuario),
+            c.historial.riesgo(e.id, usuario),
+            c.prediccion.predecir(e.id, usuario).principal,
+        )
         for e, lote in _estanques_con_lote(c, usuario)
     ]
     return render(request, "panel.html", usuario=usuario, filas=filas, **extra)
@@ -415,6 +421,7 @@ def historial(
         h=h,
         serie=serie,
         riesgo=c.historial.riesgo(estanque_id, usuario),
+        prediccion=c.prediccion.predecir(estanque_id, usuario),
         en_vivo=h.hasta >= c.recursos.reloj.ahora().date(),
         error=error,
     )

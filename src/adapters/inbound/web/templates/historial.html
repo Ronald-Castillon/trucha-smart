@@ -20,6 +20,15 @@
       {{ riesgo.alertas_criticas_abiertas }} alerta(s) crítica(s) abierta(s)).<br>
       Verde 0–29 · Amarillo 30–59 · Rojo ≥ 60</p>
   </section>
+  <section class="tarjeta" id="prediccion">
+    <h2>Predicción de tendencia (próximas 6 h)</h2>
+    {% if prediccion.basada_en_hasta %}<p class="suave">Regresión lineal sobre las 24 h previas a la última lectura ({{ prediccion.basada_en_hasta.strftime('%d/%m/%Y %H:%M') }} UTC).</p>{% endif %}
+    <ul>
+    {% for pr in prediccion.predicciones %}
+      <li class="pred-{{ pr.estado.value | lower }}">{{ pr.mensaje }}</li>
+    {% endfor %}
+    </ul>
+  </section>
   <section class="tarjeta" id="resumen-periodo">
     <h2>Resumen del periodo</h2>
     <p id="total-lecturas"><strong>{{ h.lecturas | length }}</strong> lecturas del {{ h.desde.strftime('%d/%m/%Y') }} al {{ h.hasta.strftime('%d/%m/%Y') }}</p>

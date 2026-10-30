@@ -144,6 +144,13 @@
     }
   }
 
+  function pintarPrediccion(tarjeta, texto) {
+    const caja = tarjeta.querySelector(".prediccion");
+    if (!caja) return;
+    caja.hidden = !texto;
+    if (texto) caja.querySelector(".texto-prediccion").textContent = texto;
+  }
+
   async function refrescar() {
     try {
       const r = await fetch("/api/panel", { credentials: "same-origin" });
@@ -157,6 +164,7 @@
         pintarRiesgo(tarjeta, e.riesgo);
         pintarTendencia(tarjeta, e.estanque_id, e.tendencia);
         pintarSimulacion(tarjeta, e.simulacion);
+        pintarPrediccion(tarjeta, e.prediccion);
       }
       document.getElementById("actualizado").textContent =
         "actualizado " + new Date().toLocaleTimeString();

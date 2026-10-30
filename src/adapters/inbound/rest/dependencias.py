@@ -35,6 +35,7 @@ from src.domain.service.servicio_estanques import ServicioEstanques
 from src.domain.service.servicio_historial import ServicioHistorial
 from src.domain.service.servicio_integraciones import ServicioIntegraciones
 from src.domain.service.servicio_lecturas import ServicioLecturas
+from src.domain.service.servicio_prediccion import ServicioPrediccion
 from src.domain.service.servicio_produccion import ServicioProduccion
 from src.domain.service.servicio_racion import ServicioRacion
 from src.domain.service.servicio_reportes import ServicioReportes
@@ -167,6 +168,10 @@ class Contenedor:
             EvaluadorCalidadAgua(r.umbrales),
             r.reloj,
         )
+
+    @cached_property
+    def prediccion(self) -> ServicioPrediccion:
+        return ServicioPrediccion(self.repo_lecturas, self.repo_estanques, self.recursos.umbrales)
 
     @cached_property
     def historial(self) -> ServicioHistorial:

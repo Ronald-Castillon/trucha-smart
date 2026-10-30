@@ -291,6 +291,10 @@ class EstadoEstanque(BaseModel):
     tendencia: list[PuntoTendencia] = Field(
         default_factory=list, description="Últimas lecturas, de la más antigua a la más reciente"
     )
+    prediccion: str | None = Field(
+        default=None, description="Predicción principal (RF-10) si hay riesgo o ya es crítico"
+    )
+    prediccion_estado: str | None = None
     simulacion: str | None = Field(
         default=None, description="Escenario del sensor simulado activo, si lo hay"
     )

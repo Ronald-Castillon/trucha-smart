@@ -88,6 +88,8 @@ def estado_panel(
         estado = c.lecturas.estado(e.id, usuario)
         recientes = c.lecturas.recientes(e.id, usuario, puntos) if puntos else []
         simulacion = sim.de(e.id) if sim else None
+        pred = c.prediccion.predecir(e.id, usuario).principal
+        con_aviso = pred is not None and pred.estado.value in ("RIESGO", "YA_CRITICO")
         resultado.append(
             EstadoEstanque(
                 estanque_id=e.id,
@@ -98,6 +100,8 @@ def estado_panel(
                 riesgo=RiesgoSalida.de(c.historial.riesgo(e.id, usuario)),
                 tendencia=[PuntoTendencia.de(x) for x in reversed(recientes)],
                 simulacion=simulacion.escenario if simulacion else None,
+                prediccion=pred.mensaje if con_aviso else None,
+                prediccion_estado=pred.estado.value if pred else None,
             )
         )
     return resultado

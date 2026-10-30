@@ -76,3 +76,5 @@ th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(
                  padding: 0 .3rem; font-size: 1.1rem; }
 @keyframes entrar { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+.pred-riesgo, .pred-ya_critico { color: var(--rojo); font-weight: 700; }
+.prediccion { font-size: .9rem; margin: .4rem 0; }

@@ -369,6 +369,29 @@
             "title": "Nombre",
             "type": "string"
           },
+          "prediccion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Predicción principal (RF-10) si hay riesgo o ya es crítico",
+            "title": "Prediccion"
+          },
+          "prediccion_estado": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prediccion Estado"
+          },
           "riesgo": {
             "$ref": "#/components/schemas/RiesgoSalida"
           },
@@ -413,6 +436,16 @@
         ],
         "title": "EstadoEstanque",
         "type": "object"
+      },
+      "EstadoPrediccion": {
+        "enum": [
+          "DATOS_INSUFICIENTES",
+          "SIN_RIESGO",
+          "RIESGO",
+          "YA_CRITICO"
+        ],
+        "title": "EstadoPrediccion",
+        "type": "string"
       },
       "EstadoSalud": {
         "properties": {
@@ -1230,6 +1263,155 @@
           "peso_medio_g"
         ],
         "title": "PesoEntrada",
+        "type": "object"
+      },
+      "PrediccionEstanqueSalida": {
+        "properties": {
+          "basada_en_hasta": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Basada En Hasta"
+          },
+          "estanque": {
+            "title": "Estanque",
+            "type": "string"
+          },
+          "estanque_id": {
+            "title": "Estanque Id",
+            "type": "integer"
+          },
+          "predicciones": {
+            "items": {
+              "$ref": "#/components/schemas/PrediccionSalida"
+            },
+            "title": "Predicciones",
+            "type": "array"
+          },
+          "principal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PrediccionSalida"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "estanque_id",
+          "estanque",
+          "basada_en_hasta",
+          "principal",
+          "predicciones"
+        ],
+        "title": "PrediccionEstanqueSalida",
+        "type": "object"
+      },
+      "PrediccionSalida": {
+        "properties": {
+          "estado": {
+            "$ref": "#/components/schemas/EstadoPrediccion"
+          },
+          "horas_hasta_limite": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Horas Hasta Limite"
+          },
+          "limite": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Limite"
+          },
+          "mensaje": {
+            "title": "Mensaje",
+            "type": "string"
+          },
+          "momento_estimado": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Momento Estimado"
+          },
+          "parametro": {
+            "$ref": "#/components/schemas/Parametro"
+          },
+          "pendiente_por_hora": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pendiente Por Hora"
+          },
+          "puntos": {
+            "title": "Puntos",
+            "type": "integer"
+          },
+          "r2": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "R2"
+          },
+          "valor_actual": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valor Actual"
+          }
+        },
+        "required": [
+          "parametro",
+          "estado",
+          "puntos",
+          "valor_actual",
+          "pendiente_por_hora",
+          "r2",
+          "limite",
+          "horas_hasta_limite",
+          "momento_estimado",
+          "mensaje"
+        ],
+        "title": "PrediccionSalida",
         "type": "object"
       },
       "ProduccionSalida": {
@@ -2948,6 +3130,94 @@
         "summary": "Sembrar Lote",
         "tags": [
           "estanques y lotes"
+        ]
+      }
+    },
+    "/api/estanques/{estanque_id}/prediccion": {
+      "get": {
+        "description": "Proyección lineal (mínimos cuadrados, 24 h previas a la última lectura) de cada\nparámetro y tiempo estimado hasta el límite crítico, si ocurre dentro de 6 h.",
+        "operationId": "prediccion_api_estanques__estanque_id__prediccion_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "estanque_id",
+            "required": true,
+            "schema": {
+              "title": "Estanque Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrediccionEstanqueSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Prediccion",
+        "tags": [
+          "predicción"
         ]
       }
     },

@@ -158,3 +158,16 @@ class RegistroMortalidadORM(Base):
     causa: Mapped[str | None] = mapped_column(String(120))
     registrado_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"))
     registrado_en: Mapped[datetime] = mapped_column(FechaHoraUTC, nullable=False)
+
+
+class ClaveIntegracionORM(Base):
+    __tablename__ = "claves_integracion"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    nombre: Mapped[str] = mapped_column(String(80), nullable=False)
+    prefijo: Mapped[str] = mapped_column(String(16), nullable=False)
+    hash_clave: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    creada_en: Mapped[datetime] = mapped_column(FechaHoraUTC, nullable=False)
+    creada_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"))
+    activa: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    ultimo_uso: Mapped[datetime | None] = mapped_column(FechaHoraUTC)

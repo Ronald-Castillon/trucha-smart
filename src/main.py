@@ -14,6 +14,7 @@ from src.adapters.inbound.rest import (
     auth,
     estanques,
     historial,
+    integraciones,
     lecturas,
     produccion,
     racion,
@@ -84,6 +85,8 @@ def crear_app(config: Configuracion | None = None, recursos: Recursos | None = N
     app.include_router(produccion.router)
     app.include_router(racion.router)
     app.include_router(reportes.router)
+    app.include_router(integraciones.admin)
+    app.include_router(integraciones.externa)
     app.include_router(web.router)
     app.mount("/static", StaticFiles(directory=CARPETA_WEB / "static"), name="static")
     return app

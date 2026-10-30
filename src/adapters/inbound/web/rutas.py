@@ -8,6 +8,7 @@ from urllib.parse import urlencode
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 
+from src.adapters.inbound.rest.auth import autenticar_y_registrar, ip_cliente
 from src.adapters.inbound.rest.dependencias import (
     COOKIE_SESION,
     Contenedor,
@@ -16,7 +17,12 @@ from src.adapters.inbound.rest.dependencias import (
 )
 from src.adapters.inbound.rest.reportes import respuesta_archivo
 from src.adapters.inbound.web.plantillas import render
-from src.domain.errores import CredencialesInvalidas, ErrorDominio, ErrorValidacion
+from src.domain.errores import (
+    CredencialesInvalidas,
+    CuentaBloqueada,
+    ErrorDominio,
+    ErrorValidacion,
+)
 from src.domain.model.alerta import EstadoAlerta
 from src.domain.model.estanque import TipoEstanque
 from src.domain.model.lectura_agua import FuenteLectura
@@ -51,9 +57,10 @@ def login(
     c: Contenedor = Depends(contenedor),
 ):
     try:
-        usuario = c.usuarios.autenticar(nombre_usuario, password)
-    except CredencialesInvalidas as e:
-        return render(request, "login.html", 401, error=e.mensaje, nombre_usuario=nombre_usuario)
+        usuario = autenticar_y_registrar(c, nombre_usuario, password, request)
+    except (CredencialesInvalidas, CuentaBloqueada) as e:
+        estado = 423 if isinstance(e, CuentaBloqueada) else 401
+        return render(request, "login.html", estado, error=e.mensaje, nombre_usuario=nombre_usuario)
     respuesta = _redirigir("/panel")
     respuesta.set_cookie(
         COOKIE_SESION,
@@ -293,7 +300,7 @@ def crear_integracion(
     c: Contenedor = Depends(contenedor),
 ):
     try:
-        nueva = c.integraciones.crear(nombre, usuario)
+        nueva = c.integraciones.crear(nombre, usuario, ip_cliente(request))
         c.confirmar()
     except ErrorValidacion as e:
         c.sesion.rollback()
@@ -310,7 +317,7 @@ def revocar_integracion(
     usuario: Usuario = Depends(usuario_actual),
     c: Contenedor = Depends(contenedor),
 ):
-    revocada = c.integraciones.revocar(clave_id, usuario)
+    revocada = c.integraciones.revocar(clave_id, usuario, ip_cliente(request))
     c.confirmar()
     return _vista_integraciones(request, c, usuario, aviso=f"Clave «{revocada.nombre}» revocada")
 
@@ -661,6 +668,18 @@ def _vista_usuarios(request, c: Contenedor, usuario: Usuario, estado=200, **extr
         usuarios=c.usuarios.listar(usuario),
         roles=list(Rol),
         **extra,
+    )
+
+
+@router.get("/auditoria")
+def auditoria(
+    request: Request,
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    """Bitácora de seguridad (RF-11). Solo Administrador."""
+    return render(
+        request, "auditoria.html", usuario=usuario, eventos=c.auditoria.listar(usuario, 200)
     )
 
 

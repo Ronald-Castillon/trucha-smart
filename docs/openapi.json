@@ -656,6 +656,76 @@
         "title": "EvaluacionSalida",
         "type": "object"
       },
+      "EventoSalida": {
+        "properties": {
+          "descripcion": {
+            "title": "Descripcion",
+            "type": "string"
+          },
+          "detalle": {
+            "title": "Detalle",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ip"
+          },
+          "momento": {
+            "format": "date-time",
+            "title": "Momento",
+            "type": "string"
+          },
+          "nombre_usuario": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nombre Usuario"
+          },
+          "tipo": {
+            "title": "Tipo",
+            "type": "string"
+          },
+          "usuario_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usuario Id"
+          }
+        },
+        "required": [
+          "id",
+          "tipo",
+          "descripcion",
+          "momento",
+          "nombre_usuario",
+          "usuario_id",
+          "ip",
+          "detalle"
+        ],
+        "title": "EventoSalida",
+        "type": "object"
+      },
       "FormatoReporte": {
         "enum": [
           "csv",
@@ -2175,9 +2245,102 @@
         ]
       }
     },
+    "/api/auditoria": {
+      "get": {
+        "description": "Bitácora de seguridad (RF-11): inicios de sesión, bloqueos y claves. Solo Administrador.",
+        "operationId": "auditoria_api_auditoria_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limite",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "title": "Limite",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EventoSalida"
+                  },
+                  "title": "Response Auditoria Api Auditoria Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Auditoria",
+        "tags": [
+          "auditoría"
+        ]
+      }
+    },
     "/api/auth/login": {
       "post": {
-        "description": "Valida credenciales y devuelve un JWT para usar como `Authorization: Bearer`.",
+        "description": "Valida credenciales y devuelve un JWT para usar como `Authorization: Bearer`.\n\nTras 3 intentos fallidos seguidos la cuenta queda bloqueada 5 minutos (423, RF-11).",
         "operationId": "login_api_auth_login_post",
         "requestBody": {
           "content": {

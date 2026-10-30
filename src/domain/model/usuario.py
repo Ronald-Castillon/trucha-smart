@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import StrEnum
 
 from src.domain.errores import ErrorValidacion, PermisoDenegado
@@ -43,6 +43,8 @@ PERMISOS_POR_ROL: dict[Rol, frozenset[Permiso]] = {
 }
 
 LONGITUD_MINIMA_PASSWORD = 8
+MAXIMO_INTENTOS_FALLIDOS = 3  # RF-11 / OWASP A07
+MINUTOS_BLOQUEO = 5
 
 
 @dataclass
@@ -54,6 +56,8 @@ class Usuario:
     creado_en: datetime
     activo: bool = True
     id: int | None = None
+    intentos_fallidos: int = 0
+    bloqueado_hasta: datetime | None = None
 
     def puede(self, permiso: Permiso) -> bool:
         return self.activo and permiso in PERMISOS_POR_ROL[self.rol]
@@ -63,6 +67,23 @@ class Usuario:
             raise PermisoDenegado(
                 f"El rol {self.rol.value} no tiene permiso para {permiso.value.lower()}"
             )
+
+    # -- protección contra fuerza bruta (RF-11) ------------------------------
+    def bloqueado(self, ahora: datetime) -> bool:
+        return self.bloqueado_hasta is not None and ahora < self.bloqueado_hasta
+
+    def registrar_fallo(self, ahora: datetime) -> bool:
+        """Suma un intento fallido; al llegar al máximo bloquea la cuenta. True si se bloqueó."""
+        self.intentos_fallidos += 1
+        if self.intentos_fallidos >= MAXIMO_INTENTOS_FALLIDOS:
+            self.intentos_fallidos = 0
+            self.bloqueado_hasta = ahora + timedelta(minutes=MINUTOS_BLOQUEO)
+            return True
+        return False
+
+    def registrar_exito(self) -> None:
+        self.intentos_fallidos = 0
+        self.bloqueado_hasta = None
 
 
 def validar_nombre_usuario(nombre: str) -> str:

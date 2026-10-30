@@ -7,9 +7,11 @@ from datetime import UTC, date, datetime, time, timedelta
 from src.domain.errores import ClaveInvalida, ErrorValidacion, NoEncontrado
 from src.domain.model.alerta import EstadoAlerta
 from src.domain.model.clave_integracion import ClaveIntegracion, huella
+from src.domain.model.evento_seguridad import TipoEvento
 from src.domain.model.lectura_agua import LecturaAgua
 from src.domain.model.usuario import Permiso, Usuario
 from src.domain.service.evaluador_calidad_agua import EvaluadorCalidadAgua
+from src.domain.service.servicio_auditoria import ServicioAuditoria
 from src.ports.inbound.gestionar_integraciones import ClaveCreada, EstadoExterno
 from src.ports.outbound.reloj import Reloj
 from src.ports.outbound.repositorio_alerta import RepositorioAlerta
@@ -33,7 +35,9 @@ class ServicioIntegraciones:
         alertas: RepositorioAlerta,
         evaluador: EvaluadorCalidadAgua,
         reloj: Reloj,
+        auditoria: ServicioAuditoria | None = None,
     ) -> None:
+        self._auditoria = auditoria
         self._claves = claves
         self._estanques = estanques
         self._lecturas = lecturas
@@ -42,32 +46,51 @@ class ServicioIntegraciones:
         self._reloj = reloj
 
     # -- administración ----------------------------------------------------
-    def crear(self, nombre: str, solicitante: Usuario) -> ClaveCreada:
+    def crear(self, nombre: str, solicitante: Usuario, ip: str | None = None) -> ClaveCreada:
         solicitante.exigir(Permiso.GESTIONAR_USUARIOS)
         entidad, secreto = ClaveIntegracion.nueva(nombre, solicitante.id, self._reloj.ahora())
-        return ClaveCreada(self._claves.guardar(entidad), secreto)
+        guardada = self._claves.guardar(entidad)
+        self._evento(
+            TipoEvento.CLAVE_CREADA, solicitante, f"{guardada.nombre} ({guardada.prefijo}…)", ip
+        )
+        return ClaveCreada(guardada, secreto)
 
     def listar(self, solicitante: Usuario) -> list[ClaveIntegracion]:
         solicitante.exigir(Permiso.GESTIONAR_USUARIOS)
         return self._claves.listar()
 
-    def revocar(self, clave_id: int, solicitante: Usuario) -> ClaveIntegracion:
+    def revocar(
+        self, clave_id: int, solicitante: Usuario, ip: str | None = None
+    ) -> ClaveIntegracion:
         solicitante.exigir(Permiso.GESTIONAR_USUARIOS)
         clave = self._claves.por_id(clave_id)
         if clave is None:
             raise NoEncontrado(f"No existe la clave de integración {clave_id}")
         clave.revocar()
+        self._evento(
+            TipoEvento.CLAVE_REVOCADA, solicitante, f"{clave.nombre} ({clave.prefijo}…)", ip
+        )
         return self._claves.guardar(clave)
 
     # -- consumo externo ---------------------------------------------------
-    def autenticar(self, secreto: str | None) -> ClaveIntegracion:
-        if not secreto:
-            raise ClaveInvalida()
-        clave = self._claves.por_hash(huella(secreto))
+    def autenticar(self, secreto: str | None, ip: str | None = None) -> ClaveIntegracion:
+        """El rechazo se registra en la bitácora sin el valor de la clave (OWASP A09)."""
+        clave = self._claves.por_hash(huella(secreto)) if secreto else None
         if clave is None or not clave.corresponde(secreto):
+            if self._auditoria is not None:
+                motivo = (
+                    "cabecera X-API-Key ausente"
+                    if not secreto
+                    else "clave no reconocida o revocada"
+                )
+                self._auditoria.registrar(TipoEvento.CLAVE_RECHAZADA, ip=ip, detalle=motivo)
             raise ClaveInvalida()
         clave.ultimo_uso = self._reloj.ahora()
         return self._claves.guardar(clave)
+
+    def _evento(self, tipo: TipoEvento, solicitante: Usuario, detalle: str, ip: str | None) -> None:
+        if self._auditoria is not None:
+            self._auditoria.registrar(tipo, solicitante.nombre_usuario, solicitante.id, ip, detalle)
 
     def estado_estanques(self, clave: ClaveIntegracion) -> list[EstadoExterno]:
         self._exigir_activa(clave)

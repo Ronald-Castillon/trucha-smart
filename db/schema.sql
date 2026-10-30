@@ -13,7 +13,9 @@ CREATE TABLE usuarios (
     rol              VARCHAR(20)  NOT NULL
                      CHECK (rol IN ('ADMINISTRADOR', 'PISCICULTOR', 'OPERARIO')),
     activo           BOOLEAN      NOT NULL DEFAULT TRUE,
-    creado_en        TIMESTAMPTZ  NOT NULL
+    creado_en        TIMESTAMPTZ  NOT NULL,
+    intentos_fallidos INTEGER     NOT NULL DEFAULT 0,      -- RF-11: bloqueo tras 3 fallos
+    bloqueado_hasta  TIMESTAMPTZ
 );
 
 CREATE TABLE estanques (
@@ -103,3 +105,15 @@ CREATE TABLE claves_integracion (
     activa       BOOLEAN      NOT NULL DEFAULT TRUE,
     ultimo_uso   TIMESTAMPTZ
 );
+
+-- RF-11 / OWASP A09: bitácora de seguridad (sin contraseñas ni claves)
+CREATE TABLE eventos_seguridad (
+    id              SERIAL PRIMARY KEY,
+    tipo            VARCHAR(30)  NOT NULL,
+    momento         TIMESTAMPTZ  NOT NULL,
+    nombre_usuario  VARCHAR(50),
+    usuario_id      INTEGER      REFERENCES usuarios(id) ON DELETE SET NULL,
+    ip              VARCHAR(45),
+    detalle         VARCHAR(200) NOT NULL DEFAULT ''
+);
+CREATE INDEX ix_eventos_seguridad_momento ON eventos_seguridad (momento);

@@ -13,8 +13,10 @@ from pydantic import BaseModel
 
 from src.adapters.inbound.rest.dependencias import NoAutenticado
 from src.domain.errores import (
+    ClaveInvalida,
     Conflicto,
     CredencialesInvalidas,
+    CuentaBloqueada,
     ErrorDominio,
     ErrorValidacion,
     NoEncontrado,
@@ -39,6 +41,8 @@ RESPUESTAS_ERROR = {
 _MAPA: list[tuple[type[ErrorDominio], int, str]] = [
     (ErrorValidacion, 422, "validacion"),
     (CredencialesInvalidas, 401, "credenciales_invalidas"),
+    (ClaveInvalida, 401, "clave_invalida"),
+    (CuentaBloqueada, 423, "cuenta_bloqueada"),
     (PermisoDenegado, 403, "permiso_denegado"),
     (NoEncontrado, 404, "no_encontrado"),
     (Conflicto, 409, "conflicto"),

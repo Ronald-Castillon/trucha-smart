@@ -153,3 +153,8 @@ class RepositorioAlimentacionMemoria(_RepositorioRegistrosLote):
 class RepositorioMortalidadMemoria(_RepositorioRegistrosLote):
     def total(self, lote_id):
         return sum(r.cantidad for r in self.datos.values() if r.lote_id == lote_id)
+
+
+class RepositorioClaveIntegracionMemoria(RepositorioMemoria):
+    def por_hash(self, hash_clave):
+        return next((replace(c) for c in self.datos.values() if c.hash_clave == hash_clave), None)

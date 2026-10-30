@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block titulo %}Integraciones{% endblock %}
+{% block contenido %}
+<h1>Integraciones con sistemas externos</h1>
+{% if nueva %}
+<section class="tarjeta clave-nueva" id="clave-nueva" role="status">
+  <h2>Clave creada para «{{ nueva.clave.nombre }}»</h2>
+  <p>Cópiela ahora: <strong>no se volverá a mostrar</strong>.</p>
+  <p><code id="valor-clave">{{ nueva.secreto }}</code></p>
+  <p class="suave">Uso: cabecera <code>X-API-Key</code> en <code>GET /api/externa/v1/estanques</code> y
+    <code>GET /api/externa/v1/estanques/{id}/lecturas?desde=AAAA-MM-DD&amp;hasta=AAAA-MM-DD</code>.</p>
+</section>
+{% endif %}
+<div class="rejilla">
+  <section class="tarjeta">
+    <h2>Nueva clave de integración</h2>
+    <form class="apilado" method="post" action="/integraciones" id="form-clave">
+      <label>Nombre del sistema externo <input name="nombre" required minlength="3" maxlength="80" value="{{ form.nombre or '' }}"></label>
+      <button type="submit">Crear clave</button>
+    </form>
+  </section>
+  <section class="tarjeta tabla-scroll" style="grid-column: span 2">
+    <h2>Claves emitidas</h2>
+    <table id="tabla-claves">
+      <thead><tr><th scope="col">Sistema</th><th scope="col">Prefijo</th><th scope="col">Estado</th><th scope="col">Creada (UTC)</th><th scope="col">Último uso (UTC)</th><th scope="col">Acción</th></tr></thead>
+      <tbody>
+      {% for k in claves %}
+        <tr data-clave="{{ k.id }}">
+          <td>{{ k.nombre }}</td><td><code>{{ k.prefijo }}…</code></td>
+          <td>{{ 'Activa' if k.activa else 'Revocada' }}</td>
+          <td>{{ k.creada_en.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td>{{ k.ultimo_uso.strftime('%d/%m/%Y %H:%M') if k.ultimo_uso else '—' }}</td>
+          <td>{% if k.activa %}<form method="post" action="/integraciones/{{ k.id }}/revocar"><button class="secundario" type="submit">Revocar</button></form>{% endif %}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6">No hay claves emitidas.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

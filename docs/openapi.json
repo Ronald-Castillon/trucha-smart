@@ -194,6 +194,122 @@
         "title": "CierreEntrada",
         "type": "object"
       },
+      "ClaveCreadaSalida": {
+        "properties": {
+          "activa": {
+            "title": "Activa",
+            "type": "boolean"
+          },
+          "clave": {
+            "description": "Se muestra una sola vez; guárdela en un lugar seguro",
+            "title": "Clave",
+            "type": "string"
+          },
+          "creada_en": {
+            "format": "date-time",
+            "title": "Creada En",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "nombre": {
+            "title": "Nombre",
+            "type": "string"
+          },
+          "prefijo": {
+            "title": "Prefijo",
+            "type": "string"
+          },
+          "ultimo_uso": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ultimo Uso"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "prefijo",
+          "activa",
+          "creada_en",
+          "ultimo_uso",
+          "clave"
+        ],
+        "title": "ClaveCreadaSalida",
+        "type": "object"
+      },
+      "ClaveEntrada": {
+        "properties": {
+          "nombre": {
+            "examples": [
+              "ERP de la piscigranja"
+            ],
+            "title": "Nombre",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nombre"
+        ],
+        "title": "ClaveEntrada",
+        "type": "object"
+      },
+      "ClaveSalida": {
+        "properties": {
+          "activa": {
+            "title": "Activa",
+            "type": "boolean"
+          },
+          "creada_en": {
+            "format": "date-time",
+            "title": "Creada En",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "nombre": {
+            "title": "Nombre",
+            "type": "string"
+          },
+          "prefijo": {
+            "title": "Prefijo",
+            "type": "string"
+          },
+          "ultimo_uso": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ultimo Uso"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "prefijo",
+          "activa",
+          "creada_en",
+          "ultimo_uso"
+        ],
+        "title": "ClaveSalida",
+        "type": "object"
+      },
       "EstadisticaSalida": {
         "properties": {
           "maximo": {
@@ -362,6 +478,56 @@
           "nombre"
         ],
         "title": "EstanqueEntrada",
+        "type": "object"
+      },
+      "EstanqueExterno": {
+        "properties": {
+          "alertas_abiertas": {
+            "title": "Alertas Abiertas",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "niveles": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Nivel"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/Parametro"
+            },
+            "title": "Niveles",
+            "type": "object"
+          },
+          "nombre": {
+            "title": "Nombre",
+            "type": "string"
+          },
+          "tipo": {
+            "title": "Tipo",
+            "type": "string"
+          },
+          "ultima_lectura": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LecturaExterna"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "tipo",
+          "ultima_lectura",
+          "niveles",
+          "alertas_abiertas"
+        ],
+        "title": "EstanqueExterno",
         "type": "object"
       },
       "EstanqueSalida": {
@@ -585,6 +751,35 @@
           "ph"
         ],
         "title": "LecturaEntrada",
+        "type": "object"
+      },
+      "LecturaExterna": {
+        "properties": {
+          "medido_en": {
+            "format": "date-time",
+            "title": "Medido En",
+            "type": "string"
+          },
+          "oxigeno_mg_l": {
+            "title": "Oxigeno Mg L",
+            "type": "number"
+          },
+          "ph": {
+            "title": "Ph",
+            "type": "number"
+          },
+          "temperatura_c": {
+            "title": "Temperatura C",
+            "type": "number"
+          }
+        },
+        "required": [
+          "medido_en",
+          "temperatura_c",
+          "oxigeno_mg_l",
+          "ph"
+        ],
+        "title": "LecturaExterna",
         "type": "object"
       },
       "LecturaHistorial": {
@@ -1546,6 +1741,12 @@
       }
     },
     "securitySchemes": {
+      "APIKeyHeader": {
+        "description": "Clave de integración emitida por un Administrador",
+        "in": "header",
+        "name": "X-API-Key",
+        "type": "apiKey"
+      },
       "HTTPBearer": {
         "description": "Token JWT obtenido en /api/auth/login",
         "scheme": "bearer",
@@ -2930,6 +3131,465 @@
         "summary": "Ultima Lectura",
         "tags": [
           "lecturas"
+        ]
+      }
+    },
+    "/api/externa/v1/estanques": {
+      "get": {
+        "description": "Estado actual de los estanques activos: última lectura, nivel por parámetro y alertas.",
+        "operationId": "estanques_externos_api_externa_v1_estanques_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EstanqueExterno"
+                  },
+                  "title": "Response Estanques Externos Api Externa V1 Estanques Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Estanques Externos",
+        "tags": [
+          "API externa (claves de integración)"
+        ]
+      }
+    },
+    "/api/externa/v1/estanques/{estanque_id}/lecturas": {
+      "get": {
+        "description": "Lecturas del estanque entre `desde` y `hasta` (UTC, inclusivas; máximo 31 días).",
+        "operationId": "lecturas_externas_api_externa_v1_estanques__estanque_id__lecturas_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "estanque_id",
+            "required": true,
+            "schema": {
+              "title": "Estanque Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "desde",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Desde"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasta",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Hasta"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LecturaExterna"
+                  },
+                  "title": "Response Lecturas Externas Api Externa V1 Estanques  Estanque Id  Lecturas Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "summary": "Lecturas Externas",
+        "tags": [
+          "API externa (claves de integración)"
+        ]
+      }
+    },
+    "/api/integraciones": {
+      "get": {
+        "operationId": "listar_claves_api_integraciones_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ClaveSalida"
+                  },
+                  "title": "Response Listar Claves Api Integraciones Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Listar Claves",
+        "tags": [
+          "integraciones"
+        ]
+      },
+      "post": {
+        "description": "Emite una clave de integración (solo Administrador). La clave se devuelve una única vez.",
+        "operationId": "crear_clave_api_integraciones_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaveEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaveCreadaSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Crear Clave",
+        "tags": [
+          "integraciones"
+        ]
+      }
+    },
+    "/api/integraciones/{clave_id}": {
+      "delete": {
+        "operationId": "revocar_clave_api_integraciones__clave_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "clave_id",
+            "required": true,
+            "schema": {
+              "title": "Clave Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaveSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Revocar Clave",
+        "tags": [
+          "integraciones"
         ]
       }
     },

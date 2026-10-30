@@ -12,6 +12,9 @@ from sqlalchemy.orm import Session
 
 from src.adapters.outbound.persistence.db import BaseDatos
 from src.adapters.outbound.persistence.repositorio_alerta_sql import RepositorioAlertaSQL
+from src.adapters.outbound.persistence.repositorio_clave_integracion_sql import (
+    RepositorioClaveIntegracionSQL,
+)
 from src.adapters.outbound.persistence.repositorio_estanque_sql import (
     RepositorioEstanqueSQL,
     RepositorioLoteSQL,
@@ -30,6 +33,7 @@ from src.domain.service.recomendador_racion import RecomendadorRacion, TablaAlim
 from src.domain.service.servicio_alertas import ServicioAlertas
 from src.domain.service.servicio_estanques import ServicioEstanques
 from src.domain.service.servicio_historial import ServicioHistorial
+from src.domain.service.servicio_integraciones import ServicioIntegraciones
 from src.domain.service.servicio_lecturas import ServicioLecturas
 from src.domain.service.servicio_produccion import ServicioProduccion
 from src.domain.service.servicio_racion import ServicioRacion
@@ -149,6 +153,18 @@ class Contenedor:
             self.repo_mortalidad,
             EvaluadorCalidadAgua(r.umbrales),
             r.generador_reportes,
+            r.reloj,
+        )
+
+    @cached_property
+    def integraciones(self) -> ServicioIntegraciones:
+        r = self.recursos
+        return ServicioIntegraciones(
+            RepositorioClaveIntegracionSQL(self.sesion),
+            self.repo_estanques,
+            self.repo_lecturas,
+            self.repo_alertas,
+            EvaluadorCalidadAgua(r.umbrales),
             r.reloj,
         )
 

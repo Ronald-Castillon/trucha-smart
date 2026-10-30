@@ -255,6 +255,60 @@ def registrar_mortalidad(
     )
 
 
+# --------------------------------------------------------------------------- integraciones (RF-09)
+
+
+def _vista_integraciones(request, c: Contenedor, usuario: Usuario, estado=200, **extra):
+    extra.setdefault("form", {})
+    return render(
+        request,
+        "integraciones.html",
+        estado,
+        usuario=usuario,
+        claves=c.integraciones.listar(usuario),
+        **extra,
+    )
+
+
+@router.get("/integraciones")
+def integraciones(
+    request: Request,
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    return _vista_integraciones(request, c, usuario)
+
+
+@router.post("/integraciones")
+def crear_integracion(
+    request: Request,
+    nombre: str = Form(""),
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    try:
+        nueva = c.integraciones.crear(nombre, usuario)
+        c.confirmar()
+    except ErrorValidacion as e:
+        c.sesion.rollback()
+        return _vista_integraciones(
+            request, c, usuario, 422, error=e.mensaje, form={"nombre": nombre}
+        )
+    return _vista_integraciones(request, c, usuario, nueva=nueva)
+
+
+@router.post("/integraciones/{clave_id}/revocar")
+def revocar_integracion(
+    request: Request,
+    clave_id: int,
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
+):
+    revocada = c.integraciones.revocar(clave_id, usuario)
+    c.confirmar()
+    return _vista_integraciones(request, c, usuario, aviso=f"Clave «{revocada.nombre}» revocada")
+
+
 # --------------------------------------------------------------------------- reportes (RF-08)
 
 

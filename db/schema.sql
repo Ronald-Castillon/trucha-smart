@@ -91,3 +91,15 @@ CREATE TABLE registros_mortalidad (
     registrado_en    TIMESTAMPTZ  NOT NULL
 );
 CREATE INDEX ix_mortalidad_lote_fecha ON registros_mortalidad (lote_id, registrado_en);
+
+-- Claves de integración para sistemas externos (RF-09). Solo se guarda la huella SHA-256.
+CREATE TABLE claves_integracion (
+    id           SERIAL PRIMARY KEY,
+    nombre       VARCHAR(80)  NOT NULL,
+    prefijo      VARCHAR(16)  NOT NULL,
+    hash_clave   VARCHAR(64)  NOT NULL UNIQUE,
+    creada_en    TIMESTAMPTZ  NOT NULL,
+    creada_por   INTEGER      REFERENCES usuarios(id) ON DELETE SET NULL,
+    activa       BOOLEAN      NOT NULL DEFAULT TRUE,
+    ultimo_uso   TIMESTAMPTZ
+);

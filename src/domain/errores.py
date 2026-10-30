@@ -36,3 +36,14 @@ class CredencialesInvalidas(ErrorDominio):
 
 class PermisoDenegado(ErrorDominio):
     """El rol del usuario no permite la acción (HTTP 403)."""
+
+
+class ClaveInvalida(ErrorDominio):
+    """Clave de integración inexistente o revocada (HTTP 401)."""
+
+    def __init__(self) -> None:
+        super().__init__("Clave de integración inválida o revocada")
+
+
+class CuentaBloqueada(ErrorDominio):
+    """Demasiados intentos fallidos de inicio de sesión (HTTP 423)."""

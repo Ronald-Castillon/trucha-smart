@@ -33,6 +33,10 @@ class UsuarioORM(Base):
     rol: Mapped[str] = mapped_column(String(20), nullable=False)
     activo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     creado_en: Mapped[datetime] = mapped_column(FechaHoraUTC, nullable=False)
+    intentos_fallidos: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    bloqueado_hasta: Mapped[datetime | None] = mapped_column(FechaHoraUTC)
 
 
 def _decimal(precision: int = 10, escala: int = 2) -> Numeric:
@@ -171,3 +175,16 @@ class ClaveIntegracionORM(Base):
     creada_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"))
     activa: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     ultimo_uso: Mapped[datetime | None] = mapped_column(FechaHoraUTC)
+
+
+class EventoSeguridadORM(Base):
+    __tablename__ = "eventos_seguridad"
+    __table_args__ = (Index("ix_eventos_seguridad_momento", "momento"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    tipo: Mapped[str] = mapped_column(String(30), nullable=False)
+    momento: Mapped[datetime] = mapped_column(FechaHoraUTC, nullable=False)
+    nombre_usuario: Mapped[str | None] = mapped_column(String(50))
+    usuario_id: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id", ondelete="SET NULL"))
+    ip: Mapped[str | None] = mapped_column(String(45))
+    detalle: Mapped[str] = mapped_column(String(200), nullable=False, default="")

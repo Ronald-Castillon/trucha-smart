@@ -18,6 +18,8 @@ def _a_dominio(f: UsuarioORM) -> Usuario:
         rol=Rol(f.rol),
         activo=f.activo,
         creado_en=f.creado_en,
+        intentos_fallidos=f.intentos_fallidos or 0,
+        bloqueado_hasta=f.bloqueado_hasta,
     )
 
 
@@ -36,6 +38,8 @@ class RepositorioUsuarioSQL:
         fila.rol = usuario.rol.value
         fila.activo = usuario.activo
         fila.creado_en = usuario.creado_en
+        fila.intentos_fallidos = usuario.intentos_fallidos
+        fila.bloqueado_hasta = usuario.bloqueado_hasta
         self._s.flush()
         return _a_dominio(fila)
 

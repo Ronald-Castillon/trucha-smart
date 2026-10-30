@@ -19,6 +19,9 @@ from src.adapters.outbound.persistence.repositorio_estanque_sql import (
     RepositorioEstanqueSQL,
     RepositorioLoteSQL,
 )
+from src.adapters.outbound.persistence.repositorio_evento_seguridad_sql import (
+    RepositorioEventoSeguridadSQL,
+)
 from src.adapters.outbound.persistence.repositorio_lectura_sql import RepositorioLecturaSQL
 from src.adapters.outbound.persistence.repositorio_produccion_sql import (
     RepositorioAlimentacionSQL,
@@ -31,6 +34,7 @@ from src.domain.model.usuario import Usuario
 from src.domain.service.evaluador_calidad_agua import EvaluadorCalidadAgua
 from src.domain.service.recomendador_racion import RecomendadorRacion, TablaAlimentacion
 from src.domain.service.servicio_alertas import ServicioAlertas
+from src.domain.service.servicio_auditoria import ServicioAuditoria
 from src.domain.service.servicio_estanques import ServicioEstanques
 from src.domain.service.servicio_historial import ServicioHistorial
 from src.domain.service.servicio_integraciones import ServicioIntegraciones
@@ -79,7 +83,13 @@ class Contenedor:
     @cached_property
     def usuarios(self) -> ServicioUsuarios:
         r = self.recursos
-        return ServicioUsuarios(RepositorioUsuarioSQL(self.sesion), r.hasher, r.reloj)
+        return ServicioUsuarios(
+            RepositorioUsuarioSQL(self.sesion), r.hasher, r.reloj, self.auditoria
+        )
+
+    @cached_property
+    def auditoria(self) -> ServicioAuditoria:
+        return ServicioAuditoria(RepositorioEventoSeguridadSQL(self.sesion), self.recursos.reloj)
 
     @cached_property
     def repo_estanques(self) -> RepositorioEstanqueSQL:
@@ -167,6 +177,7 @@ class Contenedor:
             self.repo_alertas,
             EvaluadorCalidadAgua(r.umbrales),
             r.reloj,
+            self.auditoria,
         )
 
     @cached_property

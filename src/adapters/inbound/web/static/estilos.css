@@ -78,3 +78,7 @@ th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 .pred-riesgo, .pred-ya_critico { color: var(--rojo); font-weight: 700; }
 .prediccion { font-size: .9rem; margin: .4rem 0; }
+
+/* RF-11: bitácora de seguridad */
+.solo-lector { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.evento-cuenta_bloqueada td, .evento-login_rechazado_bloqueo td { color: var(--rojo); font-weight: 600; }

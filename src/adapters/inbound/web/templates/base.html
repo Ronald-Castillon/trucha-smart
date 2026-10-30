@@ -19,6 +19,7 @@
     {% if usuario.puede(P.GESTIONAR_REPORTES) %}<a href="/reportes">Reportes</a>{% endif %}
     {% if usuario.puede(P.GESTIONAR_USUARIOS) %}<a href="/usuarios">Usuarios</a>{% endif %}
     {% if usuario.puede(P.GESTIONAR_USUARIOS) %}<a href="/integraciones">Integraciones</a>{% endif %}
+    {% if usuario.puede(P.GESTIONAR_USUARIOS) %}<a href="/auditoria">Auditoría</a>{% endif %}
   </nav>
   <form method="post" action="/logout">
     <span id="usuario-actual">{{ usuario.nombre_completo }} ({{ usuario.rol.value | title }})</span>

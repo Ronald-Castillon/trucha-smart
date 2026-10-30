@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from fastapi import APIRouter, Depends, Security
+from fastapi import APIRouter, Depends, Request, Security
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 
@@ -27,6 +27,10 @@ _cabecera_clave = APIKeyHeader(
     auto_error=False,
     description="Clave de integración emitida por un Administrador",
 )
+
+
+def _ip(request: Request) -> str | None:
+    return request.client.host if request.client else None
 
 
 class ClaveEntrada(BaseModel):
@@ -85,20 +89,24 @@ def listar_claves(
 @admin.post("", response_model=ClaveCreadaSalida, status_code=201)
 def crear_clave(
     datos: ClaveEntrada,
+    request: Request,
     usuario: Usuario = Depends(usuario_actual),
     c: Contenedor = Depends(contenedor),
 ) -> ClaveCreadaSalida:
     """Emite una clave de integración (solo Administrador). La clave se devuelve una única vez."""
-    creada = c.integraciones.crear(datos.nombre, usuario)
+    creada = c.integraciones.crear(datos.nombre, usuario, _ip(request))
     c.confirmar()
     return ClaveCreadaSalida(**ClaveSalida.de(creada.clave).model_dump(), clave=creada.secreto)
 
 
 @admin.delete("/{clave_id}", response_model=ClaveSalida)
 def revocar_clave(
-    clave_id: int, usuario: Usuario = Depends(usuario_actual), c: Contenedor = Depends(contenedor)
+    clave_id: int,
+    request: Request,
+    usuario: Usuario = Depends(usuario_actual),
+    c: Contenedor = Depends(contenedor),
 ) -> ClaveSalida:
-    revocada = c.integraciones.revocar(clave_id, usuario)
+    revocada = c.integraciones.revocar(clave_id, usuario, _ip(request))
     c.confirmar()
     return ClaveSalida.de(revocada)
 
@@ -107,10 +115,15 @@ def revocar_clave(
 
 
 def clave_actual(
-    secreto: str | None = Security(_cabecera_clave), c: Contenedor = Depends(contenedor)
+    request: Request,
+    secreto: str | None = Security(_cabecera_clave),
+    c: Contenedor = Depends(contenedor),
 ) -> ClaveIntegracion:
-    clave = c.integraciones.autenticar(secreto)
-    c.confirmar()  # registra el último uso
+    ip = _ip(request)
+    try:
+        clave = c.integraciones.autenticar(secreto, ip)
+    finally:
+        c.confirmar()  # registra el último uso o el rechazo en la bitácora (RF-11)
     return clave
 
 

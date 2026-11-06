@@ -205,6 +205,7 @@ la aplicación exige un `JWT_SECRET` propio de 32+ caracteres y emite la cookie 
 ```bash
 python tools/gqm_metrics.py --incremento 1   # escribe docs/gqm/reporte_inc1.md
 python tools/gqm_metrics.py --incremento 2   # escribe docs/gqm/reporte_inc2.md
+python tools/gqm_metrics.py --incremento 3   # escribe docs/gqm/reporte_inc3.md
 ```
 
 Antes de generarlo, ejecutar las pruebas con `--cov-report=xml` y las E2E.

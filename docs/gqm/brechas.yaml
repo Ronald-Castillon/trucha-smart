@@ -14,4 +14,6 @@ brechas:
   - {id: B-07, descripcion: "Sin historial ni tendencias", rf: [RF-05], resuelta_en: 2}
   - {id: B-08, descripcion: "Alimentación empírica sin FCR", rf: [RF-06, RF-07], resuelta_en: 2}
   - {id: B-09, descripcion: "Reportes manuales tardíos", rf: [RF-08], resuelta_en: 2}
-  - {id: B-10, descripcion: "Sin predicción con IA", rf: [], resuelta_en: null}  # Incremento 3
+  # B-10 se cubre con predicción estadística explicable (regresión lineal, ADR-006), no con un
+  # modelo de IA entrenado: no hay aún historial real para entrenarlo.
+  - {id: B-10, descripcion: "Sin predicción de eventos", rf: [RF-10], resuelta_en: 3}

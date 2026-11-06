@@ -76,6 +76,27 @@ class Monitor(threading.Thread):
                 pass
 
 
+def detener_arbol(servidor: subprocess.Popen) -> None:
+    """Detiene uvicorn y sus workers: en Windows terminate() no alcanza a los procesos hijos,
+    que quedaban huérfanos y consumían CPU en las mediciones siguientes."""
+    try:
+        hijos = psutil.Process(servidor.pid).children(recursive=True)
+    except psutil.Error:
+        hijos = []
+    servidor.terminate()
+    try:
+        servidor.wait(timeout=15)
+    except subprocess.TimeoutExpired:  # conexiones colgadas impiden el cierre ordenado
+        servidor.kill()
+        servidor.wait()
+    for h in hijos:
+        try:
+            h.kill()
+        except psutil.Error:
+            pass
+    psutil.wait_procs(hijos, timeout=10)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("--usuarios", type=int, default=500)
@@ -133,12 +154,7 @@ def main(argv: list[str] | None = None) -> int:
         monitor.activo = False
         monitor.join()
     finally:
-        servidor.terminate()
-        try:
-            servidor.wait(timeout=15)
-        except subprocess.TimeoutExpired:  # conexiones colgadas impiden el cierre ordenado
-            servidor.kill()
-            servidor.wait()
+        detener_arbol(servidor)
 
     filas = list(csv.DictReader(open(f"{prefijo}_stats.csv", encoding="utf-8")))
     agregada = next(f for f in filas if f["Name"] == "Aggregated")

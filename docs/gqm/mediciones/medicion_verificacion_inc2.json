@@ -1,0 +1,49 @@
+{
+  "etiqueta": "verificacion_inc2",
+  "version_medida": "v2.0-Inc2",
+  "medido_en": "2026-11-06T20:10:29+00:00",
+  "entorno": "win32, Python 3.13.16, SQLite, Chromium headless (Playwright)",
+  "IV-1": {
+    "descripcion": "lectura crítica (OD 4.0 mg/L) por API -> alerta CRÍTICA visible en el panel web abierto",
+    "muestras_s": [
+      1.373,
+      0.851,
+      0.848,
+      1.369,
+      0.842
+    ],
+    "promedio_s": 1.057,
+    "maximo_s": 1.373,
+    "valor_minutos": 0.0229,
+    "criterio": "máximo de las muestras (peor caso observado)"
+  },
+  "IV-2": {
+    "descripcion": "obtener el reporte mensual (octubre 2026): calidad de agua y producción en PDF y CSV por la API",
+    "archivos": [
+      {
+        "ruta": "/api/reportes/calidad-agua.pdf?desde=2026-10-01&hasta=2026-10-31",
+        "bytes": 16996
+      },
+      {
+        "ruta": "/api/reportes/calidad-agua.csv?desde=2026-10-01&hasta=2026-10-31",
+        "bytes": 12901
+      },
+      {
+        "ruta": "/api/reportes/produccion.pdf?desde=2026-10-01&hasta=2026-10-31",
+        "bytes": 3048
+      },
+      {
+        "ruta": "/api/reportes/produccion.csv?desde=2026-10-01&hasta=2026-10-31",
+        "bytes": 442
+      }
+    ],
+    "segundos": 0.131,
+    "valor_horas": 3.6e-05
+  },
+  "IV-3": {
+    "descripcion": "simulador escenario normal con --intervalo 5 s; lecturas registradas en la BD durante la ventana, extrapoladas a 24 h",
+    "lecturas_registradas": 7,
+    "ventana_s": 30.716,
+    "valor_lecturas_dia": 19690.3
+  }
+}

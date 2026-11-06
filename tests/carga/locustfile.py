@@ -11,6 +11,7 @@ import random
 import time
 
 from locust import HttpUser, between, events, task
+from locust.exception import StopUser
 
 _muestras: list[tuple[float, float, str, int]] = []
 
@@ -44,6 +45,8 @@ class Consulta(HttpUser):
         r = self.client.post(
             "/api/auth/login", json={"nombre_usuario": nombre, "password": password}, name="login"
         )
+        if not r.ok:  # el fallo ya quedó contado en "login"; sin token el usuario no sigue
+            raise StopUser()
         self.client.headers["Authorization"] = f"Bearer {r.json()['access_token']}"
 
     @task(6)
@@ -80,6 +83,8 @@ class Sensor(HttpUser):
             json={"nombre_usuario": "operario", "password": "Oper123!"},
             name="login",
         )
+        if not r.ok:  # el fallo ya quedó contado en "login"; sin token el usuario no sigue
+            raise StopUser()
         self.client.headers["Authorization"] = f"Bearer {r.json()['access_token']}"
 
     @task

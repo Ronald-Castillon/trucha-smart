@@ -87,7 +87,10 @@ class Supervisor(threading.Thread):
         self.activo = False
         if self.proceso and self.proceso.poll() is None:
             self.proceso.terminate()
-            self.proceso.wait(timeout=10)
+            try:
+                self.proceso.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                self.proceso.kill()
 
 
 class Sonda(threading.Thread):

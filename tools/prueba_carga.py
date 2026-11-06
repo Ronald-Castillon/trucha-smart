@@ -134,7 +134,11 @@ def main(argv: list[str] | None = None) -> int:
         monitor.join()
     finally:
         servidor.terminate()
-        servidor.wait(timeout=15)
+        try:
+            servidor.wait(timeout=15)
+        except subprocess.TimeoutExpired:  # conexiones colgadas impiden el cierre ordenado
+            servidor.kill()
+            servidor.wait()
 
     filas = list(csv.DictReader(open(f"{prefijo}_stats.csv", encoding="utf-8")))
     agregada = next(f for f in filas if f["Name"] == "Aggregated")

@@ -200,7 +200,7 @@ jobs:
       - name: Carga - 500 usuarios con Locust (p95, RPS, memoria)
         run: |
           createdb -h localhost -U trucha carga
-          python tools/prueba_carga.py --usuarios 500 --tasa 25 --duracion 120 --workers 4             --url-bd postgresql+psycopg://trucha:trucha@localhost:5432/carga             --salida resultados-ci/rendimiento
+          python tools/prueba_carga.py --usuarios 500 --tasa 25 --duracion 120 --workers 4             --url-bd postgresql+psycopg://trucha:trucha@localhost:5432/carga             --salida resultados-ci/rendimiento --log-servidor resultados-ci/servidor-carga.log
 
       - name: Resumen
         if: always()

@@ -6,7 +6,7 @@ Métricas:
   M2.1 Evidencias                   (capturas existentes / esperadas x 100)   meta = 100 %
   M2.2 Densidad de defectos         (Issues bug del incremento / n.º de RF)   meta <= 1.0 / 0.2
   M2.3 Cobertura de src/domain      (desde coverage.xml)                      meta >= 80 %
-  M3.1 Brechas resueltas            (resueltas verificadas / 10 x 100)        meta >= 60 / 90 %
+  M3.1 Brechas resueltas            (resueltas verificadas / 10 x 100)    meta >= 60 / 90 / 100 %
   M3.2 Mejora de indicadores valor  (promedio IV-1..IV-3, % sobre AS-IS)      meta >= 50 / 80 %
 
 Ningún valor se inventa: si falta un dato (coverage.xml, líneas base AS-IS, gh) se informa
@@ -38,15 +38,15 @@ sys.path.insert(0, str(RAIZ / "tools"))
 
 from check_domain_purity import analizar_paquete  # noqa: E402
 
-RF_POR_INCREMENTO = {1: [1, 2, 3, 4], 2: [5, 6, 7, 8]}
+RF_POR_INCREMENTO = {1: [1, 2, 3, 4], 2: [5, 6, 7, 8], 3: [9, 10, 11]}
 METAS = {
-    "M1.1": {1: ("<=", 0.0), 2: ("<=", 0.0)},
-    "M1.2": {1: (">=", 100.0), 2: (">=", 100.0)},
-    "M2.1": {1: (">=", 100.0), 2: (">=", 100.0)},
-    "M2.2": {1: ("<=", 1.0), 2: ("<=", 0.2)},
-    "M2.3": {1: (">=", 80.0), 2: (">=", 80.0)},
-    "M3.1": {1: (">=", 60.0), 2: (">=", 90.0)},
-    "M3.2": {1: (">=", 50.0), 2: (">=", 80.0)},
+    "M1.1": {1: ("<=", 0.0), 2: ("<=", 0.0), 3: ("<=", 0.0)},
+    "M1.2": {1: (">=", 100.0), 2: (">=", 100.0), 3: (">=", 100.0)},
+    "M2.1": {1: (">=", 100.0), 2: (">=", 100.0), 3: (">=", 100.0)},
+    "M2.2": {1: ("<=", 1.0), 2: ("<=", 0.2), 3: ("<=", 0.2)},
+    "M2.3": {1: (">=", 80.0), 2: (">=", 80.0), 3: (">=", 80.0)},
+    "M3.1": {1: (">=", 60.0), 2: (">=", 90.0), 3: (">=", 100.0)},
+    "M3.2": {1: (">=", 50.0), 2: (">=", 80.0), 3: (">=", 80.0)},
 }
 COMPONENTES = {
     "domain/model": ["src/domain/model"],
@@ -272,7 +272,11 @@ def m3_1(inc: int) -> Metrica:
         faltas = []
         for rf in b["rf"]:
             n = int(rf.split("-")[1])
-            ev = RAIZ / "evidencias" / f"inc{1 if n <= 4 else 2}"
+            ev = (
+                RAIZ
+                / "evidencias"
+                / f"inc{next(i for i, r in RF_POR_INCREMENTO.items() if n in r)}"
+            )
             if not all(
                 (ev / f"RF{n:02d}_paso{k}_{s}.png").is_file()
                 for k, s in ((1, "entrada"), (2, "resultado"))
@@ -363,7 +367,7 @@ def generar_reporte(inc: int) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Métricas GQM por incremento")
-    parser.add_argument("--incremento", type=int, choices=(1, 2), required=True)
+    parser.add_argument("--incremento", type=int, choices=(1, 2, 3), required=True)
     args = parser.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")

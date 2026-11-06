@@ -1,0 +1,168 @@
+{
+  "ejecutado_en": "2026-11-06T03:23:56+00:00",
+  "entorno": {
+    "so": "Linux 7.0.0-1019-azure",
+    "python": "3.13.18",
+    "nucleos_cpu": 4,
+    "memoria_total_gb": 15.6,
+    "base_de_datos": "postgresql+psycopg",
+    "workers_uvicorn": 4,
+    "nota": "Locust y la API se ejecutan en la misma máquina y comparten CPU."
+  },
+  "parametros": {
+    "usuarios": 500,
+    "tasa_usuarios_s": 25.0,
+    "duracion_s": 120,
+    "escenario": "tests/carga/locustfile.py (90 % consulta, 10 % sensores)"
+  },
+  "peticiones": 6860,
+  "fallos": 129,
+  "errores_pct": 1.88,
+  "p50_ms": 45.0,
+  "p95_ms": 34000.0,
+  "p99_ms": 73000.0,
+  "rps": 57.5,
+  "memoria_servidor_mb": {
+    "promedio": 499.1,
+    "maxima": 512.4
+  },
+  "cpu_servidor_pct_max": 391.5,
+  "duracion_real_s": 120.6,
+  "fases": {
+    "rampa": {
+      "segundos": 19.5,
+      "peticiones": 379,
+      "p50_ms": 5840,
+      "p95_ms": 14872,
+      "p99_ms": 16944,
+      "errores_pct": 2.111,
+      "rps": 19.4
+    },
+    "estable": {
+      "segundos": 98.3,
+      "peticiones": 6507,
+      "p50_ms": 42,
+      "p95_ms": 34584,
+      "p99_ms": 73043,
+      "errores_pct": 1.875,
+      "rps": 66.2
+    }
+  },
+  "por_endpoint": [
+    {
+      "endpoint": "GET /api/alertas",
+      "peticiones": 1133,
+      "fallos": 15,
+      "mediana_ms": 10.0,
+      "p95_ms": 6900.0,
+      "p99_ms": 59000.0,
+      "rps": 9.5
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/historial",
+      "peticiones": 587,
+      "fallos": 10,
+      "mediana_ms": 15.0,
+      "p95_ms": 6000.0,
+      "p99_ms": 61000.0,
+      "rps": 4.9
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/prediccion",
+      "peticiones": 586,
+      "fallos": 13,
+      "mediana_ms": 17.0,
+      "p95_ms": 13000.0,
+      "p99_ms": 59000.0,
+      "rps": 4.9
+    },
+    {
+      "endpoint": "GET /api/panel",
+      "peticiones": 3570,
+      "fallos": 53,
+      "mediana_ms": 64.0,
+      "p95_ms": 8700.0,
+      "p99_ms": 61000.0,
+      "rps": 29.9
+    },
+    {
+      "endpoint": "POST /api/lecturas",
+      "peticiones": 484,
+      "fallos": 8,
+      "mediana_ms": 19.0,
+      "p95_ms": 31000.0,
+      "p99_ms": 63000.0,
+      "rps": 4.1
+    },
+    {
+      "endpoint": "login",
+      "peticiones": 500,
+      "fallos": 30,
+      "mediana_ms": 13000.0,
+      "p95_ms": 92000.0,
+      "p99_ms": 95000.0,
+      "rps": 4.2
+    }
+  ],
+  "errores": [
+    {
+      "endpoint": "GET /api/panel",
+      "error": "HTTPError('500 Server Error: Internal Server Error for url: GET /api/panel')",
+      "veces": 48
+    },
+    {
+      "endpoint": "login",
+      "error": "HTTPError('500 Server Error: Internal Server Error for url: login')",
+      "veces": 30
+    },
+    {
+      "endpoint": "GET /api/alertas",
+      "error": "HTTPError('500 Server Error: Internal Server Error for url: GET /api/alertas')",
+      "veces": 15
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/prediccion",
+      "error": "HTTPError('500 Server Error: Internal Server Error for url: GET /api/estanques/{id}/prediccion')",
+      "veces": 11
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/historial",
+      "error": "HTTPError('500 Server Error: Internal Server Error for url: GET /api/estanques/{id}/historial')",
+      "veces": 8
+    },
+    {
+      "endpoint": "POST /api/lecturas",
+      "error": "HTTPError('500 Server Error: Internal Server Error for url: POST /api/lecturas')",
+      "veces": 5
+    },
+    {
+      "endpoint": "GET /api/panel",
+      "error": "RemoteDisconnected('Remote end closed connection without response')",
+      "veces": 4
+    },
+    {
+      "endpoint": "POST /api/lecturas",
+      "error": "RemoteDisconnected('Remote end closed connection without response')",
+      "veces": 3
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/historial",
+      "error": "RemoteDisconnected('Remote end closed connection without response')",
+      "veces": 2
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/prediccion",
+      "error": "RemoteDisconnected('Remote end closed connection without response')",
+      "veces": 1
+    }
+  ],
+  "metas": {
+    "p95_ms": 800,
+    "errores_pct": 1.0
+  },
+  "cumple": {
+    "p95": false,
+    "p95_estable": false,
+    "errores": false
+  }
+}

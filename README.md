@@ -12,7 +12,8 @@ siguen siendo humanas.
 |---|---|---|---|
 | 1 (PMV) | HU-01 autenticación y roles · HU-02 estanques y lotes · HU-03 lecturas · HU-04 alertas | B-01 a B-06 | `v1.0-PMV` |
 | 2 | HU-05 historial y riesgo · HU-06 alimentación, mortalidad y FCR · HU-07 ración · HU-08 reportes | B-07 a B-09 | `v2.0-Inc2` |
-| 3 (futuro) | Predicción con IA, MQTT, sensores reales | B-10 | — |
+| 3 | HU-09 API externa con claves · HU-10 predicción de tendencia · HU-11 bloqueo y auditoría · RNF-U/R/P/+ (accesibilidad, confiabilidad, rendimiento, seguridad) | B-10 | `v3.0-Inc3` |
+| Futuro | MQTT y sensores reales; modelo de ML cuando haya historia suficiente (ADR-006) | — | — |
 
 > ⚠️ **Los umbrales (`config/umbrales.yaml`) y la tabla de alimentación (`config/alimentacion.yaml`)
 > son valores de referencia parametrizables: validar con el técnico de la piscigranja** antes de
@@ -33,7 +34,8 @@ src/
 La pureza se verifica en CI con `tools/check_domain_purity.py` (AST, métrica M1.1) y con los
 contratos de **import-linter** definidos en `pyproject.toml`.
 
-- Decisiones: [`docs/adr/`](docs/adr) (ADR-001 a ADR-005).
+- Decisiones: [`docs/adr/`](docs/adr) (ADR-001 a ADR-006).
+- Calidad FURPS+ (Inc. 3): [`docs/calidad/`](docs/calidad) — usabilidad y WCAG, confiabilidad y rendimiento medidos, OWASP Top 10 2025.
 - Diagramas C4 (Mermaid): [`docs/c4/`](docs/c4).
 - Backlog y Definition of Done: [`docs/backlog.md`](docs/backlog.md).
 - Contrato de la API: [`docs/openapi.json`](docs/openapi.json) (verificado en CI).
@@ -41,7 +43,7 @@ contratos de **import-linter** definidos en `pyproject.toml`.
 
 **Stack:** Python 3.12+ · FastAPI · SQLAlchemy 2 · PostgreSQL (docker-compose) / SQLite (pruebas) ·
 Jinja2 + Chart.js · JWT (cookie HttpOnly y Bearer) · bcrypt · reportlab · pytest + pytest-cov ·
-ruff · import-linter · Playwright · GitHub Actions.
+ruff · import-linter · Playwright · axe-core · Locust · Bandit · pip-audit · GitHub Actions.
 
 ## Requisitos
 
@@ -76,6 +78,7 @@ Copy-Item .env.example .env
 | Variable | Descripción | Valor por defecto |
 |---|---|---|
 | `DATABASE_URL` | Cadena SQLAlchemy | `sqlite:///./truchasmart.db` |
+| `APP_ENV` | `desarrollo` o `produccion` (exige `JWT_SECRET` propio de 32+ caracteres y cookie `Secure`) | `desarrollo` |
 | `JWT_SECRET` | Clave para firmar JWT | *(cambiar)* |
 | `JWT_EXPIRA_MINUTOS` | Duración de la sesión | `480` |
 | `UMBRALES_PATH` | Umbrales de calidad de agua | `config/umbrales.yaml` |
@@ -155,6 +158,11 @@ HttpOnly). Todos los errores JSON devuelven `{"error", "detalle", "campo"}` con 
 | RF-06 | `POST/GET /api/lotes/{id}/alimentacion`, `POST/GET /api/lotes/{id}/mortalidad`, `GET /api/lotes/{id}/produccion` | Operario |
 | RF-07 | `GET /api/lotes/{id}/racion` | Operario |
 | RF-08 | `GET /api/reportes/{calidad-agua\|produccion}.{csv\|pdf}?desde=&hasta=` | Piscicultor |
+| RF-09 | `GET/POST /api/integraciones`, `DELETE /api/integraciones/{id}` (claves de integración) | Administrador |
+| RF-09 | `GET /api/externa/v1/estanques`, `GET /api/externa/v1/estanques/{id}/lecturas?desde=&hasta=` (cabecera `X-API-Key`) | Sistema externo |
+| RF-10 | `GET /api/estanques/{id}/prediccion` (también en `GET /api/panel`) | Operario |
+| RF-11 | `GET /api/auditoria`; el login responde 423 tras 3 intentos fallidos | Administrador |
+| RNF-R | `GET /api/salud` (200, o 503 si la base de datos no responde) | — |
 | Demo | `GET/POST /api/simulador`, `DELETE /api/simulador/{estanque_id}` (sensor simulado desde la web) | Piscicultor |
 
 ### Reglas de negocio (valores de referencia, `config/*.yaml`)
@@ -175,8 +183,22 @@ pytest -m e2e                                # Playwright; guarda capturas en ev
 python tools/export_openapi.py --check       # contrato OpenAPI al día
 ```
 
-Los casos de prueba obligatorios (CP-RF01-01 … CP-RF08-02) se identifican por su ID en el nombre o
+Los casos de prueba obligatorios (CP-RF01-01 … CP-RF11-02) se identifican por su ID en el nombre o
 docstring de cada prueba.
+
+### Calidad FURPS+ (Incremento 3)
+
+```bash
+python tools/contraste_paleta.py                     # contraste WCAG 2.1 AA de la paleta (RNF-U)
+pytest tests/e2e/test_accesibilidad_axe.py           # axe-core en 12 pantallas + móvil (RNF-U)
+pip install -e ".[rendimiento,seguridad]"
+python tools/prueba_confiabilidad.py --duracion 300 --fallos 5   # MTTR, MTBF, disponibilidad
+python tools/prueba_carga.py --usuarios 500 --workers 8          # Locust: p95, RPS, memoria
+bandit -r src -ll && pip-audit                       # SAST y dependencias (RNF-+)
+```
+
+Resultados medidos y su interpretación en [`docs/calidad/`](docs/calidad). Con `APP_ENV=produccion`
+la aplicación exige un `JWT_SECRET` propio de 32+ caracteres y emite la cookie con `Secure`.
 
 ### Reporte GQM
 
@@ -208,6 +230,7 @@ si `gh` no está disponible, desde `docs/gqm/defectos.csv`.
 ```bash
 git tag -a v1.0-PMV -m "Incremento 1 (PMV): HU-01 a HU-04"
 git tag -a v2.0-Inc2 -m "Incremento 2: HU-05 a HU-08"
+git tag -a v3.0-Inc3 -m "Incremento 3: HU-09 a HU-11 y RNF FURPS+"
 git push origin --tags
 ```
 
@@ -217,11 +240,12 @@ git push origin --tags
 .github/            workflows/ci.yml, pull_request_template.md
 config/             umbrales.yaml, alimentacion.yaml
 db/                 schema.sql (PostgreSQL), seed.sql (demo)
-docs/               adr/, c4/, gqm/, issues/, backlog.md, openapi.json
-evidencias/         inc1/, inc2/ (capturas generadas por las pruebas E2E)
+docs/               adr/, c4/, calidad/, gqm/, issues/, backlog.md, openapi.json
+evidencias/         inc1/, inc2/, inc3/ (capturas E2E, axe-core, Bandit, pip-audit)
 src/                domain/, ports/, adapters/, main.py
-tests/              unit/, integration/, e2e/
+tests/              unit/, integration/, e2e/, carga/ (Locust)
 tools/              check_domain_purity.py, gqm_metrics.py, crear_issues.sh,
-                    export_openapi.py, init_db.py, generar_seed.py
+                    export_openapi.py, init_db.py, generar_seed.py,
+                    contraste_paleta.py, prueba_confiabilidad.py, prueba_carga.py
 Dockerfile, docker-compose.yml, pyproject.toml, .env.example
 ```

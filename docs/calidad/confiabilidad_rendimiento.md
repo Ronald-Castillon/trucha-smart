@@ -1,6 +1,6 @@
 # Confiabilidad (R) y rendimiento (P) — FURPS+
 
-Issue #31 (RNF-R/P) · defecto encontrado y corregido: #39 · Incremento 3
+Issue #31 (RNF-R/P) · defecto encontrado y corregido: #39 · pendiente: #42 · Incremento 3
 
 Todos los valores de este documento fueron **medidos** con las herramientas del repositorio; los
 archivos de resultado se generan solos y no se editan a mano.
@@ -10,7 +10,7 @@ archivos de resultado se generan solos y no se editan a mano.
 | [`confiabilidad.md`](confiabilidad.md) / `.json` | Última prueba de caos local (SQLite) |
 | [`rendimiento.md`](rendimiento.md) / `.json` | Última prueba de carga local (SQLite) |
 | [`historial/`](historial/) | Corridas intermedias de la investigación del defecto #39 |
-| Artefacto `confiabilidad-rendimiento` del job de CI | Las mismas pruebas contra **PostgreSQL 16**, incluida la caída de la BD |
+| [`ci_postgresql/`](ci_postgresql/) | Las mismas pruebas contra **PostgreSQL 16** en CI (run 42155654999), incluida la caída de la BD |
 
 ## 1. Confiabilidad: inyección de fallos
 
@@ -70,6 +70,22 @@ de guardar el historial); las corridas 2 y 3 están en `historial/`; la 4 es `re
    con solo 15 conexiones ⇒ esperas de 30 s y errores 500.
 3. Al activar WAL, varios workers arrancando a la vez chocaban al cambiar el modo; se fija
    `busy_timeout` antes de `journal_mode`.
+
+### Resultado con PostgreSQL 16 en CI (runner de GitHub, 4 núcleos, 4 workers)
+
+| Prueba | Medido | Meta | ¿Cumple? |
+|---|---:|---:|:---:|
+| MTTR (kill del servidor) | 1.17 s | < 5 min | Sí |
+| Caída de PostgreSQL 10 s | 36 respuestas 503 (la API no se cae); 200 a los 0.34 s de `docker start` | Recuperación automática | Sí |
+| Disponibilidad con un fallo cada 36 s | 96.87 % | ≥ 99.5 % | No (tasa forzada; tolera 369 caídas/día) |
+| p95 con 500 usuarios | 34 000 ms | < 800 ms | **No** |
+| Errores con 500 usuarios | 1.88 % (129 respuestas 500) | < 1 % | **No** |
+| Throughput | 57.5 RPS (CPU del servidor 391 %, saturada) | — | — |
+
+**La meta de rendimiento no está demostrada con PostgreSQL.** Se cumple en la máquina local
+(20 núcleos, SQLite, 8 workers), pero no en el runner de CI, donde la API y Locust comparten
+4 núcleos. Queda registrado como **Issue #42** (bug + inc3), con hipótesis y acciones; la causa
+de los 500 en CI no está verificada porque ese job aún no guardaba el log del servidor.
 
 ### Límites
 

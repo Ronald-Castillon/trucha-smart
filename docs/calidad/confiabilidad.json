@@ -1,0 +1,41 @@
+{
+  "ejecutado_en": "2026-10-30T04:12:10+00:00",
+  "entorno": {
+    "so": "Windows 11",
+    "python": "3.13.16",
+    "base_de_datos": "sqlite",
+    "nucleos_cpu": 20
+  },
+  "parametros": {
+    "duracion_s": 300.0,
+    "fallos_inyectados": 5,
+    "intervalo_sonda_s": 0.25
+  },
+  "sondas": {
+    "total": 1171,
+    "con_200": 1171,
+    "sin_respuesta_o_error": 0
+  },
+  "disponibilidad_pct": 96.992,
+  "sondas_200_pct": 100.0,
+  "tiempos_recuperacion_s": [
+    2.1,
+    1.76,
+    1.63,
+    1.79,
+    1.74
+  ],
+  "mttr_s": 1.8,
+  "mtbf_s": 58.2,
+  "reinicios_del_supervisor": 5,
+  "caida_postgresql": null,
+  "metas": {
+    "disponibilidad_pct": 99.5,
+    "mttr_s": 300.0
+  },
+  "fallos_tolerables_dia": 240,
+  "cumple": {
+    "disponibilidad": false,
+    "mttr": true
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "ejecutado_en": "2026-10-30T04:24:55+00:00",
+  "entorno": {
+    "so": "Windows 11",
+    "python": "3.13.16",
+    "nucleos_cpu": 20,
+    "memoria_total_gb": 31.8,
+    "base_de_datos": "sqlite",
+    "workers_uvicorn": 4,
+    "nota": "Locust y la API se ejecutan en la misma máquina y comparten CPU."
+  },
+  "parametros": {
+    "usuarios": 500,
+    "tasa_usuarios_s": 25.0,
+    "duracion_s": 120,
+    "escenario": "tests/carga/locustfile.py (90 % consulta, 10 % sensores)"
+  },
+  "peticiones": 12908,
+  "fallos": 94,
+  "errores_pct": 0.728,
+  "p50_ms": 1200.0,
+  "p95_ms": 4300.0,
+  "p99_ms": 7900.0,
+  "rps": 107.1,
+  "memoria_servidor_mb": {
+    "promedio": 476.7,
+    "maxima": 502.4
+  },
+  "cpu_servidor_pct_max": 1622.5,
+  "duracion_real_s": 121.9,
+  "por_endpoint": [
+    {
+      "endpoint": "GET /api/alertas",
+      "peticiones": 2282,
+      "fallos": 17,
+      "mediana_ms": 530.0,
+      "p95_ms": 2400.0,
+      "p99_ms": 4800.0,
+      "rps": 18.9
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/historial",
+      "peticiones": 1171,
+      "fallos": 7,
+      "mediana_ms": 580.0,
+      "p95_ms": 2600.0,
+      "p99_ms": 5200.0,
+      "rps": 9.7
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/prediccion",
+      "peticiones": 1142,
+      "fallos": 7,
+      "mediana_ms": 830.0,
+      "p95_ms": 2800.0,
+      "p99_ms": 5000.0,
+      "rps": 9.5
+    },
+    {
+      "endpoint": "GET /api/panel",
+      "peticiones": 6727,
+      "fallos": 49,
+      "mediana_ms": 2100.0,
+      "p95_ms": 4300.0,
+      "p99_ms": 7100.0,
+      "rps": 55.8
+    },
+    {
+      "endpoint": "POST /api/lecturas",
+      "peticiones": 1086,
+      "fallos": 14,
+      "mediana_ms": 530.0,
+      "p95_ms": 2500.0,
+      "p99_ms": 6500.0,
+      "rps": 9.0
+    },
+    {
+      "endpoint": "login",
+      "peticiones": 500,
+      "fallos": 0,
+      "mediana_ms": 3300.0,
+      "p95_ms": 8900.0,
+      "p99_ms": 28000.0,
+      "rps": 4.1
+    }
+  ],
+  "errores": [
+    {
+      "endpoint": "GET /api/panel",
+      "error": "RemoteDisconnected('Remote end closed connection without response')",
+      "veces": 45
+    },
+    {
+      "endpoint": "GET /api/alertas",
+      "error": "RemoteDisconnected('Remote end closed connection without response')",
+      "veces": 16
+    },
+    {
+      "endpoint": "POST /api/lecturas",
+      "error": "ConnectionResetError(10054, 'Se ha forzado la interrupci�n de una conexi�n existente por el host remoto', None, 10054, None)",
+      "veces": 9
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/prediccion",
+      "error": "RemoteDisconnected('Remote end closed connection without response')",
+      "veces": 7
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/historial",
+      "error": "RemoteDisconnected('Remote end closed connection without response')",
+      "veces": 7
+    },
+    {
+      "endpoint": "POST /api/lecturas",
+      "error": "RemoteDisconnected('Remote end closed connection without response')",
+      "veces": 4
+    },
+    {
+      "endpoint": "GET /api/panel",
+      "error": "ConnectionResetError(10054, 'Se ha forzado la interrupci�n de una conexi�n existente por el host remoto', None, 10054, None)",
+      "veces": 4
+    },
+    {
+      "endpoint": "POST /api/lecturas",
+      "error": "ConnectionAbortedError(10053, 'Se ha anulado una conexi�n establecida por el software en su equipo host', None, 10053, None)",
+      "veces": 1
+    },
+    {
+      "endpoint": "GET /api/alertas",
+      "error": "ConnectionResetError(10054, 'Se ha forzado la interrupci�n de una conexi�n existente por el host remoto', None, 10054, None)",
+      "veces": 1
+    }
+  ],
+  "metas": {
+    "p95_ms": 800,
+    "errores_pct": 1.0
+  },
+  "cumple": {
+    "p95": false,
+    "errores": true
+  }
+}

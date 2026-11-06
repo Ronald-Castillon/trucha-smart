@@ -449,6 +449,10 @@
       },
       "EstadoSalud": {
         "properties": {
+          "base_datos": {
+            "title": "Base Datos",
+            "type": "string"
+          },
           "estado": {
             "title": "Estado",
             "type": "string"
@@ -460,7 +464,8 @@
         },
         "required": [
           "estado",
-          "servicio"
+          "servicio",
+          "base_datos"
         ],
         "title": "EstadoSalud",
         "type": "object"
@@ -5259,6 +5264,7 @@
     },
     "/api/salud": {
       "get": {
+        "description": "200 si la API y la base de datos responden; 503 (sin caerse) si la base de datos no.",
         "operationId": "salud_api_salud_get",
         "responses": {
           "200": {
@@ -5270,9 +5276,19 @@
               }
             },
             "description": "Successful Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstadoSalud"
+                }
+              }
+            },
+            "description": "La base de datos no responde"
           }
         },
-        "summary": "Estado del servicio",
+        "summary": "Estado del servicio y de la base de datos",
         "tags": [
           "salud"
         ]

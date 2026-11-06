@@ -1,0 +1,47 @@
+{
+  "ejecutado_en": "2026-11-06T03:21:37+00:00",
+  "entorno": {
+    "so": "Linux 7.0.0-1019-azure",
+    "python": "3.13.18",
+    "base_de_datos": "postgresql+psycopg",
+    "nucleos_cpu": 4
+  },
+  "parametros": {
+    "duracion_s": 150.0,
+    "fallos_inyectados": 4,
+    "intervalo_sonda_s": 0.25
+  },
+  "sondas": {
+    "total": 600,
+    "con_200": 543,
+    "sin_respuesta_o_error": 57
+  },
+  "disponibilidad_pct": 96.872,
+  "sondas_200_pct": 90.5,
+  "tiempos_recuperacion_s": [
+    1.21,
+    1.11,
+    1.14,
+    1.23
+  ],
+  "mttr_s": 1.17,
+  "mtbf_s": 36.3,
+  "reinicios_del_supervisor": 4,
+  "caida_postgresql": {
+    "segundos_detenido": 10.1,
+    "respuestas_durante_caida": {
+      "503": 36
+    },
+    "api_siguio_respondiendo": true,
+    "reconexion_s_desde_docker_start": 0.34
+  },
+  "metas": {
+    "disponibilidad_pct": 99.5,
+    "mttr_s": 300.0
+  },
+  "fallos_tolerables_dia": 369,
+  "cumple": {
+    "disponibilidad": false,
+    "mttr": true
+  }
+}

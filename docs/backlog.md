@@ -38,7 +38,8 @@ Descomposición **Épica → Historia de usuario → Tareas**. Cada HU tiene su 
 | E4 Análisis histórico | Ver tendencias y riesgo | B-07 | HU-05 |
 | E5 Alimentación eficiente | Controlar FCR y ración | B-08 | HU-06, HU-07 |
 | E6 Reportería | Reportes inmediatos | B-09 | HU-08 |
-| E7 Predicción con IA (*fuera de alcance*) | Anticipar eventos | B-10 | Incremento 3 |
+| E7 Analítica predictiva e integración | Anticipar eventos e integrar otros sistemas | B-10 | HU-09, HU-10 |
+| E8 Calidad FURPS+ y seguridad | Accesibilidad, confiabilidad, rendimiento y seguridad medidos | — | HU-11, RNF-U/R/P/+ |
 
 ## Incremento 1 (PMV) — milestone "Incremento 1 (PMV)" — tag `v1.0-PMV`
 
@@ -96,3 +97,33 @@ Descomposición **Épica → Historia de usuario → Tareas**. Cada HU tiene su 
 - T8.3 Pruebas CP-RF08-01/02 (tiempo < 5 s).
 
 **Cierre Inc. 2:** mejora continua según el reporte GQM del Inc. 1, `tools/gqm_metrics.py --incremento 2`, tag `v2.0-Inc2`.
+
+## Incremento 3 — milestone "Incremento 3" — tag `v3.0-Inc3`
+
+### HU-09 · Integración con sistemas externos (RF-09) — `feature/hu09-api-externa` · PR #33
+- T9.1 Entidad `ClaveIntegracion` (SHA-256, se muestra una sola vez) y caso de uso `gestionar_integraciones`.
+- T9.2 API externa de solo lectura con cabecera `X-API-Key`; administración de claves (web y API).
+- T9.3 Pruebas CP-RF09-01/02 y capturas `evidencias/inc3/RF09_*`.
+
+### HU-10 · Predicción de tendencia (RF-10, B-10) — `feature/hu10-prediccion` · PR #34
+- T10.1 `predictor_tendencia` (regresión lineal, 24 h, horizonte 6 h, R² ≥ 0.5) y ADR-006.
+- T10.2 Endpoint `/api/estanques/{id}/prediccion`; aviso en el panel en vivo y el historial.
+- T10.3 Pruebas CP-RF10-01/02 y capturas `evidencias/inc3/RF10_*`.
+
+### HU-11 · Bloqueo por intentos fallidos y auditoría (RF-11) — `feature/hu11-seguridad-acceso` · PR #35
+- T11.1 Bloqueo de 5 min tras 3 fallos (423); `EventoSeguridad` y bitácora sin secretos.
+- T11.2 `/auditoria` y `GET /api/auditoria`; pruebas CP-RF11-01/02 y capturas `evidencias/inc3/RF11_*`.
+
+### RNF-U · Accesibilidad WCAG 2.1 AA (Issue #30) — `rnf/accesibilidad-axe` · PR #37
+- axe-core en 12 pantallas y 5 en móvil; contraste de la paleta en CI; salto al contenido y foco visible.
+- Defectos encontrados y corregidos: #36 (contraste), #38 (tablas desplazables por teclado).
+
+### RNF-R/P · Confiabilidad y rendimiento (Issue #31) — `rnf/confiabilidad-rendimiento` · PR #40
+- `/api/salud` con verificación de BD; prueba de caos (MTTR, MTBF); carga con Locust (p95, RPS, memoria).
+- Defecto encontrado y corregido: #39 (`database is locked` y pool agotado bajo carga).
+
+### RNF-+ · Seguridad OWASP 2025 y restricciones (Issue #32) — `rnf/seguridad-sast` · PR #41
+- Cabeceras HTTP de seguridad, rechazo de la clave JWT de ejemplo en producción, imagen Docker sin root.
+- Bandit, pip-audit, Dependabot y construcción de la imagen en CI; matriz OWASP Top 10 2025.
+
+**Cierre Inc. 3:** resultados en `docs/calidad/`, tag `v3.0-Inc3`.

@@ -90,3 +90,8 @@ th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(
 .saltar { position: absolute; left: -999px; top: 0; background: var(--texto); color: #fff;
           padding: .5rem .8rem; z-index: 100; border-radius: 0 0 6px 0; }
 .saltar:focus { left: 0; }
+
+/* RF-12: riesgo estimado por el modelo de IA */
+.nivel-modelo-alto strong, .nivel-modelo-ya_critico strong { color: var(--rojo); }
+.nivel-modelo-medio strong { color: var(--amarillo-texto); }
+.nivel-modelo-bajo strong { color: var(--verde); }

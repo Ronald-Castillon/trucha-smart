@@ -430,6 +430,7 @@ def historial(
         serie=serie,
         riesgo=c.historial.riesgo(estanque_id, usuario),
         prediccion=c.prediccion.predecir(estanque_id, usuario),
+        riesgo_modelo=c.riesgo_modelo.evaluar(estanque_id, usuario),
         en_vivo=h.hasta >= c.recursos.reloj.ahora().date(),
         error=error,
     )

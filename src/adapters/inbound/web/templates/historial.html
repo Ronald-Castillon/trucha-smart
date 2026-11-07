@@ -29,6 +29,17 @@
     {% endfor %}
     </ul>
   </section>
+  <section class="tarjeta" id="riesgo-modelo">
+    <h2>Riesgo estimado por el modelo de IA (próximas 6 h)</h2>
+    <p class="riesgo-modelo nivel-modelo-{{ riesgo_modelo.nivel | lower }}"><strong id="riesgo-modelo-mensaje">{{ riesgo_modelo.mensaje }}</strong></p>
+    {% if riesgo_modelo.factores %}
+    <p class="suave">Factores que más aumentan el riesgo:</p>
+    <ul id="riesgo-modelo-factores">
+    {% for f in riesgo_modelo.factores %}<li>{{ f.nombre }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    <p class="suave">Modelo {{ riesgo_modelo.version_modelo }} · prototipo entrenado con datos sintéticos: complementa, no reemplaza, las alertas por umbral y la decisión del técnico.</p>
+  </section>
   <section class="tarjeta" id="resumen-periodo">
     <h2>Resumen del periodo</h2>
     <p id="total-lecturas"><strong>{{ h.lecturas | length }}</strong> lecturas del {{ h.desde.strftime('%d/%m/%Y') }} al {{ h.hasta.strftime('%d/%m/%Y') }}</p>

@@ -13,7 +13,8 @@ siguen siendo humanas.
 | 1 (PMV) | HU-01 autenticación y roles · HU-02 estanques y lotes · HU-03 lecturas · HU-04 alertas | B-01 a B-06 | `v1.0-PMV` |
 | 2 | HU-05 historial y riesgo · HU-06 alimentación, mortalidad y FCR · HU-07 ración · HU-08 reportes | B-07 a B-09 | `v2.0-Inc2` |
 | 3 | HU-09 API externa con claves · HU-10 predicción de tendencia · HU-11 bloqueo y auditoría · RNF-U/R/P/+ (accesibilidad, confiabilidad, rendimiento, seguridad) | B-10 | `v3.0-Inc3` |
-| Futuro | MQTT y sensores reales; modelo de ML cuando haya historia suficiente (ADR-006) | — | — |
+| 4 | HU-12 probabilidad de evento crítico con un modelo de IA (prototipo entrenado con datos sintéticos, ADR-007) | B-10 (IA) | `v4.0-Inc4` |
+| Futuro | MQTT y sensores reales; reentrenar el modelo con datos reales de la piscigranja | — | — |
 
 > ⚠️ **Los umbrales (`config/umbrales.yaml`) y la tabla de alimentación (`config/alimentacion.yaml`)
 > son valores de referencia parametrizables: validar con el técnico de la piscigranja** antes de
@@ -34,7 +35,8 @@ src/
 La pureza se verifica en CI con `tools/check_domain_purity.py` (AST, métrica M1.1) y con los
 contratos de **import-linter** definidos en `pyproject.toml`.
 
-- Decisiones: [`docs/adr/`](docs/adr) (ADR-001 a ADR-006).
+- Decisiones: [`docs/adr/`](docs/adr) (ADR-001 a ADR-007).
+- Modelo de IA y su tarjeta: [`models/riesgo/`](models/riesgo) (métricas, datos y limitaciones).
 - Calidad FURPS+ (Inc. 3): [`docs/calidad/`](docs/calidad) — usabilidad y WCAG, confiabilidad y rendimiento medidos, OWASP Top 10 2025.
 - Diagramas C4 (Mermaid): [`docs/c4/`](docs/c4).
 - Backlog y Definition of Done: [`docs/backlog.md`](docs/backlog.md).
@@ -162,6 +164,7 @@ HttpOnly). Todos los errores JSON devuelven `{"error", "detalle", "campo"}` con 
 | RF-09 | `GET /api/externa/v1/estanques`, `GET /api/externa/v1/estanques/{id}/lecturas?desde=&hasta=` (cabecera `X-API-Key`) | Sistema externo |
 | RF-10 | `GET /api/estanques/{id}/prediccion` (también en `GET /api/panel`) | Operario |
 | RF-11 | `GET /api/auditoria`; el login responde 423 tras 3 intentos fallidos | Administrador |
+| RF-12 | `GET /api/estanques/{id}/riesgo-modelo` (probabilidad de evento crítico en 6 h, factores y versión del modelo) | Operario |
 | RNF-R | `GET /api/salud` (200, o 503 si la base de datos no responde) | — |
 | Demo | `GET/POST /api/simulador`, `DELETE /api/simulador/{estanque_id}` (sensor simulado desde la web) | Piscicultor |
 
@@ -183,8 +186,20 @@ pytest -m e2e                                # Playwright; guarda capturas en ev
 python tools/export_openapi.py --check       # contrato OpenAPI al día
 ```
 
-Los casos de prueba obligatorios (CP-RF01-01 … CP-RF11-02) se identifican por su ID en el nombre o
+Los casos de prueba obligatorios (CP-RF01-01 … CP-RF12-03) se identifican por su ID en el nombre o
 docstring de cada prueba.
+
+### Modelo de riesgo con IA (Incremento 4, ADR-007)
+
+```bash
+pip install -e ".[ml]"
+python tools/entrenar_modelo_riesgo.py              # reentrena con datos sintéticos (semilla fija)
+python tools/entrenar_modelo_riesgo.py --verificar  # CI: reproducible y mejor que la regla del Inc. 3
+```
+
+La aplicación solo lee `models/riesgo/modelo_v1.json` (no necesita scikit-learn). Es un
+**prototipo entrenado con datos sintéticos**: reentrenarlo con lecturas y eventos reales y validarlo
+con el técnico antes de usarlo para decidir. Ruta configurable con `MODELO_RIESGO_PATH`.
 
 ### Calidad FURPS+ (Incremento 3)
 
@@ -206,6 +221,7 @@ la aplicación exige un `JWT_SECRET` propio de 32+ caracteres y emite la cookie 
 python tools/gqm_metrics.py --incremento 1   # escribe docs/gqm/reporte_inc1.md
 python tools/gqm_metrics.py --incremento 2   # escribe docs/gqm/reporte_inc2.md
 python tools/gqm_metrics.py --incremento 3   # escribe docs/gqm/reporte_inc3.md
+python tools/gqm_metrics.py --incremento 4   # escribe docs/gqm/reporte_inc4.md
 ```
 
 Antes de generarlo, ejecutar las pruebas con `--cov-report=xml` y las E2E.
@@ -232,6 +248,7 @@ si `gh` no está disponible, desde `docs/gqm/defectos.csv`.
 git tag -a v1.0-PMV -m "Incremento 1 (PMV): HU-01 a HU-04"
 git tag -a v2.0-Inc2 -m "Incremento 2: HU-05 a HU-08"
 git tag -a v3.0-Inc3 -m "Incremento 3: HU-09 a HU-11 y RNF FURPS+"
+git tag -a v4.0-Inc4 -m "Incremento 4: HU-12 modelo de riesgo (IA)"
 git push origin --tags
 ```
 
@@ -240,6 +257,7 @@ git push origin --tags
 ```
 .github/            workflows/ci.yml, pull_request_template.md
 config/             umbrales.yaml, alimentacion.yaml
+models/riesgo/      modelo_v1.json (modelo de IA sin pickle) y tarjeta_modelo_v1.md
 db/                 schema.sql (PostgreSQL), seed.sql (demo)
 docs/               adr/, c4/, calidad/, gqm/, issues/, backlog.md, openapi.json
 evidencias/         inc1/, inc2/, inc3/ (capturas E2E, axe-core, Bandit, pip-audit)

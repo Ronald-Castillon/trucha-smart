@@ -27,6 +27,7 @@ indicadores:
     to_be_inc1: 0.0398   # 2.39 s: máximo de 5 muestras, panel con refresco cada 2 s
     to_be_inc2: 0.0229   # 1.373 s: máximo de 5 muestras, panel con refresco cada 1 s (MC-01)
     to_be_inc3: 0.0225   # 1.351 s: máximo de 5 muestras (medicion_inc3.json, tag v3.0-Inc3)
+    to_be_inc4: 0.0224   # 1.346 s: máximo de 5 muestras (medicion_inc4.json)
     to_be_fuente: "tools/medir_indicadores.py: lectura crítica por API -> alerta visible en el panel (Playwright)"
 
   - id: IV-2
@@ -41,6 +42,7 @@ indicadores:
     to_be_inc1: null     # el Incremento 1 no incluye exportación de reportes (RF-08 es del Inc. 2)
     to_be_inc2: 0.000021 # 0.074 s: calidad de agua + producción, PDF y CSV, octubre 2026
     to_be_inc3: 0.000037 # 0.133 s: mismos 4 archivos (medicion_inc3.json)
+    to_be_inc4: 0.00002  # 0.072 s: mismos 4 archivos (medicion_inc4.json)
     to_be_fuente: "tools/medir_indicadores.py: descarga de los 4 archivos del mes por la API"
 
   - id: IV-3
@@ -54,6 +56,7 @@ indicadores:
     to_be_inc1: 19716.7  # simulador a 5 s: 7 lecturas en 30.675 s, extrapolado a 24 h
     to_be_inc2: 19759.5  # simulador a 5 s: 7 lecturas en 30.608 s, extrapolado a 24 h
     to_be_inc3: 19716.5  # simulador a 5 s: 7 lecturas en 30.675 s, extrapolado a 24 h
+    to_be_inc4: 19789.1  # simulador a 5 s (medicion_inc4.json)
     to_be_fuente: >-
       tools/medir_indicadores.py: simulador (ADR-004) con --intervalo 5; es la capacidad del
       sistema con sensor simulado, no la operación real con sondas.

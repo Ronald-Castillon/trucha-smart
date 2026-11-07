@@ -38,15 +38,15 @@ sys.path.insert(0, str(RAIZ / "tools"))
 
 from check_domain_purity import analizar_paquete  # noqa: E402
 
-RF_POR_INCREMENTO = {1: [1, 2, 3, 4], 2: [5, 6, 7, 8], 3: [9, 10, 11]}
+RF_POR_INCREMENTO = {1: [1, 2, 3, 4], 2: [5, 6, 7, 8], 3: [9, 10, 11], 4: [12]}
 METAS = {
-    "M1.1": {1: ("<=", 0.0), 2: ("<=", 0.0), 3: ("<=", 0.0)},
-    "M1.2": {1: (">=", 100.0), 2: (">=", 100.0), 3: (">=", 100.0)},
-    "M2.1": {1: (">=", 100.0), 2: (">=", 100.0), 3: (">=", 100.0)},
-    "M2.2": {1: ("<=", 1.0), 2: ("<=", 0.2), 3: ("<=", 0.2)},
-    "M2.3": {1: (">=", 80.0), 2: (">=", 80.0), 3: (">=", 80.0)},
-    "M3.1": {1: (">=", 60.0), 2: (">=", 90.0), 3: (">=", 100.0)},
-    "M3.2": {1: (">=", 50.0), 2: (">=", 80.0), 3: (">=", 80.0)},
+    "M1.1": {1: ("<=", 0.0), 2: ("<=", 0.0), 3: ("<=", 0.0), 4: ("<=", 0.0)},
+    "M1.2": {1: (">=", 100.0), 2: (">=", 100.0), 3: (">=", 100.0), 4: (">=", 100.0)},
+    "M2.1": {1: (">=", 100.0), 2: (">=", 100.0), 3: (">=", 100.0), 4: (">=", 100.0)},
+    "M2.2": {1: ("<=", 1.0), 2: ("<=", 0.2), 3: ("<=", 0.2), 4: ("<=", 0.2)},
+    "M2.3": {1: (">=", 80.0), 2: (">=", 80.0), 3: (">=", 80.0), 4: (">=", 80.0)},
+    "M3.1": {1: (">=", 60.0), 2: (">=", 90.0), 3: (">=", 100.0), 4: (">=", 100.0)},
+    "M3.2": {1: (">=", 50.0), 2: (">=", 80.0), 3: (">=", 80.0), 4: (">=", 80.0)},
 }
 COMPONENTES = {
     "domain/model": ["src/domain/model"],
@@ -367,7 +367,7 @@ def generar_reporte(inc: int) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Métricas GQM por incremento")
-    parser.add_argument("--incremento", type=int, choices=(1, 2, 3), required=True)
+    parser.add_argument("--incremento", type=int, choices=(1, 2, 3, 4), required=True)
     args = parser.parse_args(argv)
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")

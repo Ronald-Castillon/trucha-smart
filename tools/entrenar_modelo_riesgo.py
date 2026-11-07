@@ -218,7 +218,16 @@ def main(argv: list[str] | None = None) -> int:
     if args.verificar:
         guardado = json.loads(ruta.read_text(encoding="utf-8"))
         claves = ("media", "escala", "coeficientes", "intercepto")
-        iguales = all(guardado[k] == modelo[k] for k in claves)
+        # tolerancia: el optimizador puede diferir en el último decimal entre sistemas operativos
+        iguales = all(
+            math.isclose(a, b, abs_tol=1e-4)
+            for k in claves
+            for a, b in zip(
+                guardado[k] if isinstance(guardado[k], list) else [guardado[k]],
+                modelo[k] if isinstance(modelo[k], list) else [modelo[k]],
+                strict=True,
+            )
+        )
         mejor = informe["modelo_umbral_0_5"]["f1"] > informe["regla_tendencia_inc3"]["f1"]
         print(
             f"Modelo reproducible: {'sí' if iguales else 'NO'} · F1 del modelo mayor que el de "

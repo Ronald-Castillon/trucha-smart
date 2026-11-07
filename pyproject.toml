@@ -31,6 +31,10 @@ dev = [
     "playwright>=1.47",
     "axe-playwright-python>=0.1.8",  # axe-core 4.12 para RNF-U (WCAG 2.1 AA)
 ]
+ml = [  # RF-12: entrenamiento del modelo de riesgo (la inferencia no lo necesita, ADR-007)
+    "scikit-learn>=1.5",
+    "numpy>=2.0",
+]
 seguridad = [  # RNF-+: SAST y auditoría de dependencias
     "bandit>=1.8",
     "pip-audit>=2.7",
@@ -116,4 +120,6 @@ forbidden_modules = [
     "requests",
     "uvicorn",
     "psycopg",
+    "sklearn",  # Inc. 4: el modelo se entrena fuera del dominio (ADR-007)
+    "numpy",
 ]

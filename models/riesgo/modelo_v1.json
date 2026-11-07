@@ -1,0 +1,130 @@
+{
+  "version": "riesgo-v1",
+  "algoritmo": "Regresión logística (scikit-learn) sobre características estandarizadas",
+  "caracteristicas": [
+    "ph_actual",
+    "od_pendiente_6h",
+    "t_pendiente_6h",
+    "od_min_24h",
+    "t_max_24h",
+    "od_margen",
+    "t_margen"
+  ],
+  "media": [
+    7.283059,
+    -0.038357,
+    0.025969,
+    7.328624,
+    13.148271,
+    2.882652,
+    5.664073
+  ],
+  "escala": [
+    0.292202,
+    0.13941,
+    0.153475,
+    0.83746,
+    1.360159,
+    0.982278,
+    1.495581
+  ],
+  "coeficientes": [
+    0.234113,
+    -1.231243,
+    0.610708,
+    0.510397,
+    -0.978823,
+    -1.581741,
+    -1.591626
+  ],
+  "intercepto": -3.313091,
+  "datos": "Sintéticos (no hay historial real etiquetado); ver tarjeta_modelo_v1.md",
+  "semilla": 2026,
+  "trayectorias": 1500,
+  "ejemplos_verificacion": [
+    {
+      "x": {
+        "ph_actual": 7.35,
+        "od_pendiente_6h": 0.08601398601398604,
+        "t_pendiente_6h": 0.10041958041958048,
+        "od_min_24h": 6.48,
+        "t_max_24h": 13.15,
+        "od_margen": 2.8099999999999996,
+        "t_margen": 4.85
+      },
+      "probabilidad": 0.026682
+    },
+    {
+      "x": {
+        "ph_actual": 7.35,
+        "od_pendiente_6h": -0.09818181818181822,
+        "t_pendiente_6h": -0.13090909090909092,
+        "od_min_24h": 6.71,
+        "t_max_24h": 11.87,
+        "od_margen": 2.29,
+        "t_margen": 6.84
+      },
+      "probabilidad": 0.042713
+    },
+    {
+      "x": {
+        "ph_actual": 6.81,
+        "od_pendiente_6h": 0.08419580419580422,
+        "t_pendiente_6h": 0.10748251748251736,
+        "od_min_24h": 6.43,
+        "t_max_24h": 15.14,
+        "od_margen": 2.5999999999999996,
+        "t_margen": 2.960000000000001
+      },
+      "probabilidad": 0.04318
+    },
+    {
+      "x": {
+        "ph_actual": 7.24,
+        "od_pendiente_6h": -0.2838461538461538,
+        "t_pendiente_6h": -0.14881118881118877,
+        "od_min_24h": 5.33,
+        "t_max_24h": 13.61,
+        "od_margen": 0.33000000000000007,
+        "t_margen": 5.960000000000001
+      },
+      "probabilidad": 0.591515
+    },
+    {
+      "x": {
+        "ph_actual": 7.71,
+        "od_pendiente_6h": -0.09041958041958047,
+        "t_pendiente_6h": -0.0946853146853146,
+        "od_min_24h": 8.34,
+        "t_max_24h": 12.61,
+        "od_margen": 3.4499999999999993,
+        "t_margen": 7.01
+      },
+      "probabilidad": 0.012951
+    }
+  ],
+  "metricas_prueba": {
+    "muestras": {
+      "entrenamiento": 7495,
+      "prueba": 2481,
+      "positivos_prueba": 278,
+      "trayectorias_prueba": 368
+    },
+    "modelo_umbral_0_5": {
+      "precision": 0.7903,
+      "recall": 0.5288,
+      "f1": 0.6336,
+      "auc": 0.898
+    },
+    "modelo_umbral_alto_0_6": {
+      "precision": 0.8205,
+      "recall": 0.4604,
+      "f1": 0.5899
+    },
+    "regla_tendencia_inc3": {
+      "precision": 0.8966,
+      "recall": 0.0935,
+      "f1": 0.1694
+    }
+  }
+}

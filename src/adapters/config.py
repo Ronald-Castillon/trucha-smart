@@ -47,6 +47,7 @@ class Configuracion:
     jwt_expira_minutos: int = 480
     umbrales_path: Path = RAIZ / "config" / "umbrales.yaml"
     alimentacion_path: Path = RAIZ / "config" / "alimentacion.yaml"
+    modelo_riesgo_path: Path = RAIZ / "models" / "riesgo" / "modelo_v1.json"  # RF-12, ADR-007
     entorno: str = "desarrollo"  # APP_ENV: desarrollo | produccion
 
     @property
@@ -75,6 +76,7 @@ class Configuracion:
             jwt_expira_minutos=int(e.get("JWT_EXPIRA_MINUTOS", cls.jwt_expira_minutos)),
             umbrales_path=_ruta(e.get("UMBRALES_PATH", "config/umbrales.yaml")),
             alimentacion_path=_ruta(e.get("ALIMENTACION_PATH", "config/alimentacion.yaml")),
+            modelo_riesgo_path=_ruta(e.get("MODELO_RIESGO_PATH", "models/riesgo/modelo_v1.json")),
             entorno=e.get("APP_ENV", cls.entorno),
         )
 

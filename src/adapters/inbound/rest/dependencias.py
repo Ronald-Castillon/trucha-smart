@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from src.adapters.config import Configuracion
+from src.adapters.outbound.ml.modelo_logistico import ModeloLogistico
 from src.adapters.outbound.persistence.db import BaseDatos
 from src.adapters.outbound.persistence.repositorio_alerta_sql import RepositorioAlertaSQL
 from src.adapters.outbound.persistence.repositorio_clave_integracion_sql import (
@@ -33,6 +35,7 @@ from src.domain.model.umbral import ConjuntoUmbrales
 from src.domain.model.usuario import Usuario
 from src.domain.service.evaluador_calidad_agua import EvaluadorCalidadAgua
 from src.domain.service.recomendador_racion import RecomendadorRacion, TablaAlimentacion
+from src.domain.service.riesgo_modelo import ServicioRiesgoModelo
 from src.domain.service.servicio_alertas import ServicioAlertas
 from src.domain.service.servicio_auditoria import ServicioAuditoria
 from src.domain.service.servicio_estanques import ServicioEstanques
@@ -46,10 +49,12 @@ from src.domain.service.servicio_reportes import ServicioReportes
 from src.domain.service.servicio_usuarios import ServicioUsuarios
 from src.ports.outbound.generador_reportes import GeneradorReportes
 from src.ports.outbound.hasher_password import HasherPassword
+from src.ports.outbound.modelo_riesgo import ModeloRiesgo
 from src.ports.outbound.notificador import Notificador
 from src.ports.outbound.reloj import Reloj
 
 COOKIE_SESION = "ts_token"
+RUTA_MODELO_RIESGO = Configuracion.modelo_riesgo_path
 
 
 class NoAutenticado(Exception):
@@ -69,6 +74,9 @@ class Recursos:
     alimentacion: TablaAlimentacion
     generador_reportes: GeneradorReportes
     cookie_segura: bool = False  # True con APP_ENV=produccion (se sirve detrás de HTTPS)
+    modelo_riesgo: ModeloRiesgo = field(  # RF-12: modelo entrenado (ADR-007)
+        default_factory=lambda: ModeloLogistico.desde_archivo(RUTA_MODELO_RIESGO)
+    )
 
 
 class Contenedor:
@@ -179,6 +187,13 @@ class Contenedor:
             EvaluadorCalidadAgua(r.umbrales),
             r.reloj,
             self.auditoria,
+        )
+
+    @cached_property
+    def riesgo_modelo(self) -> ServicioRiesgoModelo:
+        r = self.recursos
+        return ServicioRiesgoModelo(
+            self.repo_lecturas, self.repo_estanques, r.umbrales, r.modelo_riesgo
         )
 
     @cached_property

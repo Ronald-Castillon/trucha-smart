@@ -127,3 +127,14 @@ Descomposición **Épica → Historia de usuario → Tareas**. Cada HU tiene su 
 - Bandit, pip-audit, Dependabot y construcción de la imagen en CI; matriz OWASP Top 10 2025.
 
 **Cierre Inc. 3:** resultados en `docs/calidad/`, tag `v3.0-Inc3`.
+
+## Incremento 4 — milestone "Incremento 4" — tag `v4.0-Inc4`
+
+### HU-12 · Probabilidad de evento crítico con un modelo de IA (RF-12, B-10) — `feature/hu12-modelo-riesgo` · Issue #49
+- T12.1 Generador de trayectorias sintéticas etiquetadas y entrenamiento reproducible (`tools/entrenar_modelo_riesgo.py`).
+- T12.2 Regresión logística exportada a JSON sin pickle, tarjeta del modelo y ADR-007.
+- T12.3 Dominio (`riesgo_modelo.py`), puerto `ModeloRiesgo`, adaptador `ModeloLogistico`; API e historial.
+- T12.4 Pruebas CP-RF12-01/02/03, capturas `evidencias/inc4/RF12_*` y verificación del modelo en CI.
+
+**Limitación declarada:** prototipo entrenado con datos sintéticos; requiere reentrenamiento y validación con datos reales.
+

@@ -731,6 +731,24 @@
         "title": "EventoSalida",
         "type": "object"
       },
+      "FactorSalida": {
+        "properties": {
+          "aporte": {
+            "title": "Aporte",
+            "type": "number"
+          },
+          "nombre": {
+            "title": "Nombre",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nombre",
+          "aporte"
+        ],
+        "title": "FactorSalida",
+        "type": "object"
+      },
       "FormatoReporte": {
         "enum": [
           "csv",
@@ -1748,6 +1766,85 @@
           "detalle"
         ],
         "title": "RespuestaError",
+        "type": "object"
+      },
+      "RiesgoModeloSalida": {
+        "properties": {
+          "aviso": {
+            "default": "Prototipo entrenado con datos sintéticos: no reemplaza las alertas por umbral ni la decisión del técnico (ver models/riesgo/tarjeta_modelo_v1.md).",
+            "title": "Aviso",
+            "type": "string"
+          },
+          "basada_en_hasta": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Basada En Hasta"
+          },
+          "estanque": {
+            "title": "Estanque",
+            "type": "string"
+          },
+          "estanque_id": {
+            "title": "Estanque Id",
+            "type": "integer"
+          },
+          "factores": {
+            "description": "Características que más empujan al riesgo",
+            "items": {
+              "$ref": "#/components/schemas/FactorSalida"
+            },
+            "title": "Factores",
+            "type": "array"
+          },
+          "mensaje": {
+            "title": "Mensaje",
+            "type": "string"
+          },
+          "nivel": {
+            "description": "DATOS_INSUFICIENTES, YA_CRITICO, BAJO, MEDIO o ALTO",
+            "title": "Nivel",
+            "type": "string"
+          },
+          "probabilidad": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Probabilidad de evento crítico en 6 h (0–1)",
+            "title": "Probabilidad"
+          },
+          "puntos": {
+            "title": "Puntos",
+            "type": "integer"
+          },
+          "version_modelo": {
+            "title": "Version Modelo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "estanque_id",
+          "estanque",
+          "nivel",
+          "probabilidad",
+          "factores",
+          "version_modelo",
+          "puntos",
+          "basada_en_hasta",
+          "mensaje"
+        ],
+        "title": "RiesgoModeloSalida",
         "type": "object"
       },
       "RiesgoSalida": {
@@ -3474,6 +3571,94 @@
         "summary": "Riesgo",
         "tags": [
           "historial y riesgo"
+        ]
+      }
+    },
+    "/api/estanques/{estanque_id}/riesgo-modelo": {
+      "get": {
+        "description": "Probabilidad de que el estanque llegue a condición crítica (OD o temperatura) en las\npróximas 6 h, estimada por el modelo entrenado sobre las 24 h previas a la última lectura.",
+        "operationId": "riesgo_modelo_api_estanques__estanque_id__riesgo_modelo_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "estanque_id",
+            "required": true,
+            "schema": {
+              "title": "Estanque Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RiesgoModeloSalida"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "No autenticado o credenciales inválidas"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "El rol no tiene permiso"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Recurso no encontrado"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Conflicto con el estado actual"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            },
+            "description": "Datos inválidos"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Riesgo Modelo",
+        "tags": [
+          "riesgo (modelo de IA)"
         ]
       }
     },

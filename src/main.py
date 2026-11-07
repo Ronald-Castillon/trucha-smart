@@ -20,6 +20,7 @@ from src.adapters.inbound.rest import (
     produccion,
     racion,
     reportes,
+    riesgo_modelo,
     salud,
     simulador,
 )
@@ -28,6 +29,7 @@ from src.adapters.inbound.rest.errores import registrar_manejadores
 from src.adapters.inbound.rest.seguridad_http import CabecerasSeguridad
 from src.adapters.inbound.web import rutas as web
 from src.adapters.inbound.web.plantillas import CARPETA as CARPETA_WEB
+from src.adapters.outbound.ml.modelo_logistico import ModeloLogistico
 from src.adapters.outbound.notification.notificador_log import NotificadorLog
 from src.adapters.outbound.persistence.db import BaseDatos
 from src.adapters.outbound.reloj_sistema import RelojSistema
@@ -57,6 +59,7 @@ def crear_recursos(config: Configuracion) -> Recursos:
         alimentacion=cargar_alimentacion(config.alimentacion_path),
         generador_reportes=GeneradorReportesArchivo(),
         cookie_segura=config.es_produccion,
+        modelo_riesgo=ModeloLogistico.desde_archivo(config.modelo_riesgo_path),
     )
 
 
@@ -88,6 +91,7 @@ def crear_app(config: Configuracion | None = None, recursos: Recursos | None = N
     app.include_router(alertas.router)
     app.include_router(historial.router)
     app.include_router(prediccion.router)
+    app.include_router(riesgo_modelo.router)
     app.include_router(produccion.router)
     app.include_router(racion.router)
     app.include_router(reportes.router)

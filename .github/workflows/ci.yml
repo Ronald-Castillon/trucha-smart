@@ -56,7 +56,7 @@ jobs:
 
       - name: Subir coverage.xml
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-xml
           path: coverage.xml
@@ -130,7 +130,7 @@ jobs:
 
       - name: Subir reportes
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: seguridad
           path: |
@@ -211,7 +211,7 @@ jobs:
 
       - name: Subir resultados medidos
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: confiabilidad-rendimiento
           path: resultados-ci/
@@ -240,7 +240,7 @@ jobs:
 
       - name: Subir capturas de evidencia
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: evidencias
           path: evidencias/

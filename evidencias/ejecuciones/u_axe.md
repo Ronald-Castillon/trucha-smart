@@ -2,10 +2,10 @@
 
 | Ejecución | Valor |
 |---|---|
-| Dónde | GitHub Actions · workflow «Evidencias del informe» · corrida #4 |
-| Enlace | https://github.com/Ronald-Castillon/trucha-smart/actions/runs/43368473703 |
+| Dónde | GitHub Actions · workflow «Evidencias del informe» · corrida #11 |
+| Enlace | https://github.com/Ronald-Castillon/trucha-smart/actions/runs/43425448824 |
 | Versión del código | tag `v3.0-Inc3` @ `fdf2121` |
-| Fecha (UTC) | 13/11/2026 04:55:26 |
+| Fecha (UTC) | 13/11/2026 12:32:50 |
 | Código de salida | 0 |
 
 ```bash
@@ -40,5 +40,5 @@ tests/e2e/test_accesibilidad_axe.py::test_tablas_en_movil_sin_violaciones[/audit
 tests/e2e/test_accesibilidad_axe.py::test_tablas_en_movil_sin_violaciones[/estanques] PASSED                     [ 94%]
 tests/e2e/test_accesibilidad_axe.py::test_tablas_en_movil_sin_violaciones[/integraciones] PASSED                 [100%]
 
-================================================= 18 passed in 28.88s ==================================================
+================================================= 18 passed in 25.14s ==================================================
 ```

@@ -2,10 +2,10 @@
 
 | Ejecución | Valor |
 |---|---|
-| Dónde | GitHub Actions · workflow «Evidencias del informe» · corrida #4 |
-| Enlace | https://github.com/Ronald-Castillon/trucha-smart/actions/runs/43368473703 |
+| Dónde | GitHub Actions · workflow «Evidencias del informe» · corrida #11 |
+| Enlace | https://github.com/Ronald-Castillon/trucha-smart/actions/runs/43425448824 |
 | Versión del código | tag `v3.0-Inc3` @ `fdf2121` |
-| Fecha (UTC) | 13/11/2026 04:56:38 |
+| Fecha (UTC) | 13/11/2026 12:33:55 |
 | Código de salida | 0 |
 
 ```bash
@@ -14,7 +14,7 @@ $ bandit -r src -ll
 
 ```text
 Working... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
-Run started:2026-11-13 04:56:39.388000+00:00
+Run started:2026-11-13 12:33:56.451979+00:00
 
 Test results:
 	No issues identified.

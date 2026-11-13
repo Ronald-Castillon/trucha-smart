@@ -2,10 +2,10 @@
 
 | Ejecución | Valor |
 |---|---|
-| Dónde | GitHub Actions · workflow «Evidencias del informe» · corrida #4 |
-| Enlace | https://github.com/Ronald-Castillon/trucha-smart/actions/runs/43368473703 |
+| Dónde | GitHub Actions · workflow «Evidencias del informe» · corrida #11 |
+| Enlace | https://github.com/Ronald-Castillon/trucha-smart/actions/runs/43425448824 |
 | Versión del código | tag `v3.0-Inc3` @ `fdf2121` |
-| Fecha (UTC) | 13/11/2026 04:55:56 |
+| Fecha (UTC) | 13/11/2026 12:33:16 |
 | Código de salida | 0 |
 
 ```bash
@@ -43,5 +43,5 @@ tests/e2e/test_rf11_seguridad.py::test_cp_rf11_01_y_02_bloqueo_y_auditoria PASSE
 tests/e2e/test_vivo_interfaz.py::test_panel_en_vivo_con_simulador_web PASSED                                     [ 95%]
 tests/e2e/test_vivo_interfaz.py::test_lista_de_alertas_se_actualiza_sola PASSED                                  [100%]
 
-========================================== 21 passed, 19 deselected in 40.63s ==========================================
+========================================== 21 passed, 19 deselected in 37.24s ==========================================
 ```

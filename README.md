@@ -1,5 +1,8 @@
 # TruchaSmart
 
+> **Aplicación desplegada:** <https://truchasmart.onrender.com> (API: <https://truchasmart.onrender.com/docs>).
+> Plan gratuito de Render: si estuvo inactiva, la primera visita tarda alrededor de un minuto.
+
 **Sistema Inteligente para Optimización de Producción Piscícola de Trucha** — proyecto del curso
 *Procesos de Software* (9.º ciclo).
 

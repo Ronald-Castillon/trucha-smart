@@ -61,6 +61,8 @@ ignore = ["B008"]  # Depends() en firmas de FastAPI
 "tests/unit/test_gqm_metrics.py" = ["E501"]
 # Texto literal de las fórmulas de la Matriz 3.1.
 "tools/verificar_formulas_gqm.py" = ["E501"]
+# Scripts de evidencias: cada línea muestra una petición y su resultado esperado completos.
+"tools/evidencias/*" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

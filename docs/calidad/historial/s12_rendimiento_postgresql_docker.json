@@ -1,0 +1,148 @@
+{
+  "ejecutado_en": "2026-11-07T01:52:55+00:00",
+  "entorno": {
+    "so": "Windows 11",
+    "python": "3.13.16",
+    "nucleos_cpu": 20,
+    "memoria_total_gb": 31.8,
+    "base_de_datos": "postgresql+psycopg",
+    "workers_uvicorn": 4,
+    "nota": "Locust y la API se ejecutan en la misma máquina y comparten CPU."
+  },
+  "parametros": {
+    "usuarios": 500,
+    "tasa_usuarios_s": 25.0,
+    "duracion_s": 120,
+    "escenario": "tests/carga/locustfile.py (90 % consulta, 10 % sensores)"
+  },
+  "peticiones": 21499,
+  "fallos": 47,
+  "errores_pct": 0.219,
+  "p50_ms": 270.0,
+  "p95_ms": 1700.0,
+  "p99_ms": 2100.0,
+  "rps": 179.8,
+  "memoria_servidor_mb": {
+    "promedio": 481.1,
+    "maxima": 500.2
+  },
+  "cpu_servidor_pct_max": 932.1,
+  "duracion_real_s": 120.9,
+  "fases": {
+    "rampa": {
+      "segundos": 20.0,
+      "peticiones": 3096,
+      "p50_ms": 62,
+      "p95_ms": 494,
+      "p99_ms": 686,
+      "errores_pct": 0.0,
+      "rps": 154.9
+    },
+    "estable": {
+      "segundos": 99.5,
+      "peticiones": 18427,
+      "p50_ms": 324,
+      "p95_ms": 1725,
+      "p99_ms": 2182,
+      "errores_pct": 0.255,
+      "rps": 185.3
+    }
+  },
+  "por_endpoint": [
+    {
+      "endpoint": "GET /api/alertas",
+      "peticiones": 3995,
+      "fallos": 10,
+      "mediana_ms": 140.0,
+      "p95_ms": 1400.0,
+      "p99_ms": 1800.0,
+      "rps": 33.4
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/historial",
+      "peticiones": 1894,
+      "fallos": 5,
+      "mediana_ms": 160.0,
+      "p95_ms": 1400.0,
+      "p99_ms": 1900.0,
+      "rps": 15.8
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/prediccion",
+      "peticiones": 2012,
+      "fallos": 1,
+      "mediana_ms": 160.0,
+      "p95_ms": 1400.0,
+      "p99_ms": 2000.0,
+      "rps": 16.8
+    },
+    {
+      "endpoint": "GET /api/panel",
+      "peticiones": 11695,
+      "fallos": 27,
+      "mediana_ms": 380.0,
+      "p95_ms": 1800.0,
+      "p99_ms": 2300.0,
+      "rps": 97.8
+    },
+    {
+      "endpoint": "POST /api/lecturas",
+      "peticiones": 1403,
+      "fallos": 4,
+      "mediana_ms": 220.0,
+      "p95_ms": 1400.0,
+      "p99_ms": 1900.0,
+      "rps": 11.7
+    },
+    {
+      "endpoint": "login",
+      "peticiones": 500,
+      "fallos": 0,
+      "mediana_ms": 390.0,
+      "p95_ms": 660.0,
+      "p99_ms": 820.0,
+      "rps": 4.2
+    }
+  ],
+  "errores": [
+    {
+      "endpoint": "GET /api/panel",
+      "error": "HTTPError('500 Server Error: Internal Server Error for url: GET /api/panel')",
+      "veces": 27
+    },
+    {
+      "endpoint": "GET /api/alertas",
+      "error": "HTTPError('500 Server Error: Internal Server Error for url: GET /api/alertas')",
+      "veces": 10
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/historial",
+      "error": "HTTPError('500 Server Error: Internal Server Error for url: GET /api/estanques/{id}/historial')",
+      "veces": 5
+    },
+    {
+      "endpoint": "POST /api/lecturas",
+      "error": "HTTPError('500 Server Error: Internal Server Error for url: POST /api/lecturas')",
+      "veces": 2
+    },
+    {
+      "endpoint": "POST /api/lecturas",
+      "error": "ConnectionResetError(10054, 'Se ha forzado la interrupción de una conexión existente por el host remoto', None, 10054, None)",
+      "veces": 2
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/prediccion",
+      "error": "HTTPError('500 Server Error: Internal Server Error for url: GET /api/estanques/{id}/prediccion')",
+      "veces": 1
+    }
+  ],
+  "metas": {
+    "p95_ms": 800,
+    "errores_pct": 1.0
+  },
+  "cumple": {
+    "p95": false,
+    "p95_estable": false,
+    "errores": true
+  }
+}

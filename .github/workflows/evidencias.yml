@@ -1,0 +1,59 @@
+# Evidencias del Informe Integrador S12 ejecutadas en GitHub (tools/evidencias/ejecutar.py).
+# Se lanza a mano (Actions → «Evidencias del informe» → Run workflow). Cada evidencia queda como
+# una página Markdown en el artefacto «evidencias-ejecuciones», que se versiona en
+# evidencias/ejecuciones/ para que pueda verse en GitHub sin iniciar sesión.
+name: Evidencias del informe
+
+on:
+  workflow_dispatch:
+  pull_request: # valida el workflow cuando cambian sus scripts
+    paths: [".github/workflows/evidencias.yml", "tools/evidencias/**"]
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  evidencias:
+    name: Ejecutar las evidencias del informe
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # tags v1.0-PMV … v4.0-Inc4 para las métricas GQM
+
+      - name: Checkout del tag v3.0-Inc3 (alcance evaluado en el informe)
+        run: git worktree add ../tag-v3.0-Inc3 v3.0-Inc3
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Instalar dependencias y navegador
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,ml,seguridad]"
+          python -m playwright install --with-deps chromium
+
+      - name: Ejecutar las evidencias
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/evidencias/ejecutar.py --tag-dir ../tag-v3.0-Inc3 --salida evidencias/ejecuciones
+
+      - name: Índice en el resumen de la corrida
+        if: always()
+        run: cat evidencias/ejecuciones/README.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Subir las páginas de evidencia
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-ejecuciones
+          path: evidencias/ejecuciones/
+          if-no-files-found: error
+
+      - name: Detener docker compose
+        if: always()
+        run: docker compose down -v || true

@@ -1,0 +1,46 @@
+{
+  "ejecutado_en": "2026-11-07T01:50:50+00:00",
+  "entorno": {
+    "so": "Windows 11",
+    "python": "3.13.16",
+    "base_de_datos": "postgresql+psycopg",
+    "nucleos_cpu": 20
+  },
+  "parametros": {
+    "duracion_s": 90.0,
+    "fallos_inyectados": 2,
+    "intervalo_sonda_s": 0.25
+  },
+  "sondas": {
+    "total": 308,
+    "con_200": 305,
+    "sin_respuesta_o_error": 3
+  },
+  "disponibilidad_pct": 95.581,
+  "sondas_200_pct": 99.026,
+  "tiempos_recuperacion_s": [
+    1.76,
+    2.21
+  ],
+  "mttr_s": 1.98,
+  "mtbf_s": 42.9,
+  "reinicios_del_supervisor": 2,
+  "caida_postgresql": {
+    "segundos_detenido": 10.5,
+    "respuestas_durante_caida": {
+      "0": 1,
+      "503": 1
+    },
+    "api_siguio_respondiendo": false,
+    "reconexion_s_desde_docker_start": 0.52
+  },
+  "metas": {
+    "disponibilidad_pct": 99.5,
+    "mttr_s": 300.0
+  },
+  "fallos_tolerables_dia": 218,
+  "cumple": {
+    "disponibilidad": false,
+    "mttr": true
+  }
+}

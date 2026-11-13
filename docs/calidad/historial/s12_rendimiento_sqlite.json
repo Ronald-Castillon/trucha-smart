@@ -1,0 +1,117 @@
+{
+  "ejecutado_en": "2026-11-06T20:23:28+00:00",
+  "entorno": {
+    "so": "Windows 11",
+    "python": "3.13.16",
+    "nucleos_cpu": 20,
+    "memoria_total_gb": 31.8,
+    "base_de_datos": "sqlite",
+    "workers_uvicorn": 8,
+    "nota": "Locust y la API se ejecutan en la misma máquina y comparten CPU."
+  },
+  "parametros": {
+    "usuarios": 500,
+    "tasa_usuarios_s": 25.0,
+    "duracion_s": 120,
+    "escenario": "tests/carga/locustfile.py (90 % consulta, 10 % sensores)"
+  },
+  "peticiones": 22558,
+  "fallos": 0,
+  "errores_pct": 0.0,
+  "p50_ms": 26.0,
+  "p95_ms": 660.0,
+  "p99_ms": 1900.0,
+  "rps": 188.8,
+  "memoria_servidor_mb": {
+    "promedio": 834.7,
+    "maxima": 897.4
+  },
+  "cpu_servidor_pct_max": 1386.0,
+  "duracion_real_s": 121.2,
+  "fases": {
+    "rampa": {
+      "segundos": 20.0,
+      "peticiones": 3367,
+      "p50_ms": 19,
+      "p95_ms": 464,
+      "p99_ms": 1210,
+      "errores_pct": 0.0,
+      "rps": 168.4
+    },
+    "estable": {
+      "segundos": 98.6,
+      "peticiones": 19266,
+      "p50_ms": 28,
+      "p95_ms": 721,
+      "p99_ms": 2103,
+      "errores_pct": 0.0,
+      "rps": 195.3
+    }
+  },
+  "por_endpoint": [
+    {
+      "endpoint": "GET /api/alertas",
+      "peticiones": 4095,
+      "fallos": 0,
+      "mediana_ms": 9.0,
+      "p95_ms": 30.0,
+      "p99_ms": 100.0,
+      "rps": 34.3
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/historial",
+      "peticiones": 2110,
+      "fallos": 0,
+      "mediana_ms": 12.0,
+      "p95_ms": 80.0,
+      "p99_ms": 190.0,
+      "rps": 17.7
+    },
+    {
+      "endpoint": "GET /api/estanques/{id}/prediccion",
+      "peticiones": 2020,
+      "fallos": 0,
+      "mediana_ms": 16.0,
+      "p95_ms": 360.0,
+      "p99_ms": 900.0,
+      "rps": 16.9
+    },
+    {
+      "endpoint": "GET /api/panel",
+      "peticiones": 12392,
+      "fallos": 0,
+      "mediana_ms": 41.0,
+      "p95_ms": 990.0,
+      "p99_ms": 2600.0,
+      "rps": 103.7
+    },
+    {
+      "endpoint": "POST /api/lecturas",
+      "peticiones": 1445,
+      "fallos": 0,
+      "mediana_ms": 13.0,
+      "p95_ms": 64.0,
+      "p99_ms": 180.0,
+      "rps": 12.1
+    },
+    {
+      "endpoint": "login",
+      "peticiones": 496,
+      "fallos": 0,
+      "mediana_ms": 360.0,
+      "p95_ms": 1500.0,
+      "p99_ms": 2200.0,
+      "rps": 4.2
+    }
+  ],
+  "errores": [],
+  "metas": {
+    "p95_ms": 800,
+    "errores_pct": 1.0
+  },
+  "cumple": {
+    "p95": true,
+    "p95_estable": true,
+    "errores": true
+  }
+}

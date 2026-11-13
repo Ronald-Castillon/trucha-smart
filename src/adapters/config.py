@@ -27,6 +27,15 @@ def cargar_dotenv(ruta: Path = RAIZ / ".env") -> None:
         os.environ.setdefault(clave.strip(), valor.strip().strip('"').strip("'"))
 
 
+def normalizar_url_bd(url: str) -> str:
+    """Render y otros proveedores entregan `postgres://` o `postgresql://`; SQLAlchemy necesita
+    el controlador explícito (psycopg 3)."""
+    for prefijo in ("postgres://", "postgresql://"):
+        if url.startswith(prefijo):
+            return "postgresql+psycopg://" + url.removeprefix(prefijo)
+    return url
+
+
 def _ruta(valor: str) -> Path:
     p = Path(valor)
     return p if p.is_absolute() else RAIZ / p
@@ -71,7 +80,7 @@ class Configuracion:
         cargar_dotenv()
         e = os.environ
         return cls(
-            database_url=e.get("DATABASE_URL", cls.database_url),
+            database_url=normalizar_url_bd(e.get("DATABASE_URL", cls.database_url)),
             jwt_secret=e.get("JWT_SECRET", cls.jwt_secret),
             jwt_expira_minutos=int(e.get("JWT_EXPIRA_MINUTOS", cls.jwt_expira_minutos)),
             umbrales_path=_ruta(e.get("UMBRALES_PATH", "config/umbrales.yaml")),

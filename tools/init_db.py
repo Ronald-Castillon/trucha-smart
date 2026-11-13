@@ -6,6 +6,10 @@
     se quita el sufijo "+00" de las fechas y se omite el bloque "-- postgresql-only".
 
 Uso:  python tools/init_db.py [--url sqlite:///./truchasmart.db] [--sin-seed] [--recrear]
+                              [--si-vacia]
+
+--si-vacia: no hace nada si la tabla `usuarios` ya existe (la imagen Docker lo ejecuta al arrancar,
+para que un PostgreSQL recién creado, como el de Render, quede con el esquema y los datos demo).
 """
 
 from __future__ import annotations
@@ -18,6 +22,10 @@ import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(RAIZ))
+
+from src.adapters.config import normalizar_url_bd  # noqa: E402
+
 SCHEMA = RAIZ / "db" / "schema.sql"
 SEED = RAIZ / "db" / "seed.sql"
 _MARCA_TIEMPO = re.compile(r"'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\+00'")
@@ -46,20 +54,31 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--url", default=os.getenv("DATABASE_URL", "sqlite:///./truchasmart.db"))
     parser.add_argument("--sin-seed", action="store_true")
     parser.add_argument("--recrear", action="store_true", help="SQLite: borra el archivo antes")
+    parser.add_argument("--si-vacia", action="store_true", help="solo si aún no hay esquema")
     args = parser.parse_args(argv)
+    args.url = normalizar_url_bd(args.url)
 
     if args.url.startswith("sqlite:///"):
         ruta = Path(args.url.removeprefix("sqlite:///"))
         if args.recrear and ruta.exists():
             ruta.unlink()
         with sqlite3.connect(ruta) as cx:
+            existe = cx.execute(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'usuarios'"
+            ).fetchone()
+            if args.si_vacia and existe:
+                print(f"SQLite ya inicializada en {ruta}; no se modifica.")
+                return 0
             cargar_sqlite(cx, con_seed=not args.sin_seed)
         print(f"SQLite inicializada en {ruta}")
         return 0
 
-    from sqlalchemy import create_engine
+    from sqlalchemy import create_engine, inspect
 
     motor = create_engine(args.url)
+    if args.si_vacia and inspect(motor).has_table("usuarios"):
+        print("Base de datos ya inicializada; no se modifica.")
+        return 0
     with motor.begin() as cx:
         cx.exec_driver_sql(SCHEMA.read_text(encoding="utf-8"))
         if not args.sin_seed:

@@ -2,10 +2,10 @@
 
 | Ejecución | Valor |
 |---|---|
-| Dónde | GitHub Actions · workflow «Evidencias del informe» · corrida #4 |
-| Enlace | https://github.com/Ronald-Castillon/trucha-smart/actions/runs/43368473703 |
+| Dónde | GitHub Actions · workflow «Evidencias del informe» · corrida #11 |
+| Enlace | https://github.com/Ronald-Castillon/trucha-smart/actions/runs/43425448824 |
 | Versión del código | tag `v3.0-Inc3` @ `fdf2121` |
-| Fecha (UTC) | 13/11/2026 04:56:39 |
+| Fecha (UTC) | 13/11/2026 12:33:56 |
 | Código de salida | 0 |
 
 ```bash
@@ -30,5 +30,5 @@ tests/unit/test_seguridad.py::test_cp_rf11_01_tres_fallos_bloquean_cinco_minutos
 tests/unit/test_seguridad.py::test_un_acierto_reinicia_el_contador PASSED                                        [ 87%]
 tests/unit/test_seguridad.py::test_cp_rf11_02_bitacora_sin_secretos_y_solo_para_admin PASSED                     [100%]
 
-================================================== 8 passed in 0.78s ===================================================
+================================================== 8 passed in 0.80s ===================================================
 ```

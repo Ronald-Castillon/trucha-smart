@@ -2,10 +2,10 @@
 
 | Ejecución | Valor |
 |---|---|
-| Dónde | GitHub Actions · workflow «Evidencias del informe» · corrida #4 |
-| Enlace | https://github.com/Ronald-Castillon/trucha-smart/actions/runs/43368473703 |
-| Versión del código | rama `main` @ `f80fe18` |
-| Fecha (UTC) | 13/11/2026 04:58:17 |
+| Dónde | GitHub Actions · workflow «Evidencias del informe» · corrida #11 |
+| Enlace | https://github.com/Ronald-Castillon/trucha-smart/actions/runs/43425448824 |
+| Versión del código | rama `main` @ `d13a8f6` |
+| Fecha (UTC) | 13/11/2026 12:35:27 |
 | Código de salida | 0 |
 
 ```bash
@@ -14,13 +14,13 @@ $ curl -sS -I http://truchasmart.onrender.com/login && curl -sS -o /dev/null -D 
 
 ```text
 HTTP/1.1 301 Moved Permanently
-Date: Fri, 13 Nov 2026 04:58:17 GMT
+Date: Fri, 13 Nov 2026 12:35:27 GMT
 Content-Type: text/html; charset=utf-8
 Connection: keep-alive
 Location: https://truchasmart.onrender.com/login
 cf-cache-status: DYNAMIC
 Server: cloudflare
-CF-RAY: a59b3351f9cf57b4-ATL
+CF-RAY: a59dd1016efca334-SEA
 alt-svc: h3=":443"; ma=86400
 
 HTTP/2 303 

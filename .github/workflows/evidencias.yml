@@ -23,8 +23,11 @@ jobs:
         with:
           fetch-depth: 0 # tags v1.0-PMV … v4.0-Inc4 para las métricas GQM
 
-      - name: Checkout del tag v3.0-Inc3 (alcance evaluado en el informe)
-        run: git worktree add ../tag-v3.0-Inc3 v3.0-Inc3
+      - name: Checkout de los tags de cada incremento (alcance evaluado en el informe)
+        run: |
+          git worktree add ../tag-v1.0-PMV v1.0-PMV
+          git worktree add ../tag-v2.0-Inc2 v2.0-Inc2
+          git worktree add ../tag-v3.0-Inc3 v3.0-Inc3
 
       - uses: actions/setup-python@v5
         with:
@@ -40,7 +43,7 @@ jobs:
       - name: Ejecutar las evidencias
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python tools/evidencias/ejecutar.py --tag-dir ../tag-v3.0-Inc3 --salida evidencias/ejecuciones
+        run: python tools/evidencias/ejecutar.py --tag-dir ../tag-v3.0-Inc3 --tag-dir-1 ../tag-v1.0-PMV --tag-dir-2 ../tag-v2.0-Inc2 --salida evidencias/ejecuciones
 
       - name: Índice en el resumen de la corrida
         if: always()

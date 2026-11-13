@@ -25,8 +25,51 @@ JWT = re.compile(r"eyJ[\w-]+\.[\w-]+\.[\w-]+")  # tokens de sesión: se ocultan
 RENDER = "https://truchasmart.onrender.com"
 LOGIN = "nombre_usuario=piscicultor&password=Pisci123!"
 
-# (nombre, título, dónde: "tag" o "main", comando bash)
+TAGS = {"tag1": "v1.0-PMV", "tag2": "v2.0-Inc2", "tag": "v3.0-Inc3"}
+
+
+def _gqm(n: int, donde: str) -> list[tuple[str, str, str, str]]:
+    """Métricas GQM ejecutadas con las herramientas que contiene cada versión (Eje 6)."""
+    tag = TAGS[donde]
+    return [
+        (
+            f"gqm{n}_pureza",
+            f"GQM M1.1 · pureza del dominio en {tag}",
+            donde,
+            "python tools/check_domain_purity.py",
+        ),
+        (
+            f"gqm{n}_lint",
+            f"GQM M1.2 · contratos de arquitectura (import-linter) en {tag}",
+            donde,
+            "lint-imports",
+        ),
+        (
+            f"gqm{n}_pytest",
+            f"GQM M2.3 · pruebas y cobertura de src/domain en {tag}",
+            donde,
+            'python -m pytest -m "not e2e" -q -p no:warnings --cov=src/domain --cov-report=term --cov-report=xml',
+        ),
+        (
+            f"gqm{n}_reporte",
+            f"Reporte GQM M1.1–M3.2 del Incremento {n} ({tag})",
+            donde,
+            f"python tools/gqm_metrics.py --incremento {n} > /dev/null && cat docs/gqm/reporte_inc{n}.md",
+        ),
+        (
+            f"gqm{n}_valor",
+            f"GQM M3.2 · indicadores de valor TO-BE medidos sobre {tag}",
+            "main",
+            f"python tools/medir_indicadores.py --etiqueta github_inc{n} --repo {{{donde}}}",
+        ),
+    ]
+
+
+# (nombre, título, dónde: "tag1", "tag2", "tag" (v3.0-Inc3) o "main", comando bash)
 EVIDENCIAS: list[tuple[str, str, str, str]] = [
+    *_gqm(1, "tag1"),
+    *_gqm(2, "tag2"),
+    *_gqm(3, "tag"),
     # ---- calidad del producto (tag v3.0-Inc3)
     ("x_ruff", "Linter ruff: estilo y formato", "tag", "ruff check . && ruff format --check ."),
     ("s_pytest", "Pruebas unitarias e integración con cobertura del dominio (M2.3)", "tag",
@@ -98,6 +141,8 @@ def git(*args: str, cwd: Path) -> str:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--tag-dir", type=Path, required=True, help="checkout del tag v3.0-Inc3")
+    parser.add_argument("--tag-dir-1", type=Path, help="checkout del tag v1.0-PMV")
+    parser.add_argument("--tag-dir-2", type=Path, help="checkout del tag v2.0-Inc2")
     parser.add_argument("--salida", type=Path, default=RAIZ / "evidencias" / "ejecuciones")
     parser.add_argument("--solo", nargs="*", help="nombres de evidencias a ejecutar")
     args = parser.parse_args(argv)
@@ -109,19 +154,28 @@ def main(argv: list[str] | None = None) -> int:
     )
     corrida, numero = os.getenv("GITHUB_RUN_ID", ""), os.getenv("GITHUB_RUN_NUMBER", "local")
     enlace = f"{servidor}/{repo}/actions/runs/{corrida}" if corrida else "(ejecución local)"
-    tag_dir = args.tag_dir.resolve()
+    dirs = {"tag": args.tag_dir, "tag1": args.tag_dir_1, "tag2": args.tag_dir_2}
     versiones = {
-        "tag": (tag_dir, f"tag `v3.0-Inc3` @ `{git('rev-parse', '--short', 'HEAD', cwd=tag_dir)}`"),
-        "main": (RAIZ, f"rama `main` @ `{git('rev-parse', '--short', 'HEAD', cwd=RAIZ)}`"),
+        clave: (
+            d.resolve(),
+            f"tag `{TAGS[clave]}` @ `{git('rev-parse', '--short', 'HEAD', cwd=d)}`",
+        )
+        for clave, d in dirs.items()
+        if d
     }
+    versiones["main"] = (RAIZ, f"rama `main` @ `{git('rev-parse', '--short', 'HEAD', cwd=RAIZ)}`")
     indice = []
     for nombre, titulo, donde, comando in EVIDENCIAS:
         if args.solo and nombre not in args.solo:
             continue
+        if donde not in versiones:
+            continue
         cwd, version = versiones[donde]
+        for clave, (ruta, _) in versiones.items():  # {tag1}, {tag2}, {tag}: carpeta de cada tag
+            comando = comando.replace("{" + clave + "}", str(ruta))
         env = {**os.environ, "PYTHONIOENCODING": "utf-8", "NO_COLOR": "1", "COLUMNS": "120"}
-        if donde == "tag":
-            env["PYTHONPATH"] = str(tag_dir)
+        if donde.startswith("tag"):
+            env["PYTHONPATH"] = str(cwd)
         inicio = datetime.now(UTC)
         codigo, salida = ejecutar(comando, cwd, env)
         print(f"{'ok ' if codigo == 0 else 'ERR'} {nombre} ({codigo})", flush=True)

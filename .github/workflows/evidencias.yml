@@ -51,7 +51,7 @@ jobs:
 
       - name: Subir las páginas de evidencia
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: evidencias-ejecuciones
           path: evidencias/ejecuciones/

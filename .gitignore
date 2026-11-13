@@ -32,3 +32,5 @@ Thumbs.db
 resultados-ci/
 *.db-wal
 *.db-shm
+coverage-sonar.xml
+.scannerwork/

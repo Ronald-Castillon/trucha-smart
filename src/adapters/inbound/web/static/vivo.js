@@ -105,6 +105,7 @@
   }
 
   window.TS = { aviso, recargarSecciones };
-  cargarNombres().finally(revisarAlertas);
+  // Sin la lista de nombres las alertas se anuncian igual (con el id del estanque) (Issue #54).
+  cargarNombres().catch(() => {}).finally(revisarAlertas);
   setInterval(revisarAlertas, INTERVALO_ALERTAS_MS);
 })();

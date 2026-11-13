@@ -138,9 +138,12 @@
         const e = await r.json().catch(() => ({}));
         window.TS && TS.aviso(e.detalle || "No se pudo cambiar el simulador", "error");
       }
+    } catch (_) {
+      // Sin conexión con el servidor: se avisa en lugar de dejar la promesa rechazada (Issue #54).
+      window.TS && TS.aviso("No se pudo conectar con el servidor para cambiar el simulador", "error");
     } finally {
       caja.dataset.ocupado = "";
-      refrescar();
+      void refrescar(); // refrescar() captura sus propios errores
     }
   }
 
@@ -173,7 +176,7 @@
 
   document.addEventListener("click", (ev) => {
     const boton = ev.target.closest(".sim-boton");
-    if (boton) alternarSimulacion(boton.closest(".simulador"));
+    if (boton) void alternarSimulacion(boton.closest(".simulador")); // maneja sus errores
   });
   // Una alerta nueva hace parpadear la tarjeta de su estanque (aviso emitido por vivo.js).
   window.addEventListener("ts:alerta", (ev) => {
@@ -184,6 +187,6 @@
     tarjeta.classList.add("parpadeo");
   });
 
-  refrescar();
+  void refrescar();
   setInterval(refrescar, INTERVALO_MS);
 })();

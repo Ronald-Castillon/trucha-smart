@@ -35,7 +35,7 @@ src/
 La pureza se verifica en CI con `tools/check_domain_purity.py` (AST, métrica M1.1) y con los
 contratos de **import-linter** definidos en `pyproject.toml`.
 
-- Decisiones: [`docs/adr/`](docs/adr) (ADR-001 a ADR-007).
+- Decisiones: [`docs/adr/`](docs/adr) (ADR-001 a ADR-008).
 - Modelo de IA y su tarjeta: [`models/riesgo/`](models/riesgo) (métricas, datos y limitaciones).
 - Calidad FURPS+ (Inc. 3): [`docs/calidad/`](docs/calidad) — usabilidad y WCAG, confiabilidad y rendimiento medidos, OWASP Top 10 2025.
 - Diagramas C4 (Mermaid): [`docs/c4/`](docs/c4).
@@ -106,6 +106,13 @@ docker compose up --build
 
 `db/schema.sql` y `db/seed.sql` se cargan automáticamente al crear el volumen. Para recargar
 desde cero: `docker compose down -v` y volver a levantar.
+
+### En la nube con Render (ADR-008)
+
+El archivo `render.yaml` crea la web (con la misma imagen Docker) y un PostgreSQL 16 gratuito:
+abrir <https://dashboard.render.com/blueprint/new?repo=https://github.com/Ronald-Castillon/trucha-smart>,
+iniciar sesión con GitHub y pulsar **Apply**. La base se llena con los datos demo en el primer
+arranque y cada push a `main` vuelve a desplegar. El plan gratuito se duerme tras 15 min sin uso.
 
 ### Datos de demostración (`db/seed.sql`)
 

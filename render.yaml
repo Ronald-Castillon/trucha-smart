@@ -1,0 +1,30 @@
+# Blueprint de Render: aplicación web (imagen Docker del repositorio) + PostgreSQL 16 (ADR-008).
+# Desplegar: https://dashboard.render.com/blueprint/new?repo=https://github.com/Ronald-Castillon/trucha-smart
+# Cada push a main vuelve a desplegar la web. La base nueva se inicializa sola con el esquema y los
+# datos demo la primera vez (tools/init_db.py --si-vacia en el arranque de la imagen).
+databases:
+  - name: truchasmart-db
+    plan: free
+    region: virginia
+    postgresMajorVersion: "16"
+    databaseName: truchasmart
+    user: trucha
+
+services:
+  - type: web
+    name: truchasmart
+    runtime: docker
+    plan: free
+    region: virginia
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /api/salud
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: truchasmart-db
+          property: connectionString
+      - key: APP_ENV
+        value: produccion # exige JWT_SECRET propio y emite la cookie con Secure (HTTPS de Render)
+      - key: JWT_SECRET
+        generateValue: true

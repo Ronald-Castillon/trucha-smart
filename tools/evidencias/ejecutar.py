@@ -52,8 +52,9 @@ def _gqm(n: int, donde: str) -> list[tuple[str, str, str, str]]:
         ),
         (
             f"gqm{n}_reporte",
-            f"Reporte GQM M1.1–M3.2 del Incremento {n} ({tag})",
-            donde,
+            f"Reporte GQM M1.1–M3.2 del Incremento {n}",
+            # --incremento 3 se agregó al cierre del Inc. 3, después del tag: se usa main.
+            "main" if n == 3 else donde,
             f"python tools/gqm_metrics.py --incremento {n} > /dev/null && cat docs/gqm/reporte_inc{n}.md",
         ),
         (

@@ -47,7 +47,7 @@ DESCRIPCION = (
 
 def crear_recursos(config: Configuracion) -> Recursos:
     config.validar()  # RNF-+: no arrancar en producción con la clave JWT de ejemplo
-    bd = BaseDatos(config.database_url)
+    bd = BaseDatos(config.database_url, salud_timeout_s=config.salud_timeout_s)
     bd.crear_tablas()
     return Recursos(
         bd=bd,

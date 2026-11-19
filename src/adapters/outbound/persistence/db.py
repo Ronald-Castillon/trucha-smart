@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures import TimeoutError as TiempoAgotado
 from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, Engine, create_engine, event, inspect, text
@@ -69,10 +71,16 @@ def crear_motor(url: str) -> Engine:
     )
 
 
+# Hilos para la verificación de salud: una sonda colgada no bloquea la respuesta de /api/salud.
+_SONDAS = ThreadPoolExecutor(max_workers=2, thread_name_prefix="salud-bd")
+
+
 class BaseDatos:
-    def __init__(self, url: str) -> None:
+    def __init__(self, url: str, salud_timeout_s: float = 1.0) -> None:
         self.motor = crear_motor(url)
         self.fabrica = sessionmaker(bind=self.motor, expire_on_commit=False)
+        self.salud_timeout_s = salud_timeout_s  # RFC #63: tiempo máximo de la verificación
+        self._sonda: Future[bool] | None = None
 
     def crear_tablas(self) -> None:
         from src.adapters.outbound.persistence import orm  # noqa: F401  registra modelos
@@ -96,13 +104,28 @@ class BaseDatos:
                     if nombre not in existentes:
                         conexion.execute(text(f"ALTER TABLE {tabla} ADD COLUMN {nombre} {tipo}"))
 
-    def disponible(self) -> bool:
-        """Comprueba la conexión con `SELECT 1` (usado por /api/salud, RNF-R)."""
+    def _consultar(self) -> bool:
         try:
             with self.motor.connect() as conexion:
                 conexion.execute(text("SELECT 1"))
             return True
         except SQLAlchemyError:
+            return False
+
+    def disponible(self) -> bool:
+        """`SELECT 1` con tiempo máximo propio (usado por /api/salud, RNF-R).
+
+        RFC #63 (defecto #51): si la base acepta la conexión pero no responde, la consulta podía
+        tardar más de 4 s y la sonda expiraba sin recibir el 503. Ahora se espera como máximo
+        `salud_timeout_s`; si la sonda anterior sigue colgada se responde «no disponible» sin
+        lanzar otra.
+        """
+        if self._sonda is not None and not self._sonda.done():
+            return False
+        self._sonda = _SONDAS.submit(self._consultar)
+        try:
+            return self._sonda.result(timeout=self.salud_timeout_s)
+        except TiempoAgotado:
             return False
 
     def sesion(self) -> Session:

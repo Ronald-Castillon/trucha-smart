@@ -1,0 +1,82 @@
+# Construcción del sistema y publicación de versiones (Unidad IV, gestión de configuración).
+# Al publicar un tag v* se construyen, desde el código del tag, el paquete Python, la imagen
+# Docker y el contrato OpenAPI, y se publica el GitHub Release con las notas de
+# docs/releases/<tag>.md. Para los tags anteriores a este workflow: Actions → Release → Run
+# workflow con el nombre del tag.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag existente a publicar (p. ej. v1.0-PMV)"
+        required: true
+      ultima:
+        description: "Marcar como la versión más reciente (Latest)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    name: Construir y publicar el release
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+      ULTIMA: ${{ github.event_name == 'push' || inputs.ultima }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout del workflow y las notas de entrega
+        uses: actions/checkout@v4
+        with:
+          path: scm
+
+      - name: Checkout del código del tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+          path: codigo
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Versión SemVer derivada del tag
+        run: |
+          base="${TAG#v}"
+          base="${base%%-*}"
+          if [ "$(echo "$base" | tr -cd . | wc -c)" -eq 1 ]; then base="$base.0"; fi
+          sed -i "0,/^version = .*/s//version = \"$base\"/" codigo/pyproject.toml
+          grep -m1 '^version' codigo/pyproject.toml
+
+      - name: Construir el paquete Python (wheel y sdist)
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build codigo --outdir dist
+
+      - name: Construir la imagen Docker
+        run: |
+          docker build -t "truchasmart:$TAG" codigo
+          docker save "truchasmart:$TAG" | gzip -9 > "dist/truchasmart-imagen-docker-$TAG.tar.gz"
+
+      - name: Contrato OpenAPI y sumas SHA-256
+        run: |
+          cp codigo/docs/openapi.json "dist/openapi-$TAG.json"
+          cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      - name: Publicar o actualizar el GitHub Release
+        run: |
+          notas="scm/docs/releases/$TAG.md"
+          if [ ! -f "$notas" ]; then echo "Falta $notas"; exit 1; fi
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release edit "$TAG" -R "$GITHUB_REPOSITORY" --title "TruchaSmart $TAG" \
+              --notes-file "$notas" --latest="$ULTIMA"
+            gh release upload "$TAG" dist/* -R "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" dist/* -R "$GITHUB_REPOSITORY" --verify-tag \
+              --title "TruchaSmart $TAG" --notes-file "$notas" --latest="$ULTIMA"
+          fi

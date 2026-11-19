@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trucha-smart"
-version = "0.1.0"
+version = "4.1.0"
 description = "TruchaSmart: Sistema Inteligente para Optimización de Producción Piscícola de Trucha"
 readme = "README.md"
 requires-python = ">=3.12"

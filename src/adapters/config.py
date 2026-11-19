@@ -58,6 +58,9 @@ class Configuracion:
     alimentacion_path: Path = RAIZ / "config" / "alimentacion.yaml"
     modelo_riesgo_path: Path = RAIZ / "models" / "riesgo" / "modelo_v1.json"  # RF-12, ADR-007
     entorno: str = "desarrollo"  # APP_ENV: desarrollo | produccion
+    salud_timeout_s: float = (
+        1.0  # SALUD_TIMEOUT_S: máximo de la verificación de /api/salud (RFC #63)
+    )
 
     @property
     def es_produccion(self) -> bool:
@@ -87,6 +90,7 @@ class Configuracion:
             alimentacion_path=_ruta(e.get("ALIMENTACION_PATH", "config/alimentacion.yaml")),
             modelo_riesgo_path=_ruta(e.get("MODELO_RIESGO_PATH", "models/riesgo/modelo_v1.json")),
             entorno=e.get("APP_ENV", cls.entorno),
+            salud_timeout_s=float(e.get("SALUD_TIMEOUT_S", cls.salud_timeout_s)),
         )
 
 

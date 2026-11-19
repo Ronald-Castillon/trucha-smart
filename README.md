@@ -244,28 +244,39 @@ Las líneas base AS-IS de `docs/gqm/valor_indicadores.yaml` están marcadas como
 valor pero con el estado "⚠️ no acredita". Los defectos se cuentan desde GitHub Issues (`bug` + `inc1`/`inc2`) o,
 si `gh` no está disponible, desde `docs/gqm/defectos.csv`.
 
-## Flujo de trabajo (Scrum + DevOps)
+## Flujo de trabajo y gestión de configuración (GitFlow)
 
-- `main` estable; una rama `feature/hu0X-nombre-corto` por historia; PR hacia `main` con la
-  plantilla `.github/pull_request_template.md`; commits convencionales (`feat`, `fix`, `test`,
-  `docs`, `chore`, `refactor`).
-- Issues por HU con criterios Dado/Cuando/Entonces: `docs/issues/` y `bash tools/crear_issues.sh`.
+Política completa: [docs/scm/gestion_configuracion.md](docs/scm/gestion_configuracion.md).
+
+- **Ramas:** `main` es la línea base de producción (solo recibe `release/*` y `hotfix/*`);
+  `develop` es la línea base de integración; `feature/*` por historia o solicitud de cambio;
+  `release/vX.Y.Z` para estabilizar; `hotfix/*` para parches urgentes. `main` y `develop` están
+  protegidas: todo cambio entra por Pull Request con 1 aprobación de un par y CI en verde.
+- **Cambios:** cada cambio se registra como Issue con la plantilla
+  [Solicitud de Cambio (RFC)](.github/ISSUE_TEMPLATE/change_request.md) o como HU, y se revisa con
+  la [plantilla de PR](.github/PULL_REQUEST_TEMPLATE.md). Commits convencionales (`feat`, `fix`,
+  `test`, `docs`, `chore`, `refactor`).
 - Los defectos encontrados en pruebas de aceptación se registran como Issue con `bug` + `incN`.
 
-### Tags de hito
+### Versiones y GitHub Releases
+
+Los incrementos se etiquetan con tags anotados (`v1.0-PMV`, `v2.0-Inc2`, `v3.0-Inc3`,
+`v4.0-Inc4`) y desde la Unidad IV con SemVer `vMAJOR.MINOR.PATCH` (`v4.1.0`). Al publicar un tag,
+el workflow [`release.yml`](.github/workflows/release.yml) construye el paquete Python, la imagen
+Docker (`ghcr.io/ronald-castillon/trucha-smart:<tag>`) y publica el
+[GitHub Release](https://github.com/Ronald-Castillon/trucha-smart/releases) con las notas de
+`docs/releases/<tag>.md`.
 
 ```bash
-git tag -a v1.0-PMV -m "Incremento 1 (PMV): HU-01 a HU-04"
-git tag -a v2.0-Inc2 -m "Incremento 2: HU-05 a HU-08"
-git tag -a v3.0-Inc3 -m "Incremento 3: HU-09 a HU-11 y RNF FURPS+"
-git tag -a v4.0-Inc4 -m "Incremento 4: HU-12 modelo de riesgo (IA)"
-git push origin --tags
+git switch main && git pull
+git tag -a v4.1.0 -m "v4.1.0: RFC /api/salud con tiempo máximo"
+git push origin v4.1.0
 ```
 
 ## Estructura del repositorio
 
 ```
-.github/            workflows/ci.yml, pull_request_template.md
+.github/            workflows/ (ci, evidencias, release), ISSUE_TEMPLATE/, PULL_REQUEST_TEMPLATE.md
 config/             umbrales.yaml, alimentacion.yaml
 models/riesgo/      modelo_v1.json (modelo de IA sin pickle) y tarjeta_modelo_v1.md
 db/                 schema.sql (PostgreSQL), seed.sql (demo)

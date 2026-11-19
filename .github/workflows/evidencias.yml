@@ -29,7 +29,7 @@ jobs:
           git worktree add ../tag-v2.0-Inc2 v2.0-Inc2
           git worktree add ../tag-v3.0-Inc3 v3.0-Inc3
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip

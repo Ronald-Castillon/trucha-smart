@@ -1,0 +1,266 @@
+<html><head><title>verificar_formulas_gqm.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: D:\actions-runner\_work\_temp\understand\trucha-smart\tools\verificar_formulas_gqm.py</h3>
+<SCRIPT>
+defaultStatus = "File: D:\\actions-runner\\_work\\_temp\\understand\\trucha-smart\\tools\\verificar_formulas_gqm.py";
+top.document.title  = "verificar_formulas_gqm.py";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="string">&quot;&quot;&quot;Verifica, con datos reales, que cada métrica GQM aplica la fórmula de la Matriz 3.1.</span>
+<a name="2"><font size=-1>2     </font></a><span class="string"></span>
+<a name="3"><font size=-1>3     </font></a><span class="string">Para cada métrica recalcula de forma independiente el numerador y el denominador desde la fuente</span>
+<a name="4"><font size=-1>4     </font></a><span class="string">de datos indicada en la matriz, muestra la operación, la compara con la meta de cada incremento</span>
+<a name="5"><font size=-1>5     </font></a><span class="string">y comprueba que el valor coincide con el que reporta tools/gqm_metrics.py.</span>
+<a name="6"><font size=-1>6     </font></a><span class="string"></span>
+<a name="7"><font size=-1>7     </font></a><span class="string">  Incremento 1 -&gt; checkout del tag v1.0-PMV (--inc1)</span>
+<a name="8"><font size=-1>8     </font></a><span class="string">  Incremento 2 -&gt; este repositorio (--inc2, por defecto)</span>
+<a name="9"><font size=-1>9     </font></a><span class="string"></span>
+<a name="10"><font size=-1>10     </font></a><span class="string">Requisitos: coverage.xml generado en cada checkout</span>
+<a name="11"><font size=-1>11     </font></a><span class="string">(pytest -m &quot;not e2e&quot; --cov=src/domain --cov-report=xml) y `gh` autenticado para M2.2.</span>
+<a name="12"><font size=-1>12     </font></a><span class="string"></span>
+<a name="13"><font size=-1>13     </font></a><span class="string">Uso:  python tools/verificar_formulas_gqm.py --inc1 ../trucha-v1pmv [--metrica M2.2]</span>
+<a name="14"><font size=-1>14     </font></a><span class="string">&quot;&quot;&quot;</span>
+<a name="15"><font size=-1>15     </font></a><span class="string"></span>
+<a name="16"><font size=-1>16     </font></a><span class="string"></span><span class="keyword">from </span><span class="default">__future__ </span><span class="keyword">import </span><span class="default">annotations</span>
+<a name="17"><font size=-1>17     </font></a><span class="default"></span>
+<a name="18"><font size=-1>18     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">argparse</span>
+<a name="19"><font size=-1>19     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">json</span>
+<a name="20"><font size=-1>20     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">os</span>
+<a name="21"><font size=-1>21     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">shutil</span>
+<a name="22"><font size=-1>22     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">subprocess</span>
+<a name="23"><font size=-1>23     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">sys</span>
+<a name="24"><font size=-1>24     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">xml.etree.ElementTree </span><span class="keyword">as </span><span class="default">ET</span>
+<a name="25"><font size=-1>25     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">pathlib </span><span class="keyword">import </span><span class="default">Path</span>
+<a name="26"><font size=-1>26     </font></a><span class="default"></span>
+<a name="27"><font size=-1>27     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">yaml</span>
+<a name="28"><font size=-1>28     </font></a><span class="default"></span>
+<a name="29"><font size=-1>29     </font></a><span class="default">RAIZ = Path(__file__).resolve().parent.parent</span>
+<a name="30"><font size=-1>30     </font></a><span class="default">sys.path.insert(</span><span class="number">0</span><span class="default">, str(RAIZ / </span><span class="string">&quot;tools&quot;</span><span class="default">))</span>
+<a name="31"><font size=-1>31     </font></a><span class="default"></span>
+<a name="32"><font size=-1>32     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">gqm_metrics </span><span class="keyword">as </span><span class="default">g  </span><span class="comment"># noqa: E402</span>
+<a name="33"><font size=-1>33     </font></a><span class="comment"></span><span class="keyword">from </span><span class="default">check_domain_purity </span><span class="keyword">import </span><span class="default">analizar_paquete  </span><span class="comment"># noqa: E402</span>
+<a name="34"><font size=-1>34     </font></a><span class="comment"></span>
+<a name="35"><font size=-1>35     </font></a><span class="comment"># Fórmula y metas tal como figuran en la Matriz 3.1 del informe.</span>
+<a name="36"><font size=-1>36     </font></a><span class="comment"></span><span class="default">MATRIZ = {</span>
+<a name="37"><font size=-1>37     </font></a><span class="default">    </span><span class="string">&quot;M1.1&quot;</span><span class="default">: (</span><span class="string">&quot;Índice de contaminación del dominio&quot;</span><span class="default">,</span>
+<a name="38"><font size=-1>38     </font></a><span class="default">             </span><span class="string">&quot;módulos de src/domain que importan fuera de la biblioteca estándar ÷ total de módulos de src/domain × 100&quot;</span><span class="default">,</span>
+<a name="39"><font size=-1>39     </font></a><span class="default">             </span><span class="string">&quot;tools/check_domain_purity.py (AST) + import-linter&quot;</span><span class="default">, </span><span class="string">&quot;0.0 %&quot;</span><span class="default">, </span><span class="string">&quot;0.0 %&quot;</span><span class="default">),</span>
+<a name="40"><font size=-1>40     </font></a><span class="default">    </span><span class="string">&quot;M1.2&quot;</span><span class="default">: (</span><span class="string">&quot;Cohesión de módulos hexagonales&quot;</span><span class="default">,</span>
+<a name="41"><font size=-1>41     </font></a><span class="default">             </span><span class="string">&quot;componentes presentes y conformes (domain/model, domain/service, ports/inbound, ports/outbound, adapters) ÷ 5 × 100&quot;</span><span class="default">,</span>
+<a name="42"><font size=-1>42     </font></a><span class="default">             </span><span class="string">&quot;estructura del repositorio + contratos import-linter&quot;</span><span class="default">, </span><span class="string">&quot;100 %&quot;</span><span class="default">, </span><span class="string">&quot;100 %&quot;</span><span class="default">),</span>
+<a name="43"><font size=-1>43     </font></a><span class="default">    </span><span class="string">&quot;M2.1&quot;</span><span class="default">: (</span><span class="string">&quot;Cobertura funcional con capturas&quot;</span><span class="default">,</span>
+<a name="44"><font size=-1>44     </font></a><span class="default">             </span><span class="string">&quot;capturas existentes ÷ capturas esperadas (2 por RF) × 100&quot;</span><span class="default">,</span>
+<a name="45"><font size=-1>45     </font></a><span class="default">             </span><span class="string">&quot;evidencias/incN/RF0X_paso{1,2}_*.png&quot;</span><span class="default">, </span><span class="string">&quot;100 %&quot;</span><span class="default">, </span><span class="string">&quot;100 %&quot;</span><span class="default">),</span>
+<a name="46"><font size=-1>46     </font></a><span class="default">    </span><span class="string">&quot;M2.2&quot;</span><span class="default">: (</span><span class="string">&quot;Tasa de defectos funcionales&quot;</span><span class="default">,</span>
+<a name="47"><font size=-1>47     </font></a><span class="default">             </span><span class="string">&quot;n.º de Issues con labels bug + incN ÷ RF del incremento&quot;</span><span class="default">,</span>
+<a name="48"><font size=-1>48     </font></a><span class="default">             </span><span class="string">&quot;GitHub Issues&quot;</span><span class="default">, </span><span class="string">&quot;≤ 1.0 Def/RF&quot;</span><span class="default">, </span><span class="string">&quot;≤ 0.2 Def/RF&quot;</span><span class="default">),</span>
+<a name="49"><font size=-1>49     </font></a><span class="default">    </span><span class="string">&quot;M2.3&quot;</span><span class="default">: (</span><span class="string">&quot;Cobertura del dominio&quot;</span><span class="default">,</span>
+<a name="50"><font size=-1>50     </font></a><span class="default">             </span><span class="string">&quot;líneas ejecutadas ÷ líneas ejecutables de src/domain × 100&quot;</span><span class="default">,</span>
+<a name="51"><font size=-1>51     </font></a><span class="default">             </span><span class="string">&quot;coverage.xml de pytest-cov&quot;</span><span class="default">, </span><span class="string">&quot;≥ 80 %&quot;</span><span class="default">, </span><span class="string">&quot;≥ 80 %&quot;</span><span class="default">),</span>
+<a name="52"><font size=-1>52     </font></a><span class="default">    </span><span class="string">&quot;M3.1&quot;</span><span class="default">: (</span><span class="string">&quot;Cobertura de brechas resueltas&quot;</span><span class="default">,</span>
+<a name="53"><font size=-1>53     </font></a><span class="default">             </span><span class="string">&quot;brechas AS-IS resueltas y verificadas (capturas + pruebas CP del RF) ÷ 10 × 100&quot;</span><span class="default">,</span>
+<a name="54"><font size=-1>54     </font></a><span class="default">             </span><span class="string">&quot;docs/gqm/brechas.yaml&quot;</span><span class="default">, </span><span class="string">&quot;≥ 60 %&quot;</span><span class="default">, </span><span class="string">&quot;≥ 90 %&quot;</span><span class="default">),</span>
+<a name="55"><font size=-1>55     </font></a><span class="default">    </span><span class="string">&quot;M3.2&quot;</span><span class="default">: (</span><span class="string">&quot;Índice de impacto en valor&quot;</span><span class="default">,</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">             </span><span class="string">&quot;promedio de la mejora % de IV-1, IV-2, IV-3 respecto del AS-IS (acotada a 100 %)&quot;</span><span class="default">,</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">             </span><span class="string">&quot;docs/gqm/valor_indicadores.yaml + mediciones&quot;</span><span class="default">, </span><span class="string">&quot;mejora ≥ 50 %&quot;</span><span class="default">, </span><span class="string">&quot;mejora ≥ 80 %&quot;</span><span class="default">),</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">}  </span><span class="comment"># fmt: skip</span>
+<a name="59"><font size=-1>59     </font></a><span class="comment"></span>
+<a name="60"><font size=-1>60     </font></a><span class="comment"></span>
+<a name="61"><font size=-1>61     </font></a><span class="comment"></span><span class="keyword">def </span><span class="default">_cumple(valor: float | </span><span class="keyword">None</span><span class="default">, inc: int, metrica: str) -&gt; bool | </span><span class="keyword">None</span><span class="default">:</span>
+<a name="62"><font size=-1>62     </font></a><span class="default">    </span><span class="keyword">if </span><span class="default">valor </span><span class="keyword">is None</span><span class="default">:</span>
+<a name="63"><font size=-1>63     </font></a><span class="default">        </span><span class="keyword">return None</span>
+<a name="64"><font size=-1>64     </font></a><span class="keyword">    </span><span class="default">op, meta = g.METAS[metrica][inc]</span>
+<a name="65"><font size=-1>65     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">valor &lt;= meta </span><span class="keyword">if </span><span class="default">op == </span><span class="string">&quot;&lt;=&quot; </span><span class="keyword">else </span><span class="default">valor &gt;= meta</span>
+<a name="66"><font size=-1>66     </font></a><span class="default"></span>
+<a name="67"><font size=-1>67     </font></a><span class="default"></span>
+<a name="68"><font size=-1>68     </font></a><span class="default"></span><span class="comment"># ------------------------------------------------------------------ cálculo independiente</span>
+<a name="69"><font size=-1>69     </font></a><span class="comment"></span>
+<a name="70"><font size=-1>70     </font></a><span class="comment"></span>
+<a name="71"><font size=-1>71     </font></a><span class="comment"></span><span class="keyword">def </span><span class="default">calc_m1_1(raiz: Path, inc: int) -&gt; tuple[str, str, float]:</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">    dom = analizar_paquete(raiz, </span><span class="string">&quot;src.domain&quot;</span><span class="default">)</span>
+<a name="73"><font size=-1>73     </font></a><span class="default">    num, den = len(dom.contaminados), dom.total</span>
+<a name="74"><font size=-1>74     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">f</span><span class="string">&quot;{num} módulos contaminados&quot;</span><span class="default">, f</span><span class="string">&quot;{den} módulos&quot;</span><span class="default">, num / den * </span><span class="number">100</span>
+<a name="75"><font size=-1>75     </font></a><span class="number"></span>
+<a name="76"><font size=-1>76     </font></a><span class="number"></span>
+<a name="77"><font size=-1>77     </font></a><span class="number"></span><span class="keyword">def </span><span class="default">calc_m1_2(raiz: Path, inc: int) -&gt; tuple[str, str, float]:</span>
+<a name="78"><font size=-1>78     </font></a><span class="default">    exe = shutil.which(</span><span class="string">&quot;lint-imports&quot;</span><span class="default">)</span>
+<a name="79"><font size=-1>79     </font></a><span class="default">    r = subprocess.run([exe], cwd=raiz, capture_output=</span><span class="keyword">True</span><span class="default">, text=</span><span class="keyword">True</span><span class="default">, encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">,</span>
+<a name="80"><font size=-1>80     </font></a><span class="default">                       env={**os.environ, </span><span class="string">&quot;PYTHONIOENCODING&quot;</span><span class="default">: </span><span class="string">&quot;utf-8&quot;</span><span class="default">})  </span><span class="comment"># fmt: skip</span>
+<a name="81"><font size=-1>81     </font></a><span class="comment">    </span><span class="default">contratos_ok = r.returncode == </span><span class="number">0</span>
+<a name="82"><font size=-1>82     </font></a><span class="number">    </span><span class="default">contaminados = {</span>
+<a name="83"><font size=-1>83     </font></a><span class="default">        m.ruta.resolve()</span>
+<a name="84"><font size=-1>84     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">paq </span><span class="keyword">in </span><span class="default">(</span><span class="string">&quot;src.domain&quot;</span><span class="default">, </span><span class="string">&quot;src.ports&quot;</span><span class="default">)</span>
+<a name="85"><font size=-1>85     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">m </span><span class="keyword">in </span><span class="default">analizar_paquete(raiz, paq).contaminados</span>
+<a name="86"><font size=-1>86     </font></a><span class="default">    }</span>
+<a name="87"><font size=-1>87     </font></a><span class="default">    conformes = </span><span class="number">0</span>
+<a name="88"><font size=-1>88     </font></a><span class="number">    </span><span class="keyword">for </span><span class="default">carpetas </span><span class="keyword">in </span><span class="default">g.COMPONENTES.values():</span>
+<a name="89"><font size=-1>89     </font></a><span class="default">        modulos = [p </span><span class="keyword">for </span><span class="default">c </span><span class="keyword">in </span><span class="default">carpetas </span><span class="keyword">for </span><span class="default">p </span><span class="keyword">in </span><span class="default">(raiz / c).rglob(</span><span class="string">&quot;*.py&quot;</span><span class="default">) </span><span class="keyword">if </span><span class="default">p.name != </span><span class="string">&quot;__init__.py&quot;</span><span class="default">]</span>
+<a name="90"><font size=-1>90     </font></a><span class="default">        presentes = all(any((raiz / c).rglob(</span><span class="string">&quot;*.py&quot;</span><span class="default">)) </span><span class="keyword">for </span><span class="default">c </span><span class="keyword">in </span><span class="default">carpetas) </span><span class="keyword">and </span><span class="default">bool(modulos)</span>
+<a name="91"><font size=-1>91     </font></a><span class="default">        puros = </span><span class="keyword">not </span><span class="default">any(p.resolve() </span><span class="keyword">in </span><span class="default">contaminados </span><span class="keyword">for </span><span class="default">p </span><span class="keyword">in </span><span class="default">modulos)</span>
+<a name="92"><font size=-1>92     </font></a><span class="default">        conformes += presentes </span><span class="keyword">and </span><span class="default">puros </span><span class="keyword">and </span><span class="default">contratos_ok</span>
+<a name="93"><font size=-1>93     </font></a><span class="default">    estado = </span><span class="string">&quot;KEPT&quot; </span><span class="keyword">if </span><span class="default">contratos_ok </span><span class="keyword">else </span><span class="string">&quot;BROKEN&quot;</span>
+<a name="94"><font size=-1>94     </font></a><span class="string">    </span><span class="keyword">return </span><span class="default">(</span>
+<a name="95"><font size=-1>95     </font></a><span class="default">        f</span><span class="string">&quot;{conformes} componentes conformes (contratos {estado})&quot;</span><span class="default">,</span>
+<a name="96"><font size=-1>96     </font></a><span class="default">        </span><span class="string">&quot;5 componentes&quot;</span><span class="default">,</span>
+<a name="97"><font size=-1>97     </font></a><span class="default">        conformes / </span><span class="number">5 </span><span class="default">* </span><span class="number">100</span><span class="default">,</span>
+<a name="98"><font size=-1>98     </font></a><span class="default">    )</span>
+<a name="99"><font size=-1>99     </font></a><span class="default"></span>
+<a name="100"><font size=-1>100     </font></a><span class="default"></span>
+<a name="101"><font size=-1>101     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">calc_m2_1(raiz: Path, inc: int) -&gt; tuple[str, str, float]:</span>
+<a name="102"><font size=-1>102     </font></a><span class="default">    esperadas = [</span>
+<a name="103"><font size=-1>103     </font></a><span class="default">        raiz / </span><span class="string">&quot;evidencias&quot; </span><span class="default">/ f</span><span class="string">&quot;inc{inc}&quot; </span><span class="default">/ f</span><span class="string">&quot;RF{rf:02d}_paso{n}_{s}.png&quot;</span>
+<a name="104"><font size=-1>104     </font></a><span class="string">        </span><span class="keyword">for </span><span class="default">rf </span><span class="keyword">in </span><span class="default">g.RF_POR_INCREMENTO[inc]</span>
+<a name="105"><font size=-1>105     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">n, s </span><span class="keyword">in </span><span class="default">((</span><span class="number">1</span><span class="default">, </span><span class="string">&quot;entrada&quot;</span><span class="default">), (</span><span class="number">2</span><span class="default">, </span><span class="string">&quot;resultado&quot;</span><span class="default">))</span>
+<a name="106"><font size=-1>106     </font></a><span class="default">    ]</span>
+<a name="107"><font size=-1>107     </font></a><span class="default">    existentes = sum(p.is_file() </span><span class="keyword">and </span><span class="default">p.stat().st_size &gt; </span><span class="number">0 </span><span class="keyword">for </span><span class="default">p </span><span class="keyword">in </span><span class="default">esperadas)</span>
+<a name="108"><font size=-1>108     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">(</span>
+<a name="109"><font size=-1>109     </font></a><span class="default">        f</span><span class="string">&quot;{existentes} capturas existentes&quot;</span><span class="default">,</span>
+<a name="110"><font size=-1>110     </font></a><span class="default">        f</span><span class="string">&quot;{len(esperadas)} esperadas&quot;</span><span class="default">,</span>
+<a name="111"><font size=-1>111     </font></a><span class="default">        existentes / len(esperadas) * </span><span class="number">100</span><span class="default">,</span>
+<a name="112"><font size=-1>112     </font></a><span class="default">    )</span>
+<a name="113"><font size=-1>113     </font></a><span class="default"></span>
+<a name="114"><font size=-1>114     </font></a><span class="default"></span>
+<a name="115"><font size=-1>115     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">calc_m2_2(raiz: Path, inc: int) -&gt; tuple[str, str, float]:</span>
+<a name="116"><font size=-1>116     </font></a><span class="default">    r = subprocess.run(</span>
+<a name="117"><font size=-1>117     </font></a><span class="default">        [</span><span class="string">&quot;gh&quot;</span><span class="default">, </span><span class="string">&quot;issue&quot;</span><span class="default">, </span><span class="string">&quot;list&quot;</span><span class="default">, </span><span class="string">&quot;--state&quot;</span><span class="default">, </span><span class="string">&quot;all&quot;</span><span class="default">, </span><span class="string">&quot;--label&quot;</span><span class="default">, </span><span class="string">&quot;bug&quot;</span><span class="default">, </span><span class="string">&quot;--label&quot;</span><span class="default">, f</span><span class="string">&quot;inc{inc}&quot;</span><span class="default">,</span>
+<a name="118"><font size=-1>118     </font></a><span class="default">         </span><span class="string">&quot;--json&quot;</span><span class="default">, </span><span class="string">&quot;number&quot;</span><span class="default">], cwd=raiz, capture_output=</span><span class="keyword">True</span><span class="default">, text=</span><span class="keyword">True</span><span class="default">, encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">,</span>
+<a name="119"><font size=-1>119     </font></a><span class="default">    )  </span><span class="comment"># fmt: skip</span>
+<a name="120"><font size=-1>120     </font></a><span class="comment">    </span><span class="default">numeros = [i[</span><span class="string">&quot;number&quot;</span><span class="default">] </span><span class="keyword">for </span><span class="default">i </span><span class="keyword">in </span><span class="default">json.loads(r.stdout </span><span class="keyword">or </span><span class="string">&quot;[]&quot;</span><span class="default">)]</span>
+<a name="121"><font size=-1>121     </font></a><span class="default">    rf = len(g.RF_POR_INCREMENTO[inc])</span>
+<a name="122"><font size=-1>122     </font></a><span class="default">    ids = </span><span class="string">&quot;, &quot;</span><span class="default">.join(f</span><span class="string">&quot;#{n}&quot; </span><span class="keyword">for </span><span class="default">n </span><span class="keyword">in </span><span class="default">numeros) </span><span class="keyword">or </span><span class="string">&quot;ninguno&quot;</span>
+<a name="123"><font size=-1>123     </font></a><span class="string">    </span><span class="keyword">return </span><span class="default">f</span><span class="string">&quot;{len(numeros)} defecto(s): {ids}&quot;</span><span class="default">, f</span><span class="string">&quot;{rf} RF&quot;</span><span class="default">, len(numeros) / rf</span>
+<a name="124"><font size=-1>124     </font></a><span class="default"></span>
+<a name="125"><font size=-1>125     </font></a><span class="default"></span>
+<a name="126"><font size=-1>126     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">calc_m2_3(raiz: Path, inc: int) -&gt; tuple[str, str, float]:</span>
+<a name="127"><font size=-1>127     </font></a><span class="default">    raiz_xml = ET.parse(raiz / </span><span class="string">&quot;coverage.xml&quot;</span><span class="default">).getroot()</span>
+<a name="128"><font size=-1>128     </font></a><span class="default">    cubiertas = total = </span><span class="number">0</span>
+<a name="129"><font size=-1>129     </font></a><span class="number">    </span><span class="keyword">for </span><span class="default">clase </span><span class="keyword">in </span><span class="default">raiz_xml.iter(</span><span class="string">&quot;class&quot;</span><span class="default">):</span>
+<a name="130"><font size=-1>130     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">linea </span><span class="keyword">in </span><span class="default">clase.iter(</span><span class="string">&quot;line&quot;</span><span class="default">):</span>
+<a name="131"><font size=-1>131     </font></a><span class="default">            total += </span><span class="number">1</span>
+<a name="132"><font size=-1>132     </font></a><span class="number">            </span><span class="default">cubiertas += int(linea.get(</span><span class="string">&quot;hits&quot;</span><span class="default">, </span><span class="string">&quot;0&quot;</span><span class="default">)) &gt; </span><span class="number">0</span>
+<a name="133"><font size=-1>133     </font></a><span class="number">    </span><span class="keyword">return </span><span class="default">f</span><span class="string">&quot;{cubiertas} líneas ejecutadas&quot;</span><span class="default">, f</span><span class="string">&quot;{total} líneas ejecutables&quot;</span><span class="default">, cubiertas / total * </span><span class="number">100</span>
+<a name="134"><font size=-1>134     </font></a><span class="number"></span>
+<a name="135"><font size=-1>135     </font></a><span class="number"></span>
+<a name="136"><font size=-1>136     </font></a><span class="number"></span><span class="keyword">def </span><span class="default">calc_m3_1(raiz: Path, inc: int) -&gt; tuple[str, str, float]:</span>
+<a name="137"><font size=-1>137     </font></a><span class="default">    datos = yaml.safe_load((raiz / </span><span class="string">&quot;docs&quot; </span><span class="default">/ </span><span class="string">&quot;gqm&quot; </span><span class="default">/ </span><span class="string">&quot;brechas.yaml&quot;</span><span class="default">).read_text(encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">))</span>
+<a name="138"><font size=-1>138     </font></a><span class="default">    pruebas = </span><span class="string">&quot;\n&quot;</span><span class="default">.join(p.read_text(encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">) </span><span class="keyword">for </span><span class="default">p </span><span class="keyword">in </span><span class="default">(raiz / </span><span class="string">&quot;tests&quot;</span><span class="default">).rglob(</span><span class="string">&quot;*.py&quot;</span><span class="default">))</span>
+<a name="139"><font size=-1>139     </font></a><span class="default">    resueltas = []</span>
+<a name="140"><font size=-1>140     </font></a><span class="default">    </span><span class="keyword">for </span><span class="default">b </span><span class="keyword">in </span><span class="default">datos[</span><span class="string">&quot;brechas&quot;</span><span class="default">]:</span>
+<a name="141"><font size=-1>141     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">b.get(</span><span class="string">&quot;resuelta_en&quot;</span><span class="default">) </span><span class="keyword">is None or </span><span class="default">b[</span><span class="string">&quot;resuelta_en&quot;</span><span class="default">] &gt; inc:</span>
+<a name="142"><font size=-1>142     </font></a><span class="default">            </span><span class="keyword">continue</span>
+<a name="143"><font size=-1>143     </font></a><span class="keyword">        </span><span class="default">ok = </span><span class="keyword">True</span>
+<a name="144"><font size=-1>144     </font></a><span class="keyword">        for </span><span class="default">rf </span><span class="keyword">in </span><span class="default">b[</span><span class="string">&quot;rf&quot;</span><span class="default">]:</span>
+<a name="145"><font size=-1>145     </font></a><span class="default">            n = int(rf.split(</span><span class="string">&quot;-&quot;</span><span class="default">)[</span><span class="number">1</span><span class="default">])</span>
+<a name="146"><font size=-1>146     </font></a><span class="default">            carpeta = raiz / </span><span class="string">&quot;evidencias&quot; </span><span class="default">/ f</span><span class="string">&quot;inc{1 if n &lt;= 4 else 2}&quot;</span>
+<a name="147"><font size=-1>147     </font></a><span class="string">            </span><span class="default">ok &amp;= all((carpeta / f</span><span class="string">&quot;RF{n:02d}_paso{k}_{s}.png&quot;</span><span class="default">).is_file()</span>
+<a name="148"><font size=-1>148     </font></a><span class="default">                      </span><span class="keyword">for </span><span class="default">k, s </span><span class="keyword">in </span><span class="default">((</span><span class="number">1</span><span class="default">, </span><span class="string">&quot;entrada&quot;</span><span class="default">), (</span><span class="number">2</span><span class="default">, </span><span class="string">&quot;resultado&quot;</span><span class="default">)))  </span><span class="comment"># fmt: skip</span>
+<a name="149"><font size=-1>149     </font></a><span class="comment">            </span><span class="default">ok &amp;= f</span><span class="string">&quot;CP-RF{n:02d}-01&quot; </span><span class="keyword">in </span><span class="default">pruebas.upper().replace(</span><span class="string">&quot;_&quot;</span><span class="default">, </span><span class="string">&quot;-&quot;</span><span class="default">) </span><span class="keyword">and </span><span class="default">(</span>
+<a name="150"><font size=-1>150     </font></a><span class="default">                f</span><span class="string">&quot;CP-RF{n:02d}-02&quot; </span><span class="keyword">in </span><span class="default">pruebas.upper().replace(</span><span class="string">&quot;_&quot;</span><span class="default">, </span><span class="string">&quot;-&quot;</span><span class="default">)</span>
+<a name="151"><font size=-1>151     </font></a><span class="default">            )</span>
+<a name="152"><font size=-1>152     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">ok:</span>
+<a name="153"><font size=-1>153     </font></a><span class="default">            resueltas.append(b[</span><span class="string">&quot;id&quot;</span><span class="default">])</span>
+<a name="154"><font size=-1>154     </font></a><span class="default">    total = len(datos[</span><span class="string">&quot;brechas&quot;</span><span class="default">])</span>
+<a name="155"><font size=-1>155     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">(</span>
+<a name="156"><font size=-1>156     </font></a><span class="default">        f</span><span class="string">&quot;{len(resueltas)} resueltas ({', '.join(resueltas)})&quot;</span><span class="default">,</span>
+<a name="157"><font size=-1>157     </font></a><span class="default">        f</span><span class="string">&quot;{total} brechas&quot;</span><span class="default">,</span>
+<a name="158"><font size=-1>158     </font></a><span class="default">        len(resueltas) / total * </span><span class="number">100</span><span class="default">,</span>
+<a name="159"><font size=-1>159     </font></a><span class="default">    )</span>
+<a name="160"><font size=-1>160     </font></a><span class="default"></span>
+<a name="161"><font size=-1>161     </font></a><span class="default"></span>
+<a name="162"><font size=-1>162     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">calc_m3_2(raiz: Path, inc: int) -&gt; tuple[str, str, float | </span><span class="keyword">None</span><span class="default">]:</span>
+<a name="163"><font size=-1>163     </font></a><span class="default">    </span><span class="comment"># Las mediciones de valor se registraron en main (PR #22): se usan para ambos incrementos.</span>
+<a name="164"><font size=-1>164     </font></a><span class="comment">    </span><span class="default">datos = yaml.safe_load(</span>
+<a name="165"><font size=-1>165     </font></a><span class="default">        (RAIZ / </span><span class="string">&quot;docs&quot; </span><span class="default">/ </span><span class="string">&quot;gqm&quot; </span><span class="default">/ </span><span class="string">&quot;valor_indicadores.yaml&quot;</span><span class="default">).read_text(encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">)</span>
+<a name="166"><font size=-1>166     </font></a><span class="default">    )</span>
+<a name="167"><font size=-1>167     </font></a><span class="default">    mejoras, partes = [], []</span>
+<a name="168"><font size=-1>168     </font></a><span class="default">    </span><span class="keyword">for </span><span class="default">iv </span><span class="keyword">in </span><span class="default">datos[</span><span class="string">&quot;indicadores&quot;</span><span class="default">]:</span>
+<a name="169"><font size=-1>169     </font></a><span class="default">        a, t = iv.get(</span><span class="string">&quot;as_is&quot;</span><span class="default">), iv.get(f</span><span class="string">&quot;to_be_inc{inc}&quot;</span><span class="default">)</span>
+<a name="170"><font size=-1>170     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">a </span><span class="keyword">in </span><span class="default">(</span><span class="keyword">None</span><span class="default">, </span><span class="string">&quot;&quot;</span><span class="default">) </span><span class="keyword">or </span><span class="default">t </span><span class="keyword">in </span><span class="default">(</span><span class="keyword">None</span><span class="default">, </span><span class="string">&quot;&quot;</span><span class="default">):</span>
+<a name="171"><font size=-1>171     </font></a><span class="default">            partes.append(f</span><span class="string">&quot;{iv['id']}: sin dato&quot;</span><span class="default">)</span>
+<a name="172"><font size=-1>172     </font></a><span class="default">            </span><span class="keyword">continue</span>
+<a name="173"><font size=-1>173     </font></a><span class="keyword">        </span><span class="default">a, t = float(a), float(t)</span>
+<a name="174"><font size=-1>174     </font></a><span class="default">        m = (</span>
+<a name="175"><font size=-1>175     </font></a><span class="default">            (a - t) / a * </span><span class="number">100</span>
+<a name="176"><font size=-1>176     </font></a><span class="number">            </span><span class="keyword">if </span><span class="default">iv[</span><span class="string">&quot;sentido&quot;</span><span class="default">] == </span><span class="string">&quot;menor_es_mejor&quot;</span>
+<a name="177"><font size=-1>177     </font></a><span class="string">            </span><span class="keyword">else </span><span class="default">min(</span><span class="number">100.0</span><span class="default">, (t - a) / a * </span><span class="number">100</span><span class="default">)</span>
+<a name="178"><font size=-1>178     </font></a><span class="default">        )</span>
+<a name="179"><font size=-1>179     </font></a><span class="default">        mejoras.append(m)</span>
+<a name="180"><font size=-1>180     </font></a><span class="default">        partes.append(f</span><span class="string">&quot;{iv['id']} {m:.1f} % ({iv.get('as_is_tipo')})&quot;</span><span class="default">)</span>
+<a name="181"><font size=-1>181     </font></a><span class="default">    valor = sum(mejoras) / len(mejoras) </span><span class="keyword">if </span><span class="default">mejoras </span><span class="keyword">else None</span>
+<a name="182"><font size=-1>182     </font></a><span class="keyword">    return </span><span class="string">&quot;; &quot;</span><span class="default">.join(partes), f</span><span class="string">&quot;{len(mejoras)} de {len(datos['indicadores'])} IV con dato&quot;</span><span class="default">, valor</span>
+<a name="183"><font size=-1>183     </font></a><span class="default"></span>
+<a name="184"><font size=-1>184     </font></a><span class="default"></span>
+<a name="185"><font size=-1>185     </font></a><span class="default">CALCULOS = {</span>
+<a name="186"><font size=-1>186     </font></a><span class="default">    </span><span class="string">&quot;M1.1&quot;</span><span class="default">: (calc_m1_1, g.m1_1, </span><span class="string">&quot;{:.1f} %&quot;</span><span class="default">),</span>
+<a name="187"><font size=-1>187     </font></a><span class="default">    </span><span class="string">&quot;M1.2&quot;</span><span class="default">: (calc_m1_2, g.m1_2, </span><span class="string">&quot;{:.0f} %&quot;</span><span class="default">),</span>
+<a name="188"><font size=-1>188     </font></a><span class="default">    </span><span class="string">&quot;M2.1&quot;</span><span class="default">: (calc_m2_1, g.m2_1, </span><span class="string">&quot;{:.0f} %&quot;</span><span class="default">),</span>
+<a name="189"><font size=-1>189     </font></a><span class="default">    </span><span class="string">&quot;M2.2&quot;</span><span class="default">: (calc_m2_2, g.m2_2, </span><span class="string">&quot;{:.2f} Def/RF&quot;</span><span class="default">),</span>
+<a name="190"><font size=-1>190     </font></a><span class="default">    </span><span class="string">&quot;M2.3&quot;</span><span class="default">: (calc_m2_3, g.m2_3, </span><span class="string">&quot;{:.1f} %&quot;</span><span class="default">),</span>
+<a name="191"><font size=-1>191     </font></a><span class="default">    </span><span class="string">&quot;M3.1&quot;</span><span class="default">: (calc_m3_1, g.m3_1, </span><span class="string">&quot;{:.0f} %&quot;</span><span class="default">),</span>
+<a name="192"><font size=-1>192     </font></a><span class="default">    </span><span class="string">&quot;M3.2&quot;</span><span class="default">: (calc_m3_2, g.m3_2, </span><span class="string">&quot;{:.1f} %&quot;</span><span class="default">),</span>
+<a name="193"><font size=-1>193     </font></a><span class="default">}</span>
+<a name="194"><font size=-1>194     </font></a><span class="default"></span>
+<a name="195"><font size=-1>195     </font></a><span class="default"></span>
+<a name="196"><font size=-1>196     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">valor_herramienta(metrica: str, raiz: Path, inc: int) -&gt; tuple[float | </span><span class="keyword">None</span><span class="default">, str | </span><span class="keyword">None</span><span class="default">]:</span>
+<a name="197"><font size=-1>197     </font></a><span class="default">    g.RAIZ = raiz </span><span class="keyword">if </span><span class="default">metrica != </span><span class="string">&quot;M3.2&quot; </span><span class="keyword">else </span><span class="default">RAIZ</span>
+<a name="198"><font size=-1>198     </font></a><span class="default">    funcion = CALCULOS[metrica][</span><span class="number">1</span><span class="default">]</span>
+<a name="199"><font size=-1>199     </font></a><span class="default">    m = funcion(inc) </span><span class="keyword">if </span><span class="default">metrica </span><span class="keyword">in </span><span class="default">(</span><span class="string">&quot;M2.1&quot;</span><span class="default">, </span><span class="string">&quot;M2.2&quot;</span><span class="default">, </span><span class="string">&quot;M3.1&quot;</span><span class="default">, </span><span class="string">&quot;M3.2&quot;</span><span class="default">) </span><span class="keyword">else </span><span class="default">funcion()</span>
+<a name="200"><font size=-1>200     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">m.valor, m.advertencia</span>
+<a name="201"><font size=-1>201     </font></a><span class="default"></span>
+<a name="202"><font size=-1>202     </font></a><span class="default"></span>
+<a name="203"><font size=-1>203     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">verificar(metrica: str, raices: dict[int, Path]) -&gt; bool:</span>
+<a name="204"><font size=-1>204     </font></a><span class="default">    nombre, formula, fuente, meta1, meta2 = MATRIZ[metrica]</span>
+<a name="205"><font size=-1>205     </font></a><span class="default">    calcular, _, formato = CALCULOS[metrica]</span>
+<a name="206"><font size=-1>206     </font></a><span class="default">    print(f</span><span class="string">&quot;{metrica} · {nombre}&quot;</span><span class="default">)</span>
+<a name="207"><font size=-1>207     </font></a><span class="default">    print(f</span><span class="string">&quot;  Fórmula (Matriz 3.1): {formula}&quot;</span><span class="default">)</span>
+<a name="208"><font size=-1>208     </font></a><span class="default">    print(f</span><span class="string">&quot;  Fuente de datos:      {fuente}&quot;</span><span class="default">)</span>
+<a name="209"><font size=-1>209     </font></a><span class="default">    todo_ok = </span><span class="keyword">True</span>
+<a name="210"><font size=-1>210     </font></a><span class="keyword">    for </span><span class="default">inc, meta_matriz </span><span class="keyword">in </span><span class="default">((</span><span class="number">1</span><span class="default">, meta1), (</span><span class="number">2</span><span class="default">, meta2)):</span>
+<a name="211"><font size=-1>211     </font></a><span class="default">        raiz = raices[inc]</span>
+<a name="212"><font size=-1>212     </font></a><span class="default">        num, den, valor = calcular(raiz, inc)</span>
+<a name="213"><font size=-1>213     </font></a><span class="default">        herramienta, advertencia = valor_herramienta(metrica, raiz, inc)</span>
+<a name="214"><font size=-1>214     </font></a><span class="default">        op, objetivo = g.METAS[metrica][inc]</span>
+<a name="215"><font size=-1>215     </font></a><span class="default">        coincide = (valor </span><span class="keyword">is None and </span><span class="default">herramienta </span><span class="keyword">is None</span><span class="default">) </span><span class="keyword">or </span><span class="default">(</span>
+<a name="216"><font size=-1>216     </font></a><span class="default">            valor </span><span class="keyword">is not None and </span><span class="default">herramienta </span><span class="keyword">is not None and </span><span class="default">abs(valor - herramienta) &lt; </span><span class="number">1e-6</span>
+<a name="217"><font size=-1>217     </font></a><span class="number">        </span><span class="default">)</span>
+<a name="218"><font size=-1>218     </font></a><span class="default">        cumple = _cumple(valor, inc, metrica)</span>
+<a name="219"><font size=-1>219     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">advertencia:</span>
+<a name="220"><font size=-1>220     </font></a><span class="default">            estado = f</span><span class="string">&quot;NO ACREDITA ({advertencia})&quot;</span>
+<a name="221"><font size=-1>221     </font></a><span class="string">        </span><span class="keyword">else</span><span class="default">:</span>
+<a name="222"><font size=-1>222     </font></a><span class="default">            estado = {</span><span class="keyword">True</span><span class="default">: </span><span class="string">&quot;CUMPLE&quot;</span><span class="default">, </span><span class="keyword">False</span><span class="default">: </span><span class="string">&quot;NO CUMPLE&quot;</span><span class="default">, </span><span class="keyword">None</span><span class="default">: </span><span class="string">&quot;PENDIENTE&quot;</span><span class="default">}[cumple]</span>
+<a name="223"><font size=-1>223     </font></a><span class="default">        texto = </span><span class="string">&quot;sin dato&quot; </span><span class="keyword">if </span><span class="default">valor </span><span class="keyword">is None else </span><span class="default">formato.format(valor)</span>
+<a name="224"><font size=-1>224     </font></a><span class="default">        print(f</span><span class="string">&quot;  Incremento {inc} ({'v1.0-PMV' if inc == 1 else 'main'})&quot;</span><span class="default">)</span>
+<a name="225"><font size=-1>225     </font></a><span class="default">        print(f</span><span class="string">&quot;    Numerador:    {num}&quot;</span><span class="default">)</span>
+<a name="226"><font size=-1>226     </font></a><span class="default">        print(f</span><span class="string">&quot;    Denominador:  {den}&quot;</span><span class="default">)</span>
+<a name="227"><font size=-1>227     </font></a><span class="default">        print(f</span><span class="string">&quot;    Resultado:    {texto}&quot;</span><span class="default">)</span>
+<a name="228"><font size=-1>228     </font></a><span class="default">        print(</span>
+<a name="229"><font size=-1>229     </font></a><span class="default">            f</span><span class="string">&quot;    Meta Matriz 3.1: {meta_matriz}  ·  meta en gqm_metrics.py: {op} {formato.format(objetivo)}&quot;</span>
+<a name="230"><font size=-1>230     </font></a><span class="string">        </span><span class="default">)</span>
+<a name="231"><font size=-1>231     </font></a><span class="default">        print(f</span><span class="string">&quot;    gqm_metrics.py reporta: {'sin dato' if herramienta is None else formato.format(herramienta)}&quot;</span>
+<a name="232"><font size=-1>232     </font></a><span class="string">              </span><span class="default">f</span><span class="string">&quot;  -&gt;  {'COINCIDE' if coincide else 'NO COINCIDE'}&quot;</span><span class="default">)  </span><span class="comment"># fmt: skip</span>
+<a name="233"><font size=-1>233     </font></a><span class="comment">        </span><span class="default">print(f</span><span class="string">&quot;    Estado: {estado}&quot;</span><span class="default">)</span>
+<a name="234"><font size=-1>234     </font></a><span class="default">        todo_ok &amp;= coincide</span>
+<a name="235"><font size=-1>235     </font></a><span class="default">    print()</span>
+<a name="236"><font size=-1>236     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">todo_ok</span>
+<a name="237"><font size=-1>237     </font></a><span class="default"></span>
+<a name="238"><font size=-1>238     </font></a><span class="default"></span>
+<a name="239"><font size=-1>239     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">main(argv: list[str] | </span><span class="keyword">None </span><span class="default">= </span><span class="keyword">None</span><span class="default">) -&gt; int:</span>
+<a name="240"><font size=-1>240     </font></a><span class="default">    parser = argparse.ArgumentParser(description=</span><span class="string">&quot;Verifica las fórmulas GQM de la Matriz 3.1&quot;</span><span class="default">)</span>
+<a name="241"><font size=-1>241     </font></a><span class="default">    parser.add_argument(</span><span class="string">&quot;--inc1&quot;</span><span class="default">, type=Path, required=</span><span class="keyword">True</span><span class="default">, help=</span><span class="string">&quot;checkout del tag v1.0-PMV&quot;</span><span class="default">)</span>
+<a name="242"><font size=-1>242     </font></a><span class="default">    parser.add_argument(</span><span class="string">&quot;--inc2&quot;</span><span class="default">, type=Path, default=RAIZ)</span>
+<a name="243"><font size=-1>243     </font></a><span class="default">    parser.add_argument(</span><span class="string">&quot;--metrica&quot;</span><span class="default">, choices=list(MATRIZ), help=</span><span class="string">&quot;solo una métrica&quot;</span><span class="default">)</span>
+<a name="244"><font size=-1>244     </font></a><span class="default">    args = parser.parse_args(argv)</span>
+<a name="245"><font size=-1>245     </font></a><span class="default">    </span><span class="keyword">if </span><span class="default">hasattr(sys.stdout, </span><span class="string">&quot;reconfigure&quot;</span><span class="default">):</span>
+<a name="246"><font size=-1>246     </font></a><span class="default">        sys.stdout.reconfigure(encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">)</span>
+<a name="247"><font size=-1>247     </font></a><span class="default">    raices = {</span><span class="number">1</span><span class="default">: args.inc1.resolve(), </span><span class="number">2</span><span class="default">: args.inc2.resolve()}</span>
+<a name="248"><font size=-1>248     </font></a><span class="default">    metricas = [args.metrica] </span><span class="keyword">if </span><span class="default">args.metrica </span><span class="keyword">else </span><span class="default">list(MATRIZ)</span>
+<a name="249"><font size=-1>249     </font></a><span class="default">    ok = all([verificar(m, raices) </span><span class="keyword">for </span><span class="default">m </span><span class="keyword">in </span><span class="default">metricas])</span>
+<a name="250"><font size=-1>250     </font></a><span class="default">    print(</span><span class="string">&quot;Todas las fórmulas coinciden con gqm_metrics.py.&quot; </span><span class="keyword">if </span><span class="default">ok </span><span class="keyword">else </span><span class="string">&quot;HAY DIFERENCIAS.&quot;</span><span class="default">)</span>
+<a name="251"><font size=-1>251     </font></a><span class="default">    </span><span class="keyword">return </span><span class="number">0 </span><span class="keyword">if </span><span class="default">ok </span><span class="keyword">else </span><span class="number">1</span>
+<a name="252"><font size=-1>252     </font></a><span class="number"></span>
+<a name="253"><font size=-1>253     </font></a><span class="number"></span>
+<a name="254"><font size=-1>254     </font></a><span class="number"></span><span class="keyword">if </span><span class="default">__name__ == </span><span class="string">&quot;__main__&quot;</span><span class="default">:</span>
+<a name="255"><font size=-1>255     </font></a><span class="default">    sys.exit(main())</span>
+<a name="256"><font size=-1>256     </font></a><span class="default"></span>
+</pre></body></html>

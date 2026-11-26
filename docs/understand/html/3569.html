@@ -1,0 +1,147 @@
+<html><head><title>recomendador_racion.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: D:\actions-runner\_work\_temp\understand\trucha-smart\src\domain\service\recomendador_racion.py</h3>
+<SCRIPT>
+defaultStatus = "File: D:\\actions-runner\\_work\\_temp\\understand\\trucha-smart\\src\\domain\\service\\recomendador_racion.py";
+top.document.title  = "recomendador_racion.py";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="string">&quot;&quot;&quot;Recomendación de ración diaria (RF-07, brecha B-08).</span>
+<a name="2"><font size=-1>2     </font></a><span class="string"></span>
+<a name="3"><font size=-1>3     </font></a><span class="string">  ración (kg/día) = biomasa (kg) x tasa de alimentación (% biomasa/día según peso medio)</span>
+<a name="4"><font size=-1>4     </font></a><span class="string">                    x factor de temperatura x factor de oxígeno</span>
+<a name="5"><font size=-1>5     </font></a><span class="string">La tabla y los factores vienen de config/alimentacion.yaml (ADR-005). Un factor 0 (nivel</span>
+<a name="6"><font size=-1>6     </font></a><span class="string">CRÍTICO) significa suspender la alimentación. La recomendación siempre muestra la regla</span>
+<a name="7"><font size=-1>7     </font></a><span class="string">aplicada; la decisión final es del piscicultor.</span>
+<a name="8"><font size=-1>8     </font></a><span class="string">&quot;&quot;&quot;</span>
+<a name="9"><font size=-1>9     </font></a><span class="string"></span>
+<a name="10"><font size=-1>10     </font></a><span class="string"></span><span class="keyword">from </span><span class="default">__future__ </span><span class="keyword">import </span><span class="default">annotations</span>
+<a name="11"><font size=-1>11     </font></a><span class="default"></span>
+<a name="12"><font size=-1>12     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">dataclasses </span><span class="keyword">import </span><span class="default">dataclass, field</span>
+<a name="13"><font size=-1>13     </font></a><span class="default"></span>
+<a name="14"><font size=-1>14     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.errores </span><span class="keyword">import </span><span class="default">ErrorValidacion</span>
+<a name="15"><font size=-1>15     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.model.umbral </span><span class="keyword">import </span><span class="default">NOMBRES_NIVEL, Nivel</span>
+<a name="16"><font size=-1>16     </font></a><span class="default"></span>
+<a name="17"><font size=-1>17     </font></a><span class="default"></span>
+<a name="18"><font size=-1>18     </font></a><span class="default">@dataclass(frozen=</span><span class="keyword">True</span><span class="default">)</span>
+<a name="19"><font size=-1>19     </font></a><span class="default"></span><span class="keyword">class </span><span class="default">TramoTasa:</span>
+<a name="20"><font size=-1>20     </font></a><span class="default">    desde_g: float</span>
+<a name="21"><font size=-1>21     </font></a><span class="default">    hasta_g: float | </span><span class="keyword">None  </span><span class="comment"># None = sin límite superior</span>
+<a name="22"><font size=-1>22     </font></a><span class="comment">    </span><span class="default">tasa_pct: float</span>
+<a name="23"><font size=-1>23     </font></a><span class="default"></span>
+<a name="24"><font size=-1>24     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">contiene(self, peso_g: float) -&gt; bool:</span>
+<a name="25"><font size=-1>25     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">peso_g &gt;= self.desde_g </span><span class="keyword">and </span><span class="default">(self.hasta_g </span><span class="keyword">is None or </span><span class="default">peso_g &lt; self.hasta_g)</span>
+<a name="26"><font size=-1>26     </font></a><span class="default"></span>
+<a name="27"><font size=-1>27     </font></a><span class="default">    @property</span>
+<a name="28"><font size=-1>28     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">descripcion(self) -&gt; str:</span>
+<a name="29"><font size=-1>29     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">self.hasta_g </span><span class="keyword">is None</span><span class="default">:</span>
+<a name="30"><font size=-1>30     </font></a><span class="default">            </span><span class="keyword">return </span><span class="default">f</span><span class="string">&quot;&gt;= {self.desde_g:g} g&quot;</span>
+<a name="31"><font size=-1>31     </font></a><span class="string">        </span><span class="keyword">if </span><span class="default">self.desde_g == </span><span class="number">0</span><span class="default">:</span>
+<a name="32"><font size=-1>32     </font></a><span class="default">            </span><span class="keyword">return </span><span class="default">f</span><span class="string">&quot;&lt; {self.hasta_g:g} g&quot;</span>
+<a name="33"><font size=-1>33     </font></a><span class="string">        </span><span class="keyword">return </span><span class="default">f</span><span class="string">&quot;{self.desde_g:g}–{self.hasta_g:g} g&quot;</span>
+<a name="34"><font size=-1>34     </font></a><span class="string"></span>
+<a name="35"><font size=-1>35     </font></a><span class="string"></span>
+<a name="36"><font size=-1>36     </font></a><span class="string"></span><span class="default">@dataclass(frozen=</span><span class="keyword">True</span><span class="default">)</span>
+<a name="37"><font size=-1>37     </font></a><span class="default"></span><span class="keyword">class </span><span class="default">TablaAlimentacion:</span>
+<a name="38"><font size=-1>38     </font></a><span class="default">    tramos: tuple[TramoTasa, ...]</span>
+<a name="39"><font size=-1>39     </font></a><span class="default">    factor_temperatura: dict[Nivel, float] = field(hash=</span><span class="keyword">False</span><span class="default">)</span>
+<a name="40"><font size=-1>40     </font></a><span class="default">    factor_oxigeno: dict[Nivel, float] = field(hash=</span><span class="keyword">False</span><span class="default">)</span>
+<a name="41"><font size=-1>41     </font></a><span class="default"></span>
+<a name="42"><font size=-1>42     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">__post_init__(self) -&gt; </span><span class="keyword">None</span><span class="default">:</span>
+<a name="43"><font size=-1>43     </font></a><span class="default">        </span><span class="keyword">if not </span><span class="default">self.tramos </span><span class="keyword">or </span><span class="default">self.tramos[</span><span class="number">0</span><span class="default">].desde_g != </span><span class="number">0</span><span class="default">:</span>
+<a name="44"><font size=-1>44     </font></a><span class="default">            </span><span class="keyword">raise </span><span class="default">ErrorValidacion(</span><span class="string">&quot;tasas&quot;</span><span class="default">, </span><span class="string">&quot;La tabla de alimentación debe empezar en 0 g&quot;</span><span class="default">)</span>
+<a name="45"><font size=-1>45     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">previo, siguiente </span><span class="keyword">in </span><span class="default">zip(self.tramos, self.tramos[</span><span class="number">1</span><span class="default">:], strict=</span><span class="keyword">False</span><span class="default">):</span>
+<a name="46"><font size=-1>46     </font></a><span class="default">            </span><span class="keyword">if </span><span class="default">previo.hasta_g != siguiente.desde_g:</span>
+<a name="47"><font size=-1>47     </font></a><span class="default">                </span><span class="keyword">raise </span><span class="default">ErrorValidacion(</span><span class="string">&quot;tasas&quot;</span><span class="default">, </span><span class="string">&quot;Los tramos de peso deben ser contiguos&quot;</span><span class="default">)</span>
+<a name="48"><font size=-1>48     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">self.tramos[-</span><span class="number">1</span><span class="default">].hasta_g </span><span class="keyword">is not None</span><span class="default">:</span>
+<a name="49"><font size=-1>49     </font></a><span class="default">            </span><span class="keyword">raise </span><span class="default">ErrorValidacion(</span><span class="string">&quot;tasas&quot;</span><span class="default">, </span><span class="string">&quot;El último tramo debe no tener límite superior&quot;</span><span class="default">)</span>
+<a name="50"><font size=-1>50     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">t </span><span class="keyword">in </span><span class="default">self.tramos:</span>
+<a name="51"><font size=-1>51     </font></a><span class="default">            </span><span class="keyword">if </span><span class="default">t.tasa_pct &lt;= </span><span class="number">0</span><span class="default">:</span>
+<a name="52"><font size=-1>52     </font></a><span class="default">                </span><span class="keyword">raise </span><span class="default">ErrorValidacion(</span><span class="string">&quot;tasas&quot;</span><span class="default">, </span><span class="string">&quot;Las tasas de alimentación deben ser &gt; 0 %&quot;</span><span class="default">)</span>
+<a name="53"><font size=-1>53     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">nombre, factores </span><span class="keyword">in </span><span class="default">(</span>
+<a name="54"><font size=-1>54     </font></a><span class="default">            (</span><span class="string">&quot;factor_temperatura&quot;</span><span class="default">, self.factor_temperatura),</span>
+<a name="55"><font size=-1>55     </font></a><span class="default">            (</span><span class="string">&quot;factor_oxigeno&quot;</span><span class="default">, self.factor_oxigeno),</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">        ):</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">            </span><span class="keyword">if </span><span class="default">set(factores) != set(Nivel):</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">                </span><span class="keyword">raise </span><span class="default">ErrorValidacion(nombre, f</span><span class="string">&quot;{nombre} debe definir normal, precaucion y critica&quot;</span><span class="default">)</span>
+<a name="59"><font size=-1>59     </font></a><span class="default">            </span><span class="keyword">if </span><span class="default">any(</span><span class="keyword">not </span><span class="number">0 </span><span class="default">&lt;= f &lt;= </span><span class="number">1 </span><span class="keyword">for </span><span class="default">f </span><span class="keyword">in </span><span class="default">factores.values()):</span>
+<a name="60"><font size=-1>60     </font></a><span class="default">                </span><span class="keyword">raise </span><span class="default">ErrorValidacion(nombre, f</span><span class="string">&quot;{nombre} debe estar entre 0 y 1&quot;</span><span class="default">)</span>
+<a name="61"><font size=-1>61     </font></a><span class="default"></span>
+<a name="62"><font size=-1>62     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">tramo_para(self, peso_g: float) -&gt; TramoTasa:</span>
+<a name="63"><font size=-1>63     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">next(t </span><span class="keyword">for </span><span class="default">t </span><span class="keyword">in </span><span class="default">self.tramos </span><span class="keyword">if </span><span class="default">t.contiene(peso_g))</span>
+<a name="64"><font size=-1>64     </font></a><span class="default"></span>
+<a name="65"><font size=-1>65     </font></a><span class="default"></span>
+<a name="66"><font size=-1>66     </font></a><span class="default">@dataclass(frozen=</span><span class="keyword">True</span><span class="default">)</span>
+<a name="67"><font size=-1>67     </font></a><span class="default"></span><span class="keyword">class </span><span class="default">Recomendacion:</span>
+<a name="68"><font size=-1>68     </font></a><span class="default">    biomasa_kg: float</span>
+<a name="69"><font size=-1>69     </font></a><span class="default">    peso_medio_g: float</span>
+<a name="70"><font size=-1>70     </font></a><span class="default">    tasa_pct: float</span>
+<a name="71"><font size=-1>71     </font></a><span class="default">    tramo: str</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">    nivel_temperatura: Nivel | </span><span class="keyword">None</span>
+<a name="73"><font size=-1>73     </font></a><span class="keyword">    </span><span class="default">nivel_oxigeno: Nivel | </span><span class="keyword">None</span>
+<a name="74"><font size=-1>74     </font></a><span class="keyword">    </span><span class="default">factor_temperatura: float</span>
+<a name="75"><font size=-1>75     </font></a><span class="default">    factor_oxigeno: float</span>
+<a name="76"><font size=-1>76     </font></a><span class="default">    racion_kg: float</span>
+<a name="77"><font size=-1>77     </font></a><span class="default">    suspender: bool</span>
+<a name="78"><font size=-1>78     </font></a><span class="default">    regla: str</span>
+<a name="79"><font size=-1>79     </font></a><span class="default">    advertencias: tuple[str, ...] = ()</span>
+<a name="80"><font size=-1>80     </font></a><span class="default"></span>
+<a name="81"><font size=-1>81     </font></a><span class="default"></span>
+<a name="82"><font size=-1>82     </font></a><span class="default"></span><span class="keyword">class </span><span class="default">RecomendadorRacion:</span>
+<a name="83"><font size=-1>83     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">__init__(self, tabla: TablaAlimentacion) -&gt; </span><span class="keyword">None</span><span class="default">:</span>
+<a name="84"><font size=-1>84     </font></a><span class="default">        self._tabla = tabla</span>
+<a name="85"><font size=-1>85     </font></a><span class="default"></span>
+<a name="86"><font size=-1>86     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">recomendar(</span>
+<a name="87"><font size=-1>87     </font></a><span class="default">        self,</span>
+<a name="88"><font size=-1>88     </font></a><span class="default">        biomasa_kg: float,</span>
+<a name="89"><font size=-1>89     </font></a><span class="default">        peso_medio_g: float,</span>
+<a name="90"><font size=-1>90     </font></a><span class="default">        nivel_temperatura: Nivel | </span><span class="keyword">None</span><span class="default">,</span>
+<a name="91"><font size=-1>91     </font></a><span class="default">        nivel_oxigeno: Nivel | </span><span class="keyword">None</span><span class="default">,</span>
+<a name="92"><font size=-1>92     </font></a><span class="default">    ) -&gt; Recomendacion:</span>
+<a name="93"><font size=-1>93     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">biomasa_kg &lt; </span><span class="number">0</span><span class="default">:</span>
+<a name="94"><font size=-1>94     </font></a><span class="default">            </span><span class="keyword">raise </span><span class="default">ErrorValidacion(</span><span class="string">&quot;biomasa_kg&quot;</span><span class="default">, </span><span class="string">&quot;La biomasa no puede ser negativa&quot;</span><span class="default">)</span>
+<a name="95"><font size=-1>95     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">peso_medio_g &lt;= </span><span class="number">0</span><span class="default">:</span>
+<a name="96"><font size=-1>96     </font></a><span class="default">            </span><span class="keyword">raise </span><span class="default">ErrorValidacion(</span><span class="string">&quot;peso_medio_g&quot;</span><span class="default">, </span><span class="string">&quot;El peso medio debe ser mayor que 0&quot;</span><span class="default">)</span>
+<a name="97"><font size=-1>97     </font></a><span class="default">        advertencias = []</span>
+<a name="98"><font size=-1>98     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">nivel_temperatura </span><span class="keyword">is None or </span><span class="default">nivel_oxigeno </span><span class="keyword">is None</span><span class="default">:</span>
+<a name="99"><font size=-1>99     </font></a><span class="default">            advertencias.append(</span>
+<a name="100"><font size=-1>100     </font></a><span class="default">                </span><span class="string">&quot;Sin lectura de calidad de agua: se asumen factores normales; &quot;</span>
+<a name="101"><font size=-1>101     </font></a><span class="string">                &quot;mida temperatura y oxígeno antes de alimentar&quot;</span>
+<a name="102"><font size=-1>102     </font></a><span class="string">            </span><span class="default">)</span>
+<a name="103"><font size=-1>103     </font></a><span class="default">        n_t = nivel_temperatura </span><span class="keyword">or </span><span class="default">Nivel.NORMAL</span>
+<a name="104"><font size=-1>104     </font></a><span class="default">        n_o = nivel_oxigeno </span><span class="keyword">or </span><span class="default">Nivel.NORMAL</span>
+<a name="105"><font size=-1>105     </font></a><span class="default">        tramo = self._tabla.tramo_para(peso_medio_g)</span>
+<a name="106"><font size=-1>106     </font></a><span class="default">        f_t = self._tabla.factor_temperatura[n_t]</span>
+<a name="107"><font size=-1>107     </font></a><span class="default">        f_o = self._tabla.factor_oxigeno[n_o]</span>
+<a name="108"><font size=-1>108     </font></a><span class="default">        racion = round(biomasa_kg * tramo.tasa_pct / </span><span class="number">100 </span><span class="default">* f_t * f_o, </span><span class="number">3</span><span class="default">)</span>
+<a name="109"><font size=-1>109     </font></a><span class="default">        suspender = f_t == </span><span class="number">0 </span><span class="keyword">or </span><span class="default">f_o == </span><span class="number">0</span>
+<a name="110"><font size=-1>110     </font></a><span class="number">        </span><span class="default">regla = (</span>
+<a name="111"><font size=-1>111     </font></a><span class="default">            f</span><span class="string">&quot;Ración = {biomasa_kg:.3f} kg de biomasa × {tramo.tasa_pct:g} % &quot;</span>
+<a name="112"><font size=-1>112     </font></a><span class="string">            </span><span class="default">f</span><span class="string">&quot;(peso medio {peso_medio_g:g} g, tramo {tramo.descripcion}) &quot;</span>
+<a name="113"><font size=-1>113     </font></a><span class="string">            </span><span class="default">f</span><span class="string">&quot;× {f_t:g} (temperatura {NOMBRES_NIVEL[n_t]}) &quot;</span>
+<a name="114"><font size=-1>114     </font></a><span class="string">            </span><span class="default">f</span><span class="string">&quot;× {f_o:g} (oxígeno {NOMBRES_NIVEL[n_o]}) = {racion:.3f} kg/día&quot;</span>
+<a name="115"><font size=-1>115     </font></a><span class="string">        </span><span class="default">)</span>
+<a name="116"><font size=-1>116     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">suspender:</span>
+<a name="117"><font size=-1>117     </font></a><span class="default">            motivos = [</span>
+<a name="118"><font size=-1>118     </font></a><span class="default">                nombre</span>
+<a name="119"><font size=-1>119     </font></a><span class="default">                </span><span class="keyword">for </span><span class="default">nombre, nivel </span><span class="keyword">in </span><span class="default">((</span><span class="string">&quot;temperatura&quot;</span><span class="default">, n_t), (</span><span class="string">&quot;oxígeno disuelto&quot;</span><span class="default">, n_o))</span>
+<a name="120"><font size=-1>120     </font></a><span class="default">                </span><span class="keyword">if </span><span class="default">nivel </span><span class="keyword">is </span><span class="default">Nivel.CRITICA</span>
+<a name="121"><font size=-1>121     </font></a><span class="default">            ]</span>
+<a name="122"><font size=-1>122     </font></a><span class="default">            regla = f</span><span class="string">&quot;Suspender alimentación: {' y '.join(motivos)} en nivel CRÍTICO. &quot; </span><span class="default">+ regla</span>
+<a name="123"><font size=-1>123     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">Recomendacion(</span>
+<a name="124"><font size=-1>124     </font></a><span class="default">            biomasa_kg=biomasa_kg,</span>
+<a name="125"><font size=-1>125     </font></a><span class="default">            peso_medio_g=peso_medio_g,</span>
+<a name="126"><font size=-1>126     </font></a><span class="default">            tasa_pct=tramo.tasa_pct,</span>
+<a name="127"><font size=-1>127     </font></a><span class="default">            tramo=tramo.descripcion,</span>
+<a name="128"><font size=-1>128     </font></a><span class="default">            nivel_temperatura=nivel_temperatura,</span>
+<a name="129"><font size=-1>129     </font></a><span class="default">            nivel_oxigeno=nivel_oxigeno,</span>
+<a name="130"><font size=-1>130     </font></a><span class="default">            factor_temperatura=f_t,</span>
+<a name="131"><font size=-1>131     </font></a><span class="default">            factor_oxigeno=f_o,</span>
+<a name="132"><font size=-1>132     </font></a><span class="default">            racion_kg=racion,</span>
+<a name="133"><font size=-1>133     </font></a><span class="default">            suspender=suspender,</span>
+<a name="134"><font size=-1>134     </font></a><span class="default">            regla=regla,</span>
+<a name="135"><font size=-1>135     </font></a><span class="default">            advertencias=tuple(advertencias),</span>
+<a name="136"><font size=-1>136     </font></a><span class="default">        )</span>
+<a name="137"><font size=-1>137     </font></a><span class="default"></span>
+</pre></body></html>

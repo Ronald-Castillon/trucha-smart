@@ -1,0 +1,148 @@
+<html><head><title>servicio_estanques.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: D:\actions-runner\_work\_temp\understand\trucha-smart\src\domain\service\servicio_estanques.py</h3>
+<SCRIPT>
+defaultStatus = "File: D:\\actions-runner\\_work\\_temp\\understand\\trucha-smart\\src\\domain\\service\\servicio_estanques.py";
+top.document.title  = "servicio_estanques.py";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="string">&quot;&quot;&quot;Caso de uso gestionar_estanque: estanques/jaulas y lotes (RF-02).&quot;&quot;&quot;</span>
+<a name="2"><font size=-1>2     </font></a><span class="string"></span>
+<a name="3"><font size=-1>3     </font></a><span class="string"></span><span class="keyword">from </span><span class="default">__future__ </span><span class="keyword">import </span><span class="default">annotations</span>
+<a name="4"><font size=-1>4     </font></a><span class="default"></span>
+<a name="5"><font size=-1>5     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">datetime </span><span class="keyword">import </span><span class="default">date</span>
+<a name="6"><font size=-1>6     </font></a><span class="default"></span>
+<a name="7"><font size=-1>7     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.errores </span><span class="keyword">import </span><span class="default">Conflicto, NoEncontrado</span>
+<a name="8"><font size=-1>8     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.model.estanque </span><span class="keyword">import </span><span class="default">Estanque</span>
+<a name="9"><font size=-1>9     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.model.lote </span><span class="keyword">import </span><span class="default">Lote</span>
+<a name="10"><font size=-1>10     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.model.usuario </span><span class="keyword">import </span><span class="default">Permiso, Usuario</span>
+<a name="11"><font size=-1>11     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.ports.inbound.gestionar_estanque </span><span class="keyword">import </span><span class="default">ComandoSembrarLote, DatosEstanque</span>
+<a name="12"><font size=-1>12     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.ports.outbound.reloj </span><span class="keyword">import </span><span class="default">Reloj</span>
+<a name="13"><font size=-1>13     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.ports.outbound.repositorio_estanque </span><span class="keyword">import </span><span class="default">RepositorioEstanque</span>
+<a name="14"><font size=-1>14     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.ports.outbound.repositorio_lote </span><span class="keyword">import </span><span class="default">RepositorioLote</span>
+<a name="15"><font size=-1>15     </font></a><span class="default"></span>
+<a name="16"><font size=-1>16     </font></a><span class="default"></span>
+<a name="17"><font size=-1>17     </font></a><span class="default"></span><span class="keyword">class </span><span class="default">ServicioEstanques:</span>
+<a name="18"><font size=-1>18     </font></a><span class="default">    </span><span class="string">&quot;&quot;&quot;Implementa el puerto de entrada GestionarEstanque.&quot;&quot;&quot;</span>
+<a name="19"><font size=-1>19     </font></a><span class="string"></span>
+<a name="20"><font size=-1>20     </font></a><span class="string">    </span><span class="keyword">def </span><span class="default">__init__(</span>
+<a name="21"><font size=-1>21     </font></a><span class="default">        self, estanques: RepositorioEstanque, lotes: RepositorioLote, reloj: Reloj</span>
+<a name="22"><font size=-1>22     </font></a><span class="default">    ) -&gt; </span><span class="keyword">None</span><span class="default">:</span>
+<a name="23"><font size=-1>23     </font></a><span class="default">        self._estanques = estanques</span>
+<a name="24"><font size=-1>24     </font></a><span class="default">        self._lotes = lotes</span>
+<a name="25"><font size=-1>25     </font></a><span class="default">        self._reloj = reloj</span>
+<a name="26"><font size=-1>26     </font></a><span class="default"></span>
+<a name="27"><font size=-1>27     </font></a><span class="default">    </span><span class="comment"># -- estanques ---------------------------------------------------------</span>
+<a name="28"><font size=-1>28     </font></a><span class="comment">    </span><span class="keyword">def </span><span class="default">crear(self, datos: DatosEstanque, solicitante: Usuario) -&gt; Estanque:</span>
+<a name="29"><font size=-1>29     </font></a><span class="default">        solicitante.exigir(Permiso.GESTIONAR_ESTANQUES)</span>
+<a name="30"><font size=-1>30     </font></a><span class="default">        estanque = Estanque(</span>
+<a name="31"><font size=-1>31     </font></a><span class="default">            nombre=datos.nombre,</span>
+<a name="32"><font size=-1>32     </font></a><span class="default">            tipo=datos.tipo,</span>
+<a name="33"><font size=-1>33     </font></a><span class="default">            volumen_m3=datos.volumen_m3,</span>
+<a name="34"><font size=-1>34     </font></a><span class="default">            ubicacion=datos.ubicacion,</span>
+<a name="35"><font size=-1>35     </font></a><span class="default">            creado_en=self._reloj.ahora(),</span>
+<a name="36"><font size=-1>36     </font></a><span class="default">        )</span>
+<a name="37"><font size=-1>37     </font></a><span class="default">        self._exigir_nombre_libre(estanque.nombre)</span>
+<a name="38"><font size=-1>38     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">self._estanques.guardar(estanque)</span>
+<a name="39"><font size=-1>39     </font></a><span class="default"></span>
+<a name="40"><font size=-1>40     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">actualizar(self, estanque_id: int, datos: DatosEstanque, solicitante: Usuario) -&gt; Estanque:</span>
+<a name="41"><font size=-1>41     </font></a><span class="default">        solicitante.exigir(Permiso.GESTIONAR_ESTANQUES)</span>
+<a name="42"><font size=-1>42     </font></a><span class="default">        actual = self._estanque(estanque_id)</span>
+<a name="43"><font size=-1>43     </font></a><span class="default">        nuevo = Estanque(</span>
+<a name="44"><font size=-1>44     </font></a><span class="default">            nombre=datos.nombre,</span>
+<a name="45"><font size=-1>45     </font></a><span class="default">            tipo=datos.tipo,</span>
+<a name="46"><font size=-1>46     </font></a><span class="default">            volumen_m3=datos.volumen_m3,</span>
+<a name="47"><font size=-1>47     </font></a><span class="default">            ubicacion=datos.ubicacion,</span>
+<a name="48"><font size=-1>48     </font></a><span class="default">            creado_en=actual.creado_en,</span>
+<a name="49"><font size=-1>49     </font></a><span class="default">            activo=actual.activo,</span>
+<a name="50"><font size=-1>50     </font></a><span class="default">            id=actual.id,</span>
+<a name="51"><font size=-1>51     </font></a><span class="default">        )</span>
+<a name="52"><font size=-1>52     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">nuevo.nombre != actual.nombre:</span>
+<a name="53"><font size=-1>53     </font></a><span class="default">            self._exigir_nombre_libre(nuevo.nombre)</span>
+<a name="54"><font size=-1>54     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">self._estanques.guardar(nuevo)</span>
+<a name="55"><font size=-1>55     </font></a><span class="default"></span>
+<a name="56"><font size=-1>56     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">desactivar(self, estanque_id: int, solicitante: Usuario) -&gt; </span><span class="keyword">None</span><span class="default">:</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">        solicitante.exigir(Permiso.GESTIONAR_ESTANQUES)</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">        estanque = self._estanque(estanque_id)</span>
+<a name="59"><font size=-1>59     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">self._lotes.activo_de(estanque_id) </span><span class="keyword">is not None</span><span class="default">:</span>
+<a name="60"><font size=-1>60     </font></a><span class="default">            </span><span class="keyword">raise </span><span class="default">Conflicto(</span><span class="string">&quot;No se puede dar de baja un estanque con un lote activo&quot;</span><span class="default">)</span>
+<a name="61"><font size=-1>61     </font></a><span class="default">        estanque.activo = </span><span class="keyword">False</span>
+<a name="62"><font size=-1>62     </font></a><span class="keyword">        </span><span class="default">self._estanques.guardar(estanque)</span>
+<a name="63"><font size=-1>63     </font></a><span class="default"></span>
+<a name="64"><font size=-1>64     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">obtener(self, estanque_id: int, solicitante: Usuario) -&gt; Estanque:</span>
+<a name="65"><font size=-1>65     </font></a><span class="default">        solicitante.exigir(Permiso.CONSULTAR)</span>
+<a name="66"><font size=-1>66     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">self._estanque(estanque_id)</span>
+<a name="67"><font size=-1>67     </font></a><span class="default"></span>
+<a name="68"><font size=-1>68     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">listar(self, solicitante: Usuario) -&gt; list[Estanque]:</span>
+<a name="69"><font size=-1>69     </font></a><span class="default">        solicitante.exigir(Permiso.CONSULTAR)</span>
+<a name="70"><font size=-1>70     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">self._estanques.listar(solo_activos=</span><span class="keyword">True</span><span class="default">)</span>
+<a name="71"><font size=-1>71     </font></a><span class="default"></span>
+<a name="72"><font size=-1>72     </font></a><span class="default">    </span><span class="comment"># -- lotes -------------------------------------------------------------</span>
+<a name="73"><font size=-1>73     </font></a><span class="comment">    </span><span class="keyword">def </span><span class="default">sembrar_lote(self, comando: ComandoSembrarLote, solicitante: Usuario) -&gt; Lote:</span>
+<a name="74"><font size=-1>74     </font></a><span class="default">        solicitante.exigir(Permiso.GESTIONAR_ESTANQUES)</span>
+<a name="75"><font size=-1>75     </font></a><span class="default">        estanque = self._estanque(comando.estanque_id)</span>
+<a name="76"><font size=-1>76     </font></a><span class="default">        lote = Lote.sembrar(</span>
+<a name="77"><font size=-1>77     </font></a><span class="default">            estanque_id=estanque.id,</span>
+<a name="78"><font size=-1>78     </font></a><span class="default">            codigo=comando.codigo,</span>
+<a name="79"><font size=-1>79     </font></a><span class="default">            num_peces=comando.num_peces,</span>
+<a name="80"><font size=-1>80     </font></a><span class="default">            peso_medio_g=comando.peso_medio_g,</span>
+<a name="81"><font size=-1>81     </font></a><span class="default">            fecha_siembra=comando.fecha_siembra,</span>
+<a name="82"><font size=-1>82     </font></a><span class="default">            hoy=self._reloj.ahora().date(),</span>
+<a name="83"><font size=-1>83     </font></a><span class="default">        )</span>
+<a name="84"><font size=-1>84     </font></a><span class="default">        </span><span class="keyword">if not </span><span class="default">estanque.activo:</span>
+<a name="85"><font size=-1>85     </font></a><span class="default">            </span><span class="keyword">raise </span><span class="default">Conflicto(f</span><span class="string">&quot;El estanque {estanque.nombre} está dado de baja&quot;</span><span class="default">)</span>
+<a name="86"><font size=-1>86     </font></a><span class="default">        existente = self._lotes.activo_de(estanque.id)</span>
+<a name="87"><font size=-1>87     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">existente </span><span class="keyword">is not None</span><span class="default">:</span>
+<a name="88"><font size=-1>88     </font></a><span class="default">            </span><span class="keyword">raise </span><span class="default">Conflicto(</span>
+<a name="89"><font size=-1>89     </font></a><span class="default">                f</span><span class="string">&quot;El estanque {estanque.nombre} ya tiene el lote activo {existente.codigo}; &quot;</span>
+<a name="90"><font size=-1>90     </font></a><span class="string">                &quot;ciérrelo antes de sembrar otro&quot;</span>
+<a name="91"><font size=-1>91     </font></a><span class="string">            </span><span class="default">)</span>
+<a name="92"><font size=-1>92     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">self._lotes.por_codigo(lote.codigo) </span><span class="keyword">is not None</span><span class="default">:</span>
+<a name="93"><font size=-1>93     </font></a><span class="default">            </span><span class="keyword">raise </span><span class="default">Conflicto(f</span><span class="string">&quot;Ya existe un lote con el código {lote.codigo}&quot;</span><span class="default">)</span>
+<a name="94"><font size=-1>94     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">self._lotes.guardar(lote)</span>
+<a name="95"><font size=-1>95     </font></a><span class="default"></span>
+<a name="96"><font size=-1>96     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">lote_activo(self, estanque_id: int, solicitante: Usuario) -&gt; Lote | </span><span class="keyword">None</span><span class="default">:</span>
+<a name="97"><font size=-1>97     </font></a><span class="default">        solicitante.exigir(Permiso.CONSULTAR)</span>
+<a name="98"><font size=-1>98     </font></a><span class="default">        self._estanque(estanque_id)</span>
+<a name="99"><font size=-1>99     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">self._lotes.activo_de(estanque_id)</span>
+<a name="100"><font size=-1>100     </font></a><span class="default"></span>
+<a name="101"><font size=-1>101     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">lotes_de(self, estanque_id: int, solicitante: Usuario) -&gt; list[Lote]:</span>
+<a name="102"><font size=-1>102     </font></a><span class="default">        solicitante.exigir(Permiso.CONSULTAR)</span>
+<a name="103"><font size=-1>103     </font></a><span class="default">        self._estanque(estanque_id)</span>
+<a name="104"><font size=-1>104     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">self._lotes.de_estanque(estanque_id)</span>
+<a name="105"><font size=-1>105     </font></a><span class="default"></span>
+<a name="106"><font size=-1>106     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">obtener_lote(self, lote_id: int, solicitante: Usuario) -&gt; Lote:</span>
+<a name="107"><font size=-1>107     </font></a><span class="default">        solicitante.exigir(Permiso.CONSULTAR)</span>
+<a name="108"><font size=-1>108     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">self._lote(lote_id)</span>
+<a name="109"><font size=-1>109     </font></a><span class="default"></span>
+<a name="110"><font size=-1>110     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">actualizar_peso(self, lote_id: int, peso_medio_g: float, solicitante: Usuario) -&gt; Lote:</span>
+<a name="111"><font size=-1>111     </font></a><span class="default">        solicitante.exigir(Permiso.GESTIONAR_ESTANQUES)</span>
+<a name="112"><font size=-1>112     </font></a><span class="default">        lote = self._lote(lote_id)</span>
+<a name="113"><font size=-1>113     </font></a><span class="default">        lote.actualizar_peso(peso_medio_g)</span>
+<a name="114"><font size=-1>114     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">self._lotes.guardar(lote)</span>
+<a name="115"><font size=-1>115     </font></a><span class="default"></span>
+<a name="116"><font size=-1>116     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">cerrar_lote(self, lote_id: int, fecha: date, solicitante: Usuario) -&gt; Lote:</span>
+<a name="117"><font size=-1>117     </font></a><span class="default">        solicitante.exigir(Permiso.GESTIONAR_ESTANQUES)</span>
+<a name="118"><font size=-1>118     </font></a><span class="default">        lote = self._lote(lote_id)</span>
+<a name="119"><font size=-1>119     </font></a><span class="default">        lote.cerrar(fecha)</span>
+<a name="120"><font size=-1>120     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">self._lotes.guardar(lote)</span>
+<a name="121"><font size=-1>121     </font></a><span class="default"></span>
+<a name="122"><font size=-1>122     </font></a><span class="default">    </span><span class="comment"># -- auxiliares --------------------------------------------------------</span>
+<a name="123"><font size=-1>123     </font></a><span class="comment">    </span><span class="keyword">def </span><span class="default">_estanque(self, estanque_id: int) -&gt; Estanque:</span>
+<a name="124"><font size=-1>124     </font></a><span class="default">        estanque = self._estanques.por_id(estanque_id)</span>
+<a name="125"><font size=-1>125     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">estanque </span><span class="keyword">is None</span><span class="default">:</span>
+<a name="126"><font size=-1>126     </font></a><span class="default">            </span><span class="keyword">raise </span><span class="default">NoEncontrado(f</span><span class="string">&quot;No existe el estanque {estanque_id}&quot;</span><span class="default">)</span>
+<a name="127"><font size=-1>127     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">estanque</span>
+<a name="128"><font size=-1>128     </font></a><span class="default"></span>
+<a name="129"><font size=-1>129     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">_lote(self, lote_id: int) -&gt; Lote:</span>
+<a name="130"><font size=-1>130     </font></a><span class="default">        lote = self._lotes.por_id(lote_id)</span>
+<a name="131"><font size=-1>131     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">lote </span><span class="keyword">is None</span><span class="default">:</span>
+<a name="132"><font size=-1>132     </font></a><span class="default">            </span><span class="keyword">raise </span><span class="default">NoEncontrado(f</span><span class="string">&quot;No existe el lote {lote_id}&quot;</span><span class="default">)</span>
+<a name="133"><font size=-1>133     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">lote</span>
+<a name="134"><font size=-1>134     </font></a><span class="default"></span>
+<a name="135"><font size=-1>135     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">_exigir_nombre_libre(self, nombre: str) -&gt; </span><span class="keyword">None</span><span class="default">:</span>
+<a name="136"><font size=-1>136     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">self._estanques.por_nombre(nombre) </span><span class="keyword">is not None</span><span class="default">:</span>
+<a name="137"><font size=-1>137     </font></a><span class="default">            </span><span class="keyword">raise </span><span class="default">Conflicto(f</span><span class="string">&quot;Ya existe un estanque llamado '{nombre}'&quot;</span><span class="default">)</span>
+<a name="138"><font size=-1>138     </font></a><span class="default"></span>
+</pre></body></html>

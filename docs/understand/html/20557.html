@@ -1,0 +1,212 @@
+<html><head><title>owasp.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: D:\actions-runner\_work\_temp\understand\trucha-smart\tools\evidencias\owasp.py</h3>
+<SCRIPT>
+defaultStatus = "File: D:\\actions-runner\\_work\\_temp\\understand\\trucha-smart\\tools\\evidencias\\owasp.py";
+top.document.title  = "owasp.py";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="string">&quot;&quot;&quot;Evidencias OWASP Top 10:2025 ejecutadas contra TruchaSmart desplegado con docker compose.</span>
+<a name="2"><font size=-1>2     </font></a><span class="string"></span>
+<a name="3"><font size=-1>3     </font></a><span class="string">Uso: docker compose up -d --build &amp;&amp; python tools/evidencias/owasp.py a01   (a01, a02, a04, a05,</span>
+<a name="4"><font size=-1>4     </font></a><span class="string">a07, a08, a09 o a10). A03 (cadena de suministro) se evidencia con Dependabot en GitHub.</span>
+<a name="5"><font size=-1>5     </font></a><span class="string">&quot;&quot;&quot;</span>
+<a name="6"><font size=-1>6     </font></a><span class="string"></span>
+<a name="7"><font size=-1>7     </font></a><span class="string"></span><span class="keyword">import </span><span class="default">subprocess</span>
+<a name="8"><font size=-1>8     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">sys</span>
+<a name="9"><font size=-1>9     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">time</span>
+<a name="10"><font size=-1>10     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">pathlib </span><span class="keyword">import </span><span class="default">Path</span>
+<a name="11"><font size=-1>11     </font></a><span class="default"></span>
+<a name="12"><font size=-1>12     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">httpx</span>
+<a name="13"><font size=-1>13     </font></a><span class="default"></span>
+<a name="14"><font size=-1>14     </font></a><span class="default">sys.stdout.reconfigure(encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">)</span>
+<a name="15"><font size=-1>15     </font></a><span class="default">URL = </span><span class="string">&quot;http://localhost:8000&quot;</span>
+<a name="16"><font size=-1>16     </font></a><span class="string"></span><span class="default">RAIZ = Path(__file__).resolve().parents[</span><span class="number">2</span><span class="default">]</span>
+<a name="17"><font size=-1>17     </font></a><span class="default">api = httpx.Client(base_url=URL, timeout=</span><span class="number">15</span><span class="default">)</span>
+<a name="18"><font size=-1>18     </font></a><span class="default"></span>
+<a name="19"><font size=-1>19     </font></a><span class="default"></span>
+<a name="20"><font size=-1>20     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">token(usuario, clave):</span>
+<a name="21"><font size=-1>21     </font></a><span class="default">    r = api.post(</span><span class="string">&quot;/api/auth/login&quot;</span><span class="default">, json={</span><span class="string">&quot;nombre_usuario&quot;</span><span class="default">: usuario, </span><span class="string">&quot;password&quot;</span><span class="default">: clave})</span>
+<a name="22"><font size=-1>22     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">{</span><span class="string">&quot;Authorization&quot;</span><span class="default">: f</span><span class="string">&quot;Bearer {r.json()['access_token']}&quot;</span><span class="default">} </span><span class="keyword">if </span><span class="default">r.status_code == </span><span class="number">200 </span><span class="keyword">else </span><span class="default">{}</span>
+<a name="23"><font size=-1>23     </font></a><span class="default"></span>
+<a name="24"><font size=-1>24     </font></a><span class="default"></span>
+<a name="25"><font size=-1>25     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">ver(etiqueta, r, esperado):</span>
+<a name="26"><font size=-1>26     </font></a><span class="default">    ok = </span><span class="string">&quot;✓&quot; </span><span class="keyword">if </span><span class="default">r.status_code == esperado </span><span class="keyword">else </span><span class="string">&quot;✗&quot;</span>
+<a name="27"><font size=-1>27     </font></a><span class="string">    </span><span class="default">cuerpo = r.text[:</span><span class="number">110</span><span class="default">].replace(</span><span class="string">&quot;\n&quot;</span><span class="default">, </span><span class="string">&quot; &quot;</span><span class="default">)</span>
+<a name="28"><font size=-1>28     </font></a><span class="default">    print(f</span><span class="string">&quot;{ok} {etiqueta:&lt;62} → {r.status_code} (esperado {esperado})  {cuerpo}&quot;</span><span class="default">)</span>
+<a name="29"><font size=-1>29     </font></a><span class="default"></span>
+<a name="30"><font size=-1>30     </font></a><span class="default"></span>
+<a name="31"><font size=-1>31     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">psql(sql):</span>
+<a name="32"><font size=-1>32     </font></a><span class="default">    r = subprocess.run([</span><span class="string">&quot;docker&quot;</span><span class="default">, </span><span class="string">&quot;compose&quot;</span><span class="default">, </span><span class="string">&quot;exec&quot;</span><span class="default">, </span><span class="string">&quot;-T&quot;</span><span class="default">, </span><span class="string">&quot;db&quot;</span><span class="default">, </span><span class="string">&quot;psql&quot;</span><span class="default">, </span><span class="string">&quot;-U&quot;</span><span class="default">, </span><span class="string">&quot;trucha&quot;</span><span class="default">, </span><span class="string">&quot;-d&quot;</span><span class="default">, </span><span class="string">&quot;truchasmart&quot;</span><span class="default">, </span><span class="string">&quot;-c&quot;</span><span class="default">, sql],</span>
+<a name="33"><font size=-1>33     </font></a><span class="default">                       capture_output=</span><span class="keyword">True</span><span class="default">, text=</span><span class="keyword">True</span><span class="default">, encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">, cwd=RAIZ)  </span><span class="comment"># fmt: skip</span>
+<a name="34"><font size=-1>34     </font></a><span class="comment">    </span><span class="default">print(r.stdout.rstrip())</span>
+<a name="35"><font size=-1>35     </font></a><span class="default"></span>
+<a name="36"><font size=-1>36     </font></a><span class="default"></span>
+<a name="37"><font size=-1>37     </font></a><span class="default">modo = sys.argv[</span><span class="number">1</span><span class="default">]</span>
+<a name="38"><font size=-1>38     </font></a><span class="default">SUFIJO = time.strftime(</span><span class="string">&quot;%H%M%S&quot;</span><span class="default">)  </span><span class="comment"># nombres únicos en cada ejecución</span>
+<a name="39"><font size=-1>39     </font></a><span class="comment"></span><span class="default">ADMIN, OPER = token(</span><span class="string">&quot;admin&quot;</span><span class="default">, </span><span class="string">&quot;Admin123!&quot;</span><span class="default">), token(</span><span class="string">&quot;operario&quot;</span><span class="default">, </span><span class="string">&quot;Oper123!&quot;</span><span class="default">)</span>
+<a name="40"><font size=-1>40     </font></a><span class="default"></span>
+<a name="41"><font size=-1>41     </font></a><span class="default"></span><span class="keyword">if </span><span class="default">modo == </span><span class="string">&quot;a01&quot;</span><span class="default">:</span>
+<a name="42"><font size=-1>42     </font></a><span class="default">    print(</span><span class="string">&quot;A01 Broken Access Control — permisos por rol verificados en el servidor\n&quot;</span><span class="default">)</span>
+<a name="43"><font size=-1>43     </font></a><span class="default">    ver(</span><span class="string">&quot;Sin sesión: GET /api/estanques&quot;</span><span class="default">, api.get(</span><span class="string">&quot;/api/estanques&quot;</span><span class="default">), </span><span class="number">401</span><span class="default">)</span>
+<a name="44"><font size=-1>44     </font></a><span class="default">    ver(</span>
+<a name="45"><font size=-1>45     </font></a><span class="default">        </span><span class="string">&quot;Token alterado: GET /api/estanques&quot;</span><span class="default">,</span>
+<a name="46"><font size=-1>46     </font></a><span class="default">        api.get(</span><span class="string">&quot;/api/estanques&quot;</span><span class="default">, headers={</span><span class="string">&quot;Authorization&quot;</span><span class="default">: </span><span class="string">&quot;Bearer abc.def.ghi&quot;</span><span class="default">}),</span>
+<a name="47"><font size=-1>47     </font></a><span class="default">        </span><span class="number">401</span><span class="default">,</span>
+<a name="48"><font size=-1>48     </font></a><span class="default">    )</span>
+<a name="49"><font size=-1>49     </font></a><span class="default">    ver(</span>
+<a name="50"><font size=-1>50     </font></a><span class="default">        </span><span class="string">&quot;Operario crea un estanque: POST /api/estanques&quot;</span><span class="default">,</span>
+<a name="51"><font size=-1>51     </font></a><span class="default">        api.post(</span><span class="string">&quot;/api/estanques&quot;</span><span class="default">, json={</span><span class="string">&quot;nombre&quot;</span><span class="default">: </span><span class="string">&quot;Intruso&quot;</span><span class="default">}, headers=OPER),</span>
+<a name="52"><font size=-1>52     </font></a><span class="default">        </span><span class="number">403</span><span class="default">,</span>
+<a name="53"><font size=-1>53     </font></a><span class="default">    )</span>
+<a name="54"><font size=-1>54     </font></a><span class="default">    ver(</span><span class="string">&quot;Operario lista usuarios: GET /api/usuarios&quot;</span><span class="default">, api.get(</span><span class="string">&quot;/api/usuarios&quot;</span><span class="default">, headers=OPER), </span><span class="number">403</span><span class="default">)</span>
+<a name="55"><font size=-1>55     </font></a><span class="default">    ver(</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">        </span><span class="string">&quot;Operario consulta la bitácora: GET /api/auditoria&quot;</span><span class="default">,</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">        api.get(</span><span class="string">&quot;/api/auditoria&quot;</span><span class="default">, headers=OPER),</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">        </span><span class="number">403</span><span class="default">,</span>
+<a name="59"><font size=-1>59     </font></a><span class="default">    )</span>
+<a name="60"><font size=-1>60     </font></a><span class="default">    ver(</span>
+<a name="61"><font size=-1>61     </font></a><span class="default">        </span><span class="string">&quot;Administrador lista usuarios: GET /api/usuarios&quot;</span><span class="default">,</span>
+<a name="62"><font size=-1>62     </font></a><span class="default">        api.get(</span><span class="string">&quot;/api/usuarios&quot;</span><span class="default">, headers=ADMIN),</span>
+<a name="63"><font size=-1>63     </font></a><span class="default">        </span><span class="number">200</span><span class="default">,</span>
+<a name="64"><font size=-1>64     </font></a><span class="default">    )</span>
+<a name="65"><font size=-1>65     </font></a><span class="default"></span><span class="keyword">elif </span><span class="default">modo == </span><span class="string">&quot;a02&quot;</span><span class="default">:</span>
+<a name="66"><font size=-1>66     </font></a><span class="default">    print(</span><span class="string">&quot;A02 Security Misconfiguration — cabeceras HTTP y arranque seguro en producción\n&quot;</span><span class="default">)</span>
+<a name="67"><font size=-1>67     </font></a><span class="default">    r = api.get(</span><span class="string">&quot;/login&quot;</span><span class="default">)</span>
+<a name="68"><font size=-1>68     </font></a><span class="default">    </span><span class="keyword">for </span><span class="default">h </span><span class="keyword">in </span><span class="default">(</span>
+<a name="69"><font size=-1>69     </font></a><span class="default">        </span><span class="string">&quot;content-security-policy&quot;</span><span class="default">,</span>
+<a name="70"><font size=-1>70     </font></a><span class="default">        </span><span class="string">&quot;x-frame-options&quot;</span><span class="default">,</span>
+<a name="71"><font size=-1>71     </font></a><span class="default">        </span><span class="string">&quot;x-content-type-options&quot;</span><span class="default">,</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">        </span><span class="string">&quot;referrer-policy&quot;</span><span class="default">,</span>
+<a name="73"><font size=-1>73     </font></a><span class="default">        </span><span class="string">&quot;permissions-policy&quot;</span><span class="default">,</span>
+<a name="74"><font size=-1>74     </font></a><span class="default">    ):</span>
+<a name="75"><font size=-1>75     </font></a><span class="default">        print(f</span><span class="string">&quot;{'✓' if h in r.headers else '✗'} {h}: {r.headers.get(h, '(ausente)')[:110]}&quot;</span><span class="default">)</span>
+<a name="76"><font size=-1>76     </font></a><span class="default">    print(</span><span class="string">&quot;\n$ docker run --rm -e APP_ENV=produccion trucha-smart-app   (sin JWT_SECRET propio)&quot;</span><span class="default">)</span>
+<a name="77"><font size=-1>77     </font></a><span class="default">    d = subprocess.run([</span><span class="string">&quot;docker&quot;</span><span class="default">, </span><span class="string">&quot;run&quot;</span><span class="default">, </span><span class="string">&quot;--rm&quot;</span><span class="default">, </span><span class="string">&quot;-e&quot;</span><span class="default">, </span><span class="string">&quot;APP_ENV=produccion&quot;</span><span class="default">, </span><span class="string">&quot;trucha-smart-app&quot;</span><span class="default">],</span>
+<a name="78"><font size=-1>78     </font></a><span class="default">                       capture_output=</span><span class="keyword">True</span><span class="default">, text=</span><span class="keyword">True</span><span class="default">, encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">, timeout=</span><span class="number">60</span><span class="default">)  </span><span class="comment"># fmt: skip</span>
+<a name="79"><font size=-1>79     </font></a><span class="comment">    </span><span class="keyword">for </span><span class="default">linea </span><span class="keyword">in </span><span class="default">(d.stdout + d.stderr).splitlines():</span>
+<a name="80"><font size=-1>80     </font></a><span class="default">        </span><span class="keyword">if </span><span class="string">&quot;ConfiguracionInsegura&quot; </span><span class="keyword">in </span><span class="default">linea </span><span class="keyword">or </span><span class="string">&quot;Application startup failed&quot; </span><span class="keyword">in </span><span class="default">linea:</span>
+<a name="81"><font size=-1>81     </font></a><span class="default">            print(</span><span class="string">&quot;  &quot; </span><span class="default">+ linea.strip()[:</span><span class="number">150</span><span class="default">])</span>
+<a name="82"><font size=-1>82     </font></a><span class="default">    print(f</span><span class="string">&quot;  código de salida del contenedor: {d.returncode} (la app no arranca)&quot;</span><span class="default">)</span>
+<a name="83"><font size=-1>83     </font></a><span class="default">    print(</span><span class="string">&quot;\n$ docker compose exec app whoami&quot;</span><span class="default">)</span>
+<a name="84"><font size=-1>84     </font></a><span class="default">    w = subprocess.run([</span><span class="string">&quot;docker&quot;</span><span class="default">, </span><span class="string">&quot;compose&quot;</span><span class="default">, </span><span class="string">&quot;exec&quot;</span><span class="default">, </span><span class="string">&quot;-T&quot;</span><span class="default">, </span><span class="string">&quot;app&quot;</span><span class="default">, </span><span class="string">&quot;whoami&quot;</span><span class="default">], capture_output=</span><span class="keyword">True</span><span class="default">, text=</span><span class="keyword">True</span><span class="default">,</span>
+<a name="85"><font size=-1>85     </font></a><span class="default">                       cwd=RAIZ)  </span><span class="comment"># fmt: skip</span>
+<a name="86"><font size=-1>86     </font></a><span class="comment">    </span><span class="default">print(f</span><span class="string">&quot;  {w.stdout.strip()}   (el proceso no corre como root)&quot;</span><span class="default">)</span>
+<a name="87"><font size=-1>87     </font></a><span class="default"></span><span class="keyword">elif </span><span class="default">modo == </span><span class="string">&quot;a04&quot;</span><span class="default">:</span>
+<a name="88"><font size=-1>88     </font></a><span class="default">    print(</span><span class="string">&quot;A04 Cryptographic Failures — contraseñas y claves guardadas solo como hash\n&quot;</span><span class="default">)</span>
+<a name="89"><font size=-1>89     </font></a><span class="default">    r = api.post(</span><span class="string">&quot;/api/integraciones&quot;</span><span class="default">, json={</span><span class="string">&quot;nombre&quot;</span><span class="default">: </span><span class="string">&quot;Evidencia A04&quot;</span><span class="default">}, headers=ADMIN)</span>
+<a name="90"><font size=-1>90     </font></a><span class="default">    secreto = r.json()[</span><span class="string">&quot;clave&quot;</span><span class="default">]</span>
+<a name="91"><font size=-1>91     </font></a><span class="default">    print(</span>
+<a name="92"><font size=-1>92     </font></a><span class="default">        f</span><span class="string">&quot;Clave de integración emitida (se muestra una sola vez): {secreto[:8]}…  ({len(secreto)} caracteres)\n&quot;</span>
+<a name="93"><font size=-1>93     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="94"><font size=-1>94     </font></a><span class="default">    psql(</span>
+<a name="95"><font size=-1>95     </font></a><span class="default">        </span><span class="string">&quot;SELECT nombre_usuario, left(password_hash, 7) AS algoritmo_bcrypt, length(password_hash) AS largo FROM usuarios;&quot;</span>
+<a name="96"><font size=-1>96     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="97"><font size=-1>97     </font></a><span class="default">    psql(</span>
+<a name="98"><font size=-1>98     </font></a><span class="default">        </span><span class="string">&quot;SELECT nombre, prefijo, length(hash_clave) AS largo_sha256, hash_clave LIKE 'ts_%' AS guarda_secreto_en_claro FROM claves_integracion ORDER BY id DESC LIMIT 1;&quot;</span>
+<a name="99"><font size=-1>99     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="100"><font size=-1>100     </font></a><span class="default"></span><span class="keyword">elif </span><span class="default">modo == </span><span class="string">&quot;a05&quot;</span><span class="default">:</span>
+<a name="101"><font size=-1>101     </font></a><span class="default">    print(</span><span class="string">&quot;A05 Injection — entradas maliciosas tratadas como datos\n&quot;</span><span class="default">)</span>
+<a name="102"><font size=-1>102     </font></a><span class="default">    ver(</span>
+<a name="103"><font size=-1>103     </font></a><span class="default">        </span><span class="string">&quot;Login con inyección SQL: ' OR '1'='1&quot;</span><span class="default">,</span>
+<a name="104"><font size=-1>104     </font></a><span class="default">        api.post(</span>
+<a name="105"><font size=-1>105     </font></a><span class="default">            </span><span class="string">&quot;/api/auth/login&quot;</span><span class="default">,</span>
+<a name="106"><font size=-1>106     </font></a><span class="default">            json={</span><span class="string">&quot;nombre_usuario&quot;</span><span class="default">: </span><span class="string">&quot;admin' OR '1'='1' --&quot;</span><span class="default">, </span><span class="string">&quot;password&quot;</span><span class="default">: </span><span class="string">&quot;x' OR '1'='1&quot;</span><span class="default">},</span>
+<a name="107"><font size=-1>107     </font></a><span class="default">        ),</span>
+<a name="108"><font size=-1>108     </font></a><span class="default">        </span><span class="number">401</span><span class="default">,</span>
+<a name="109"><font size=-1>109     </font></a><span class="default">    )</span>
+<a name="110"><font size=-1>110     </font></a><span class="default">    ver(</span>
+<a name="111"><font size=-1>111     </font></a><span class="default">        </span><span class="string">&quot;Filtro con inyección: ?estado=ABIERTA' OR 1=1--&quot;</span><span class="default">,</span>
+<a name="112"><font size=-1>112     </font></a><span class="default">        api.get(</span><span class="string">&quot;/api/alertas?estado=ABIERTA' OR 1=1--&quot;</span><span class="default">, headers=ADMIN),</span>
+<a name="113"><font size=-1>113     </font></a><span class="default">        </span><span class="number">422</span><span class="default">,</span>
+<a name="114"><font size=-1>114     </font></a><span class="default">    )</span>
+<a name="115"><font size=-1>115     </font></a><span class="default">    pisc = token(</span><span class="string">&quot;piscicultor&quot;</span><span class="default">, </span><span class="string">&quot;Pisci123!&quot;</span><span class="default">)</span>
+<a name="116"><font size=-1>116     </font></a><span class="default">    r = api.post(</span>
+<a name="117"><font size=-1>117     </font></a><span class="default">        </span><span class="string">&quot;/api/estanques&quot;</span><span class="default">, json={</span><span class="string">&quot;nombre&quot;</span><span class="default">: f</span><span class="string">&quot;&lt;script&gt;alert({SUFIJO})&lt;/script&gt;&quot;</span><span class="default">}, headers=pisc</span>
+<a name="118"><font size=-1>118     </font></a><span class="default">    )</span>
+<a name="119"><font size=-1>119     </font></a><span class="default">    ver(</span><span class="string">&quot;Estanque con nombre &lt;script&gt;…&lt;/script&gt;&quot;</span><span class="default">, r, </span><span class="number">201</span><span class="default">)</span>
+<a name="120"><font size=-1>120     </font></a><span class="default">    eid = r.json()[</span><span class="string">&quot;id&quot;</span><span class="default">]</span>
+<a name="121"><font size=-1>121     </font></a><span class="default">    web = httpx.Client(base_url=URL)</span>
+<a name="122"><font size=-1>122     </font></a><span class="default">    web.post(</span><span class="string">&quot;/login&quot;</span><span class="default">, data={</span><span class="string">&quot;nombre_usuario&quot;</span><span class="default">: </span><span class="string">&quot;piscicultor&quot;</span><span class="default">, </span><span class="string">&quot;password&quot;</span><span class="default">: </span><span class="string">&quot;Pisci123!&quot;</span><span class="default">})</span>
+<a name="123"><font size=-1>123     </font></a><span class="default">    html = web.get(f</span><span class="string">&quot;/estanques/{eid}&quot;</span><span class="default">).text</span>
+<a name="124"><font size=-1>124     </font></a><span class="default">    print(f</span><span class="string">&quot;{'✓' if '&amp;lt;script&amp;gt;' in html and '&lt;script&gt;alert(' not in html else '✗'} La página muestra el nombre escapado: &quot;</span>
+<a name="125"><font size=-1>125     </font></a><span class="string">          </span><span class="default">f</span><span class="string">&quot;{f'&amp;lt;script&amp;gt;alert({SUFIJO})&amp;lt;/script&amp;gt;' if '&amp;lt;script&amp;gt;' in html else '(no escapado)'}&quot;</span><span class="default">)  </span><span class="comment"># fmt: skip</span>
+<a name="126"><font size=-1>126     </font></a><span class="comment">    </span><span class="default">api.delete(f</span><span class="string">&quot;/api/estanques/{eid}&quot;</span><span class="default">, headers=pisc)</span>
+<a name="127"><font size=-1>127     </font></a><span class="default"></span><span class="keyword">elif </span><span class="default">modo == </span><span class="string">&quot;a07&quot;</span><span class="default">:</span>
+<a name="128"><font size=-1>128     </font></a><span class="default">    print(</span><span class="string">&quot;A07 Authentication Failures — bloqueo tras 3 intentos fallidos (HU-11)\n&quot;</span><span class="default">)</span>
+<a name="129"><font size=-1>129     </font></a><span class="default">    api.post(</span><span class="string">&quot;/api/usuarios&quot;</span><span class="default">, json={</span><span class="string">&quot;nombre_usuario&quot;</span><span class="default">: f</span><span class="string">&quot;evidencia.{SUFIJO}&quot;</span><span class="default">, </span><span class="string">&quot;nombre_completo&quot;</span><span class="default">: </span><span class="string">&quot;Usuario Evidencia A07&quot;</span><span class="default">,</span>
+<a name="130"><font size=-1>130     </font></a><span class="default">                                    </span><span class="string">&quot;password&quot;</span><span class="default">: </span><span class="string">&quot;Correcta123!&quot;</span><span class="default">, </span><span class="string">&quot;rol&quot;</span><span class="default">: </span><span class="string">&quot;OPERARIO&quot;</span><span class="default">}, headers=ADMIN)  </span><span class="comment"># fmt: skip</span>
+<a name="131"><font size=-1>131     </font></a><span class="comment">    </span><span class="keyword">for </span><span class="default">i </span><span class="keyword">in </span><span class="default">range(</span><span class="number">1</span><span class="default">, </span><span class="number">4</span><span class="default">):</span>
+<a name="132"><font size=-1>132     </font></a><span class="default">        ver(</span>
+<a name="133"><font size=-1>133     </font></a><span class="default">            f</span><span class="string">&quot;Intento {i} con contraseña incorrecta&quot;</span><span class="default">,</span>
+<a name="134"><font size=-1>134     </font></a><span class="default">            api.post(</span>
+<a name="135"><font size=-1>135     </font></a><span class="default">                </span><span class="string">&quot;/api/auth/login&quot;</span><span class="default">,</span>
+<a name="136"><font size=-1>136     </font></a><span class="default">                json={</span><span class="string">&quot;nombre_usuario&quot;</span><span class="default">: f</span><span class="string">&quot;evidencia.{SUFIJO}&quot;</span><span class="default">, </span><span class="string">&quot;password&quot;</span><span class="default">: </span><span class="string">&quot;Adivinada1&quot;</span><span class="default">},</span>
+<a name="137"><font size=-1>137     </font></a><span class="default">            ),</span>
+<a name="138"><font size=-1>138     </font></a><span class="default">            </span><span class="number">401 </span><span class="keyword">if </span><span class="default">i &lt; </span><span class="number">3 </span><span class="keyword">else </span><span class="number">423</span><span class="default">,</span>
+<a name="139"><font size=-1>139     </font></a><span class="default">        )</span>
+<a name="140"><font size=-1>140     </font></a><span class="default">    ver(</span>
+<a name="141"><font size=-1>141     </font></a><span class="default">        </span><span class="string">&quot;Contraseña correcta durante el bloqueo&quot;</span><span class="default">,</span>
+<a name="142"><font size=-1>142     </font></a><span class="default">        api.post(</span>
+<a name="143"><font size=-1>143     </font></a><span class="default">            </span><span class="string">&quot;/api/auth/login&quot;</span><span class="default">,</span>
+<a name="144"><font size=-1>144     </font></a><span class="default">            json={</span><span class="string">&quot;nombre_usuario&quot;</span><span class="default">: f</span><span class="string">&quot;evidencia.{SUFIJO}&quot;</span><span class="default">, </span><span class="string">&quot;password&quot;</span><span class="default">: </span><span class="string">&quot;Correcta123!&quot;</span><span class="default">},</span>
+<a name="145"><font size=-1>145     </font></a><span class="default">        ),</span>
+<a name="146"><font size=-1>146     </font></a><span class="default">        </span><span class="number">423</span><span class="default">,</span>
+<a name="147"><font size=-1>147     </font></a><span class="default">    )</span>
+<a name="148"><font size=-1>148     </font></a><span class="default"></span><span class="keyword">elif </span><span class="default">modo == </span><span class="string">&quot;a08&quot;</span><span class="default">:</span>
+<a name="149"><font size=-1>149     </font></a><span class="default">    print(</span>
+<a name="150"><font size=-1>150     </font></a><span class="default">        </span><span class="string">&quot;A08 Software or Data Integrity Failures — API externa de solo lectura con clave revocable\n&quot;</span>
+<a name="151"><font size=-1>151     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="152"><font size=-1>152     </font></a><span class="default">    r = api.post(</span><span class="string">&quot;/api/integraciones&quot;</span><span class="default">, json={</span><span class="string">&quot;nombre&quot;</span><span class="default">: </span><span class="string">&quot;Evidencia A08&quot;</span><span class="default">}, headers=ADMIN).json()</span>
+<a name="153"><font size=-1>153     </font></a><span class="default">    clave = {</span><span class="string">&quot;X-API-Key&quot;</span><span class="default">: r[</span><span class="string">&quot;clave&quot;</span><span class="default">]}</span>
+<a name="154"><font size=-1>154     </font></a><span class="default">    ver(</span>
+<a name="155"><font size=-1>155     </font></a><span class="default">        </span><span class="string">&quot;GET /api/externa/v1/estanques con clave activa&quot;</span><span class="default">,</span>
+<a name="156"><font size=-1>156     </font></a><span class="default">        api.get(</span><span class="string">&quot;/api/externa/v1/estanques&quot;</span><span class="default">, headers=clave),</span>
+<a name="157"><font size=-1>157     </font></a><span class="default">        </span><span class="number">200</span><span class="default">,</span>
+<a name="158"><font size=-1>158     </font></a><span class="default">    )</span>
+<a name="159"><font size=-1>159     </font></a><span class="default">    ver(</span>
+<a name="160"><font size=-1>160     </font></a><span class="default">        </span><span class="string">&quot;POST /api/externa/v1/estanques (escritura)&quot;</span><span class="default">,</span>
+<a name="161"><font size=-1>161     </font></a><span class="default">        api.post(</span><span class="string">&quot;/api/externa/v1/estanques&quot;</span><span class="default">, json={}, headers=clave),</span>
+<a name="162"><font size=-1>162     </font></a><span class="default">        </span><span class="number">405</span><span class="default">,</span>
+<a name="163"><font size=-1>163     </font></a><span class="default">    )</span>
+<a name="164"><font size=-1>164     </font></a><span class="default">    ver(</span>
+<a name="165"><font size=-1>165     </font></a><span class="default">        </span><span class="string">&quot;Revocar la clave: DELETE /api/integraciones/{id}&quot;</span><span class="default">,</span>
+<a name="166"><font size=-1>166     </font></a><span class="default">        api.delete(f</span><span class="string">&quot;/api/integraciones/{r['id']}&quot;</span><span class="default">, headers=ADMIN),</span>
+<a name="167"><font size=-1>167     </font></a><span class="default">        </span><span class="number">200</span><span class="default">,</span>
+<a name="168"><font size=-1>168     </font></a><span class="default">    )</span>
+<a name="169"><font size=-1>169     </font></a><span class="default">    ver(</span>
+<a name="170"><font size=-1>170     </font></a><span class="default">        </span><span class="string">&quot;GET /api/externa/v1/estanques con la clave revocada&quot;</span><span class="default">,</span>
+<a name="171"><font size=-1>171     </font></a><span class="default">        api.get(</span><span class="string">&quot;/api/externa/v1/estanques&quot;</span><span class="default">, headers=clave),</span>
+<a name="172"><font size=-1>172     </font></a><span class="default">        </span><span class="number">401</span><span class="default">,</span>
+<a name="173"><font size=-1>173     </font></a><span class="default">    )</span>
+<a name="174"><font size=-1>174     </font></a><span class="default">    print(</span>
+<a name="175"><font size=-1>175     </font></a><span class="default">        </span><span class="string">&quot;\n$ docker image inspect trucha-smart-app  (imagen construida desde el Dockerfile del repositorio)&quot;</span>
+<a name="176"><font size=-1>176     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="177"><font size=-1>177     </font></a><span class="default">    d = subprocess.run([</span><span class="string">&quot;docker&quot;</span><span class="default">, </span><span class="string">&quot;image&quot;</span><span class="default">, </span><span class="string">&quot;inspect&quot;</span><span class="default">, </span><span class="string">&quot;trucha-smart-app&quot;</span><span class="default">, </span><span class="string">&quot;--format&quot;</span><span class="default">, </span><span class="string">&quot;{{.Id}}  creada {{.Created}}  usuario={{.Config.User}}&quot;</span><span class="default">],</span>
+<a name="178"><font size=-1>178     </font></a><span class="default">                       capture_output=</span><span class="keyword">True</span><span class="default">, text=</span><span class="keyword">True</span><span class="default">)  </span><span class="comment"># fmt: skip</span>
+<a name="179"><font size=-1>179     </font></a><span class="comment">    </span><span class="default">print(</span><span class="string">&quot;  &quot; </span><span class="default">+ d.stdout.strip())</span>
+<a name="180"><font size=-1>180     </font></a><span class="default"></span><span class="keyword">elif </span><span class="default">modo == </span><span class="string">&quot;a09&quot;</span><span class="default">:</span>
+<a name="181"><font size=-1>181     </font></a><span class="default">    print(</span><span class="string">&quot;A09 Security Logging and Alerting Failures — bitácora de seguridad sin secretos\n&quot;</span><span class="default">)</span>
+<a name="182"><font size=-1>182     </font></a><span class="default">    r = api.get(</span><span class="string">&quot;/api/auditoria?limite=12&quot;</span><span class="default">, headers=ADMIN).json()</span>
+<a name="183"><font size=-1>183     </font></a><span class="default">    </span><span class="keyword">for </span><span class="default">e </span><span class="keyword">in </span><span class="default">r:</span>
+<a name="184"><font size=-1>184     </font></a><span class="default">        print(</span>
+<a name="185"><font size=-1>185     </font></a><span class="default">            f</span><span class="string">&quot;  {e['momento'][:19]}  {e['tipo']:&lt;24} usuario={str(e['nombre_usuario']):&lt;16} ip={e['ip']:&lt;12} {e['detalle'][:45]}&quot;</span>
+<a name="186"><font size=-1>186     </font></a><span class="string">        </span><span class="default">)</span>
+<a name="187"><font size=-1>187     </font></a><span class="default">    texto = str(r)</span>
+<a name="188"><font size=-1>188     </font></a><span class="default">    print(</span>
+<a name="189"><font size=-1>189     </font></a><span class="default">        f</span><span class="string">&quot;\n{'✓' if 'Adivinada1' not in texto and 'Correcta123!' not in texto else '✗'} Ninguna contraseña aparece en la bitácora&quot;</span>
+<a name="190"><font size=-1>190     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="191"><font size=-1>191     </font></a><span class="default"></span><span class="keyword">elif </span><span class="default">modo == </span><span class="string">&quot;a10&quot;</span><span class="default">:</span>
+<a name="192"><font size=-1>192     </font></a><span class="default">    print(</span><span class="string">&quot;A10 Mishandling of Exceptional Conditions — errores controlados, sin trazas internas\n&quot;</span><span class="default">)</span>
+<a name="193"><font size=-1>193     </font></a><span class="default">    </span><span class="keyword">for </span><span class="default">etiqueta, r, esp </span><span class="keyword">in </span><span class="default">[</span>
+<a name="194"><font size=-1>194     </font></a><span class="default">        (</span><span class="string">&quot;Estanque inexistente: GET /api/estanques/999&quot;</span><span class="default">, api.get(</span><span class="string">&quot;/api/estanques/999&quot;</span><span class="default">, headers=ADMIN), </span><span class="number">404</span><span class="default">),</span>
+<a name="195"><font size=-1>195     </font></a><span class="default">        (</span><span class="string">&quot;JSON inválido: POST /api/lecturas&quot;</span><span class="default">, api.post(</span><span class="string">&quot;/api/lecturas&quot;</span><span class="default">, content=</span><span class="string">b&quot;{no es json&quot;</span><span class="default">, headers={**ADMIN, </span><span class="string">&quot;Content-Type&quot;</span><span class="default">: </span><span class="string">&quot;application/json&quot;</span><span class="default">}), </span><span class="number">422</span><span class="default">),</span>
+<a name="196"><font size=-1>196     </font></a><span class="default">        (</span><span class="string">&quot;pH imposible (15): POST /api/lecturas&quot;</span><span class="default">, api.post(</span><span class="string">&quot;/api/lecturas&quot;</span><span class="default">, json={</span><span class="string">&quot;estanque_id&quot;</span><span class="default">: </span><span class="number">1</span><span class="default">, </span><span class="string">&quot;temperatura_c&quot;</span><span class="default">: </span><span class="number">12</span><span class="default">, </span><span class="string">&quot;oxigeno_mg_l&quot;</span><span class="default">: </span><span class="number">8</span><span class="default">, </span><span class="string">&quot;ph&quot;</span><span class="default">: </span><span class="number">15</span><span class="default">}, headers=ADMIN), </span><span class="number">422</span><span class="default">),</span>
+<a name="197"><font size=-1>197     </font></a><span class="default">        (</span><span class="string">&quot;Salud del servicio: GET /api/salud&quot;</span><span class="default">, api.get(</span><span class="string">&quot;/api/salud&quot;</span><span class="default">), </span><span class="number">200</span><span class="default">),</span>
+<a name="198"><font size=-1>198     </font></a><span class="default">    ]:  </span><span class="comment"># fmt: skip</span>
+<a name="199"><font size=-1>199     </font></a><span class="comment">        </span><span class="default">ver(etiqueta, r, esp)</span>
+<a name="200"><font size=-1>200     </font></a><span class="default">        </span><span class="keyword">if </span><span class="string">&quot;Traceback&quot; </span><span class="keyword">in </span><span class="default">r.text </span><span class="keyword">or </span><span class="string">'File &quot;' </span><span class="keyword">in </span><span class="default">r.text:</span>
+<a name="201"><font size=-1>201     </font></a><span class="default">            print(</span><span class="string">&quot;  ✗ la respuesta expone una traza interna&quot;</span><span class="default">)</span>
+<a name="202"><font size=-1>202     </font></a><span class="default"></span>
+</pre></body></html>

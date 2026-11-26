@@ -1,0 +1,226 @@
+<html><head><title>generar_seed.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: D:\actions-runner\_work\_temp\understand\trucha-smart\tools\generar_seed.py</h3>
+<SCRIPT>
+defaultStatus = "File: D:\\actions-runner\\_work\\_temp\\understand\\trucha-smart\\tools\\generar_seed.py";
+top.document.title  = "generar_seed.py";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="string">&quot;&quot;&quot;Genera db/seed.sql con datos de demostración reproducibles.</span>
+<a name="2"><font size=-1>2     </font></a><span class="string"></span>
+<a name="3"><font size=-1>3     </font></a><span class="string">- 3 usuarios (uno por rol) con contraseña hasheada con bcrypt.</span>
+<a name="4"><font size=-1>4     </font></a><span class="string">- 3 estanques/jaulas con un lote activo cada uno.</span>
+<a name="5"><font size=-1>5     </font></a><span class="string">- Lecturas cada 3 horas durante 7 días (2026-10-16 a 2026-10-22, UTC).</span>
+<a name="6"><font size=-1>6     </font></a><span class="string">- La jaula J1 tiene dos caídas de oxígeno a nivel de PRECAUCIÓN con su alerta</span>
+<a name="7"><font size=-1>7     </font></a><span class="string">  (una atendida y otra abierta), coherentes con config/umbrales.yaml.</span>
+<a name="8"><font size=-1>8     </font></a><span class="string">- Alimentación diaria y algunos registros de mortalidad.</span>
+<a name="9"><font size=-1>9     </font></a><span class="string"></span>
+<a name="10"><font size=-1>10     </font></a><span class="string">Uso:  python tools/generar_seed.py</span>
+<a name="11"><font size=-1>11     </font></a><span class="string">Las contraseñas de demostración están documentadas en el README.</span>
+<a name="12"><font size=-1>12     </font></a><span class="string">&quot;&quot;&quot;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span><span class="keyword">from </span><span class="default">__future__ </span><span class="keyword">import </span><span class="default">annotations</span>
+<a name="15"><font size=-1>15     </font></a><span class="default"></span>
+<a name="16"><font size=-1>16     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">math</span>
+<a name="17"><font size=-1>17     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">random</span>
+<a name="18"><font size=-1>18     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">sys</span>
+<a name="19"><font size=-1>19     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">datetime </span><span class="keyword">import </span><span class="default">UTC, datetime, timedelta</span>
+<a name="20"><font size=-1>20     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">pathlib </span><span class="keyword">import </span><span class="default">Path</span>
+<a name="21"><font size=-1>21     </font></a><span class="default"></span>
+<a name="22"><font size=-1>22     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">bcrypt</span>
+<a name="23"><font size=-1>23     </font></a><span class="default"></span>
+<a name="24"><font size=-1>24     </font></a><span class="default">RAIZ = Path(__file__).resolve().parent.parent</span>
+<a name="25"><font size=-1>25     </font></a><span class="default">DESTINO = RAIZ / </span><span class="string">&quot;db&quot; </span><span class="default">/ </span><span class="string">&quot;seed.sql&quot;</span>
+<a name="26"><font size=-1>26     </font></a><span class="string"></span><span class="default">sys.path.insert(</span><span class="number">0</span><span class="default">, str(RAIZ))</span>
+<a name="27"><font size=-1>27     </font></a><span class="default"></span>
+<a name="28"><font size=-1>28     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.adapters.config </span><span class="keyword">import </span><span class="default">cargar_umbrales  </span><span class="comment"># noqa: E402</span>
+<a name="29"><font size=-1>29     </font></a><span class="comment"></span><span class="keyword">from </span><span class="default">src.domain.model.umbral </span><span class="keyword">import </span><span class="default">Nivel  </span><span class="comment"># noqa: E402</span>
+<a name="30"><font size=-1>30     </font></a><span class="comment"></span>
+<a name="31"><font size=-1>31     </font></a><span class="comment"># Sal fija para que el archivo generado sea reproducible (solo datos de demostración).</span>
+<a name="32"><font size=-1>32     </font></a><span class="comment"></span><span class="default">SAL_DEMO = </span><span class="string">b&quot;$2b$12$TruchaSmartDemoSaltSee&quot;</span>
+<a name="33"><font size=-1>33     </font></a><span class="string"></span>
+<a name="34"><font size=-1>34     </font></a><span class="string"></span><span class="default">USUARIOS = [</span>
+<a name="35"><font size=-1>35     </font></a><span class="default">    (</span><span class="number">1</span><span class="default">, </span><span class="string">&quot;admin&quot;</span><span class="default">, </span><span class="string">&quot;Ana Administradora&quot;</span><span class="default">, </span><span class="string">&quot;Admin123!&quot;</span><span class="default">, </span><span class="string">&quot;ADMINISTRADOR&quot;</span><span class="default">),</span>
+<a name="36"><font size=-1>36     </font></a><span class="default">    (</span><span class="number">2</span><span class="default">, </span><span class="string">&quot;piscicultor&quot;</span><span class="default">, </span><span class="string">&quot;Pedro Piscicultor&quot;</span><span class="default">, </span><span class="string">&quot;Pisci123!&quot;</span><span class="default">, </span><span class="string">&quot;PISCICULTOR&quot;</span><span class="default">),</span>
+<a name="37"><font size=-1>37     </font></a><span class="default">    (</span><span class="number">3</span><span class="default">, </span><span class="string">&quot;operario&quot;</span><span class="default">, </span><span class="string">&quot;Olga Operaria&quot;</span><span class="default">, </span><span class="string">&quot;Oper123!&quot;</span><span class="default">, </span><span class="string">&quot;OPERARIO&quot;</span><span class="default">),</span>
+<a name="38"><font size=-1>38     </font></a><span class="default">]</span>
+<a name="39"><font size=-1>39     </font></a><span class="default">ESTANQUES = [</span>
+<a name="40"><font size=-1>40     </font></a><span class="default">    (</span><span class="number">1</span><span class="default">, </span><span class="string">&quot;Estanque A1&quot;</span><span class="default">, </span><span class="string">&quot;ESTANQUE&quot;</span><span class="default">, </span><span class="number">120.0</span><span class="default">, </span><span class="string">&quot;Sector norte&quot;</span><span class="default">),</span>
+<a name="41"><font size=-1>41     </font></a><span class="default">    (</span><span class="number">2</span><span class="default">, </span><span class="string">&quot;Estanque A2&quot;</span><span class="default">, </span><span class="string">&quot;ESTANQUE&quot;</span><span class="default">, </span><span class="number">120.0</span><span class="default">, </span><span class="string">&quot;Sector norte&quot;</span><span class="default">),</span>
+<a name="42"><font size=-1>42     </font></a><span class="default">    (</span><span class="number">3</span><span class="default">, </span><span class="string">&quot;Jaula J1&quot;</span><span class="default">, </span><span class="string">&quot;JAULA&quot;</span><span class="default">, </span><span class="number">250.0</span><span class="default">, </span><span class="string">&quot;Laguna, muelle 2&quot;</span><span class="default">),</span>
+<a name="43"><font size=-1>43     </font></a><span class="default">]</span>
+<a name="44"><font size=-1>44     </font></a><span class="default"></span><span class="comment"># id, estanque, código, peces, peso inicial, peso actual, siembra</span>
+<a name="45"><font size=-1>45     </font></a><span class="comment"></span><span class="default">LOTES = [</span>
+<a name="46"><font size=-1>46     </font></a><span class="default">    (</span><span class="number">1</span><span class="default">, </span><span class="number">1</span><span class="default">, </span><span class="string">&quot;L-2026-01&quot;</span><span class="default">, </span><span class="number">5000</span><span class="default">, </span><span class="number">45.0</span><span class="default">, </span><span class="number">62.0</span><span class="default">, </span><span class="string">&quot;2026-08-01&quot;</span><span class="default">),</span>
+<a name="47"><font size=-1>47     </font></a><span class="default">    (</span><span class="number">2</span><span class="default">, </span><span class="number">2</span><span class="default">, </span><span class="string">&quot;L-2026-02&quot;</span><span class="default">, </span><span class="number">8000</span><span class="default">, </span><span class="number">8.0</span><span class="default">, </span><span class="number">15.0</span><span class="default">, </span><span class="string">&quot;2026-09-10&quot;</span><span class="default">),</span>
+<a name="48"><font size=-1>48     </font></a><span class="default">    (</span><span class="number">3</span><span class="default">, </span><span class="number">3</span><span class="default">, </span><span class="string">&quot;L-2026-03&quot;</span><span class="default">, </span><span class="number">3000</span><span class="default">, </span><span class="number">180.0</span><span class="default">, </span><span class="number">230.0</span><span class="default">, </span><span class="string">&quot;2026-06-15&quot;</span><span class="default">),</span>
+<a name="49"><font size=-1>49     </font></a><span class="default">]</span>
+<a name="50"><font size=-1>50     </font></a><span class="default">INICIO = datetime(</span><span class="number">2026</span><span class="default">, </span><span class="number">10</span><span class="default">, </span><span class="number">16</span><span class="default">, </span><span class="number">0</span><span class="default">, </span><span class="number">0</span><span class="default">, tzinfo=UTC)</span>
+<a name="51"><font size=-1>51     </font></a><span class="default">DIAS = </span><span class="number">7</span>
+<a name="52"><font size=-1>52     </font></a><span class="number"></span><span class="default">PASO_HORAS = </span><span class="number">3</span>
+<a name="53"><font size=-1>53     </font></a><span class="number"></span>
+<a name="54"><font size=-1>54     </font></a><span class="number"></span><span class="comment"># Ventanas (inicio, fin) en las que la jaula J1 tiene OD en precaución (5.0 &lt;= OD &lt; 7.0).</span>
+<a name="55"><font size=-1>55     </font></a><span class="comment"></span><span class="default">CAIDAS_OD_J1 = [</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">    (INICIO + timedelta(days=</span><span class="number">2</span><span class="default">, hours=</span><span class="number">3</span><span class="default">), INICIO + timedelta(days=</span><span class="number">2</span><span class="default">, hours=</span><span class="number">9</span><span class="default">)),</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">    (INICIO + timedelta(days=</span><span class="number">6</span><span class="default">, hours=</span><span class="number">12</span><span class="default">), INICIO + timedelta(days=</span><span class="number">6</span><span class="default">, hours=</span><span class="number">21</span><span class="default">)),</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">]</span>
+<a name="59"><font size=-1>59     </font></a><span class="default"></span>
+<a name="60"><font size=-1>60     </font></a><span class="default"></span>
+<a name="61"><font size=-1>61     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">ts(d: datetime) -&gt; str:</span>
+<a name="62"><font size=-1>62     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">d.strftime(</span><span class="string">&quot;'%Y-%m-%d %H:%M:%S+00'&quot;</span><span class="default">)</span>
+<a name="63"><font size=-1>63     </font></a><span class="default"></span>
+<a name="64"><font size=-1>64     </font></a><span class="default"></span>
+<a name="65"><font size=-1>65     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">generar() -&gt; str:</span>
+<a name="66"><font size=-1>66     </font></a><span class="default">    rnd = random.Random(</span><span class="number">20261023</span><span class="default">)</span>
+<a name="67"><font size=-1>67     </font></a><span class="default">    umbral_od = cargar_umbrales(RAIZ / </span><span class="string">&quot;config&quot; </span><span class="default">/ </span><span class="string">&quot;umbrales.yaml&quot;</span><span class="default">).oxigeno_disuelto</span>
+<a name="68"><font size=-1>68     </font></a><span class="default">    out: list[str] = [</span>
+<a name="69"><font size=-1>69     </font></a><span class="default">        </span><span class="string">&quot;-- Generado por tools/generar_seed.py. No editar a mano: regenerar.&quot;</span><span class="default">,</span>
+<a name="70"><font size=-1>70     </font></a><span class="default">        </span><span class="string">&quot;-- Datos de demostración (contraseñas en el README).&quot;</span><span class="default">,</span>
+<a name="71"><font size=-1>71     </font></a><span class="default">        </span><span class="string">&quot;&quot;</span><span class="default">,</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">    ]</span>
+<a name="73"><font size=-1>73     </font></a><span class="default"></span>
+<a name="74"><font size=-1>74     </font></a><span class="default">    out.append(</span>
+<a name="75"><font size=-1>75     </font></a><span class="default">        </span><span class="string">&quot;INSERT INTO usuarios (id, nombre_usuario, nombre_completo, password_hash, rol, activo, &quot;</span>
+<a name="76"><font size=-1>76     </font></a><span class="string">        &quot;creado_en) VALUES&quot;</span>
+<a name="77"><font size=-1>77     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="78"><font size=-1>78     </font></a><span class="default">    filas = []</span>
+<a name="79"><font size=-1>79     </font></a><span class="default">    </span><span class="keyword">for </span><span class="default">uid, user, nombre, pwd, rol </span><span class="keyword">in </span><span class="default">USUARIOS:</span>
+<a name="80"><font size=-1>80     </font></a><span class="default">        h = bcrypt.hashpw(pwd.encode(), SAL_DEMO).decode()</span>
+<a name="81"><font size=-1>81     </font></a><span class="default">        filas.append(f</span><span class="string">&quot;  ({uid}, '{user}', '{nombre}', '{h}', '{rol}', TRUE, {ts(INICIO)})&quot;</span><span class="default">)</span>
+<a name="82"><font size=-1>82     </font></a><span class="default">    out.append(</span><span class="string">&quot;,\n&quot;</span><span class="default">.join(filas) + </span><span class="string">&quot;;\n&quot;</span><span class="default">)</span>
+<a name="83"><font size=-1>83     </font></a><span class="default"></span>
+<a name="84"><font size=-1>84     </font></a><span class="default">    out.append(</span>
+<a name="85"><font size=-1>85     </font></a><span class="default">        </span><span class="string">&quot;INSERT INTO estanques (id, nombre, tipo, volumen_m3, ubicacion, activo, creado_en) VALUES&quot;</span>
+<a name="86"><font size=-1>86     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="87"><font size=-1>87     </font></a><span class="default">    out.append(</span>
+<a name="88"><font size=-1>88     </font></a><span class="default">        </span><span class="string">&quot;,\n&quot;</span><span class="default">.join(</span>
+<a name="89"><font size=-1>89     </font></a><span class="default">            f</span><span class="string">&quot;  ({e[0]}, '{e[1]}', '{e[2]}', {e[3]:.2f}, '{e[4]}', TRUE, {ts(INICIO)})&quot;</span>
+<a name="90"><font size=-1>90     </font></a><span class="string">            </span><span class="keyword">for </span><span class="default">e </span><span class="keyword">in </span><span class="default">ESTANQUES</span>
+<a name="91"><font size=-1>91     </font></a><span class="default">        )</span>
+<a name="92"><font size=-1>92     </font></a><span class="default">        + </span><span class="string">&quot;;\n&quot;</span>
+<a name="93"><font size=-1>93     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="94"><font size=-1>94     </font></a><span class="default"></span>
+<a name="95"><font size=-1>95     </font></a><span class="default">    out.append(</span>
+<a name="96"><font size=-1>96     </font></a><span class="default">        </span><span class="string">&quot;INSERT INTO lotes (id, estanque_id, codigo, num_peces_inicial, peso_medio_inicial_g, &quot;</span>
+<a name="97"><font size=-1>97     </font></a><span class="string">        &quot;peso_medio_actual_g, fecha_siembra, activo, fecha_cierre) VALUES&quot;</span>
+<a name="98"><font size=-1>98     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="99"><font size=-1>99     </font></a><span class="default">    out.append(</span>
+<a name="100"><font size=-1>100     </font></a><span class="default">        </span><span class="string">&quot;,\n&quot;</span><span class="default">.join(</span>
+<a name="101"><font size=-1>101     </font></a><span class="default">            f</span><span class="string">&quot;  ({lo[0]}, {lo[1]}, '{lo[2]}', {lo[3]}, {lo[4]:.2f}, {lo[5]:.2f}, '{lo[6]}', &quot;</span>
+<a name="102"><font size=-1>102     </font></a><span class="string">            &quot;TRUE, NULL)&quot;</span>
+<a name="103"><font size=-1>103     </font></a><span class="string">            </span><span class="keyword">for </span><span class="default">lo </span><span class="keyword">in </span><span class="default">LOTES</span>
+<a name="104"><font size=-1>104     </font></a><span class="default">        )</span>
+<a name="105"><font size=-1>105     </font></a><span class="default">        + </span><span class="string">&quot;;\n&quot;</span>
+<a name="106"><font size=-1>106     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="107"><font size=-1>107     </font></a><span class="default"></span>
+<a name="108"><font size=-1>108     </font></a><span class="default">    lecturas = []</span>
+<a name="109"><font size=-1>109     </font></a><span class="default">    alertas = []</span>
+<a name="110"><font size=-1>110     </font></a><span class="default">    lid = </span><span class="number">0</span>
+<a name="111"><font size=-1>111     </font></a><span class="number">    </span><span class="keyword">for </span><span class="default">est_id, *_ </span><span class="keyword">in </span><span class="default">ESTANQUES:</span>
+<a name="112"><font size=-1>112     </font></a><span class="default">        alerta_abierta: dict | </span><span class="keyword">None </span><span class="default">= </span><span class="keyword">None</span>
+<a name="113"><font size=-1>113     </font></a><span class="keyword">        </span><span class="default">t = INICIO</span>
+<a name="114"><font size=-1>114     </font></a><span class="default">        </span><span class="keyword">while </span><span class="default">t &lt; INICIO + timedelta(days=DIAS):</span>
+<a name="115"><font size=-1>115     </font></a><span class="default">            lid += </span><span class="number">1</span>
+<a name="116"><font size=-1>116     </font></a><span class="number">            </span><span class="default">hora = t.hour + t.minute / </span><span class="number">60</span>
+<a name="117"><font size=-1>117     </font></a><span class="number">            </span><span class="default">temp = </span><span class="number">12.5 </span><span class="default">+ </span><span class="number">1.8 </span><span class="default">* math.sin((hora - </span><span class="number">9</span><span class="default">) / </span><span class="number">24 </span><span class="default">* </span><span class="number">2 </span><span class="default">* math.pi) + rnd.uniform(-</span><span class="number">0.3</span><span class="default">, </span><span class="number">0.3</span><span class="default">)</span>
+<a name="118"><font size=-1>118     </font></a><span class="default">            od = </span><span class="number">8.4 </span><span class="default">- </span><span class="number">0.5 </span><span class="default">* math.sin((hora - </span><span class="number">9</span><span class="default">) / </span><span class="number">24 </span><span class="default">* </span><span class="number">2 </span><span class="default">* math.pi) + rnd.uniform(-</span><span class="number">0.3</span><span class="default">, </span><span class="number">0.3</span><span class="default">)</span>
+<a name="119"><font size=-1>119     </font></a><span class="default">            ph = </span><span class="number">7.3 </span><span class="default">+ rnd.uniform(-</span><span class="number">0.25</span><span class="default">, </span><span class="number">0.25</span><span class="default">)</span>
+<a name="120"><font size=-1>120     </font></a><span class="default">            en_caida = est_id == </span><span class="number">3 </span><span class="keyword">and </span><span class="default">any(a &lt;= t &lt;= b </span><span class="keyword">for </span><span class="default">a, b </span><span class="keyword">in </span><span class="default">CAIDAS_OD_J1)</span>
+<a name="121"><font size=-1>121     </font></a><span class="default">            </span><span class="keyword">if </span><span class="default">en_caida:</span>
+<a name="122"><font size=-1>122     </font></a><span class="default">                od = rnd.uniform(</span><span class="number">5.6</span><span class="default">, </span><span class="number">6.6</span><span class="default">)</span>
+<a name="123"><font size=-1>123     </font></a><span class="default">            fuente = </span><span class="string">&quot;SENSOR&quot; </span><span class="keyword">if </span><span class="default">est_id != </span><span class="number">2 </span><span class="keyword">else </span><span class="string">&quot;MANUAL&quot;</span>
+<a name="124"><font size=-1>124     </font></a><span class="string">            </span><span class="default">reg = </span><span class="string">&quot;NULL&quot; </span><span class="keyword">if </span><span class="default">fuente == </span><span class="string">&quot;SENSOR&quot; </span><span class="keyword">else </span><span class="string">&quot;3&quot;</span>
+<a name="125"><font size=-1>125     </font></a><span class="string">            </span><span class="default">lecturas.append(</span>
+<a name="126"><font size=-1>126     </font></a><span class="default">                f</span><span class="string">&quot;  ({lid}, {est_id}, {temp:.2f}, {od:.2f}, {ph:.2f}, '{fuente}', {reg}, {ts(t)})&quot;</span>
+<a name="127"><font size=-1>127     </font></a><span class="string">            </span><span class="default">)</span>
+<a name="128"><font size=-1>128     </font></a><span class="default">            </span><span class="keyword">if </span><span class="default">en_caida </span><span class="keyword">and </span><span class="default">alerta_abierta </span><span class="keyword">is None</span><span class="default">:</span>
+<a name="129"><font size=-1>129     </font></a><span class="default">                alerta_abierta = {</span>
+<a name="130"><font size=-1>130     </font></a><span class="default">                    </span><span class="string">&quot;id&quot;</span><span class="default">: len(alertas) + </span><span class="number">1</span><span class="default">,</span>
+<a name="131"><font size=-1>131     </font></a><span class="default">                    </span><span class="string">&quot;lectura&quot;</span><span class="default">: lid,</span>
+<a name="132"><font size=-1>132     </font></a><span class="default">                    </span><span class="string">&quot;valor&quot;</span><span class="default">: od,</span>
+<a name="133"><font size=-1>133     </font></a><span class="default">                    </span><span class="string">&quot;creada&quot;</span><span class="default">: t,</span>
+<a name="134"><font size=-1>134     </font></a><span class="default">                }</span>
+<a name="135"><font size=-1>135     </font></a><span class="default">                alertas.append(alerta_abierta)</span>
+<a name="136"><font size=-1>136     </font></a><span class="default">            </span><span class="keyword">if not </span><span class="default">en_caida </span><span class="keyword">and </span><span class="default">alerta_abierta </span><span class="keyword">is not None</span><span class="default">:</span>
+<a name="137"><font size=-1>137     </font></a><span class="default">                </span><span class="comment"># La primera caída se atendió 1 h después de crearse la alerta.</span>
+<a name="138"><font size=-1>138     </font></a><span class="comment">                </span><span class="default">alerta_abierta[</span><span class="string">&quot;atendida&quot;</span><span class="default">] = alerta_abierta[</span><span class="string">&quot;creada&quot;</span><span class="default">] + timedelta(hours=</span><span class="number">1</span><span class="default">)</span>
+<a name="139"><font size=-1>139     </font></a><span class="default">                alerta_abierta = </span><span class="keyword">None</span>
+<a name="140"><font size=-1>140     </font></a><span class="keyword">            </span><span class="default">t += timedelta(hours=PASO_HORAS)</span>
+<a name="141"><font size=-1>141     </font></a><span class="default"></span>
+<a name="142"><font size=-1>142     </font></a><span class="default">    out.append(</span>
+<a name="143"><font size=-1>143     </font></a><span class="default">        </span><span class="string">&quot;INSERT INTO lecturas_agua (id, estanque_id, temperatura_c, oxigeno_mg_l, ph, fuente, &quot;</span>
+<a name="144"><font size=-1>144     </font></a><span class="string">        &quot;registrado_por, medido_en) VALUES&quot;</span>
+<a name="145"><font size=-1>145     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="146"><font size=-1>146     </font></a><span class="default">    out.append(</span><span class="string">&quot;,\n&quot;</span><span class="default">.join(lecturas) + </span><span class="string">&quot;;\n&quot;</span><span class="default">)</span>
+<a name="147"><font size=-1>147     </font></a><span class="default"></span>
+<a name="148"><font size=-1>148     </font></a><span class="default">    out.append(</span>
+<a name="149"><font size=-1>149     </font></a><span class="default">        </span><span class="string">&quot;INSERT INTO alertas (id, estanque_id, lectura_id, parametro, nivel, valor, mensaje, &quot;</span>
+<a name="150"><font size=-1>150     </font></a><span class="string">        &quot;estado, creada_en, atendida_por, atendida_en, observacion) VALUES&quot;</span>
+<a name="151"><font size=-1>151     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="152"><font size=-1>152     </font></a><span class="default">    filas = []</span>
+<a name="153"><font size=-1>153     </font></a><span class="default">    </span><span class="keyword">for </span><span class="default">a </span><span class="keyword">in </span><span class="default">alertas:</span>
+<a name="154"><font size=-1>154     </font></a><span class="default">        </span><span class="comment"># Mismo formato que las alertas generadas por el sistema (Issue #11).</span>
+<a name="155"><font size=-1>155     </font></a><span class="comment">        </span><span class="default">msg = umbral_od.describir(round(a[</span><span class="string">&quot;valor&quot;</span><span class="default">], </span><span class="number">2</span><span class="default">), Nivel.PRECAUCION)</span>
+<a name="156"><font size=-1>156     </font></a><span class="default">        </span><span class="keyword">if </span><span class="string">&quot;atendida&quot; </span><span class="keyword">in </span><span class="default">a:</span>
+<a name="157"><font size=-1>157     </font></a><span class="default">            filas.append(</span>
+<a name="158"><font size=-1>158     </font></a><span class="default">                f</span><span class="string">&quot;  ({a['id']}, 3, {a['lectura']}, 'OXIGENO_DISUELTO', 'PRECAUCION', &quot;</span>
+<a name="159"><font size=-1>159     </font></a><span class="string">                </span><span class="default">f</span><span class="string">&quot;{a['valor']:.2f}, '{msg}', 'ATENDIDA', {ts(a['creada'])}, 3, &quot;</span>
+<a name="160"><font size=-1>160     </font></a><span class="string">                </span><span class="default">f</span><span class="string">&quot;{ts(a['atendida'])}, 'Se encendió el aireador')&quot;</span>
+<a name="161"><font size=-1>161     </font></a><span class="string">            </span><span class="default">)</span>
+<a name="162"><font size=-1>162     </font></a><span class="default">        </span><span class="keyword">else</span><span class="default">:</span>
+<a name="163"><font size=-1>163     </font></a><span class="default">            filas.append(</span>
+<a name="164"><font size=-1>164     </font></a><span class="default">                f</span><span class="string">&quot;  ({a['id']}, 3, {a['lectura']}, 'OXIGENO_DISUELTO', 'PRECAUCION', &quot;</span>
+<a name="165"><font size=-1>165     </font></a><span class="string">                </span><span class="default">f</span><span class="string">&quot;{a['valor']:.2f}, '{msg}', 'ABIERTA', {ts(a['creada'])}, NULL, NULL, NULL)&quot;</span>
+<a name="166"><font size=-1>166     </font></a><span class="string">            </span><span class="default">)</span>
+<a name="167"><font size=-1>167     </font></a><span class="default">    out.append(</span><span class="string">&quot;,\n&quot;</span><span class="default">.join(filas) + </span><span class="string">&quot;;\n&quot;</span><span class="default">)</span>
+<a name="168"><font size=-1>168     </font></a><span class="default"></span>
+<a name="169"><font size=-1>169     </font></a><span class="default">    alim = []</span>
+<a name="170"><font size=-1>170     </font></a><span class="default">    aid = </span><span class="number">0</span>
+<a name="171"><font size=-1>171     </font></a><span class="number">    </span><span class="default">tasas = {</span><span class="number">1</span><span class="default">: </span><span class="number">0.02</span><span class="default">, </span><span class="number">2</span><span class="default">: </span><span class="number">0.03</span><span class="default">, </span><span class="number">3</span><span class="default">: </span><span class="number">0.012</span><span class="default">}  </span><span class="comment"># según config/alimentacion.yaml</span>
+<a name="172"><font size=-1>172     </font></a><span class="comment">    </span><span class="keyword">for </span><span class="default">lote_id, _, _, peces, _, peso_act, _ </span><span class="keyword">in </span><span class="default">LOTES:</span>
+<a name="173"><font size=-1>173     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">d </span><span class="keyword">in </span><span class="default">range(DIAS):</span>
+<a name="174"><font size=-1>174     </font></a><span class="default">            aid += </span><span class="number">1</span>
+<a name="175"><font size=-1>175     </font></a><span class="number">            </span><span class="default">kg = peces * peso_act / </span><span class="number">1000 </span><span class="default">* tasas[lote_id] * rnd.uniform(</span><span class="number">0.95</span><span class="default">, </span><span class="number">1.05</span><span class="default">)</span>
+<a name="176"><font size=-1>176     </font></a><span class="default">            momento = INICIO + timedelta(days=d, hours=</span><span class="number">8</span><span class="default">)</span>
+<a name="177"><font size=-1>177     </font></a><span class="default">            alim.append(f</span><span class="string">&quot;  ({aid}, {lote_id}, {kg:.3f}, 3, {ts(momento)})&quot;</span><span class="default">)</span>
+<a name="178"><font size=-1>178     </font></a><span class="default">    out.append(</span>
+<a name="179"><font size=-1>179     </font></a><span class="default">        </span><span class="string">&quot;INSERT INTO registros_alimentacion (id, lote_id, cantidad_kg, registrado_por, &quot;</span>
+<a name="180"><font size=-1>180     </font></a><span class="string">        &quot;registrado_en) VALUES&quot;</span>
+<a name="181"><font size=-1>181     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="182"><font size=-1>182     </font></a><span class="default">    out.append(</span><span class="string">&quot;,\n&quot;</span><span class="default">.join(alim) + </span><span class="string">&quot;;\n&quot;</span><span class="default">)</span>
+<a name="183"><font size=-1>183     </font></a><span class="default"></span>
+<a name="184"><font size=-1>184     </font></a><span class="default">    mort = [</span>
+<a name="185"><font size=-1>185     </font></a><span class="default">        f</span><span class="string">&quot;  (1, 1, 12, 'Manipulación en biometría', 3, {ts(INICIO + timedelta(days=1, hours=17))})&quot;</span><span class="default">,</span>
+<a name="186"><font size=-1>186     </font></a><span class="default">        f</span><span class="string">&quot;  (2, 2, 25, 'Desconocida', 3, {ts(INICIO + timedelta(days=3, hours=17))})&quot;</span><span class="default">,</span>
+<a name="187"><font size=-1>187     </font></a><span class="default">        f</span><span class="string">&quot;  (3, 3, 8, 'Estrés por bajo oxígeno', 3, {ts(INICIO + timedelta(days=2, hours=17))})&quot;</span><span class="default">,</span>
+<a name="188"><font size=-1>188     </font></a><span class="default">    ]</span>
+<a name="189"><font size=-1>189     </font></a><span class="default">    out.append(</span>
+<a name="190"><font size=-1>190     </font></a><span class="default">        </span><span class="string">&quot;INSERT INTO registros_mortalidad (id, lote_id, cantidad, causa, registrado_por, &quot;</span>
+<a name="191"><font size=-1>191     </font></a><span class="string">        &quot;registrado_en) VALUES&quot;</span>
+<a name="192"><font size=-1>192     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="193"><font size=-1>193     </font></a><span class="default">    out.append(</span><span class="string">&quot;,\n&quot;</span><span class="default">.join(mort) + </span><span class="string">&quot;;\n&quot;</span><span class="default">)</span>
+<a name="194"><font size=-1>194     </font></a><span class="default"></span>
+<a name="195"><font size=-1>195     </font></a><span class="default">    </span><span class="comment"># Reajustar secuencias (solo PostgreSQL; tools/init_db.py omite estas líneas en SQLite).</span>
+<a name="196"><font size=-1>196     </font></a><span class="comment">    </span><span class="default">out.append(</span><span class="string">&quot;-- postgresql-only&quot;</span><span class="default">)</span>
+<a name="197"><font size=-1>197     </font></a><span class="default">    </span><span class="keyword">for </span><span class="default">tabla </span><span class="keyword">in </span><span class="default">(</span>
+<a name="198"><font size=-1>198     </font></a><span class="default">        </span><span class="string">&quot;usuarios&quot;</span><span class="default">,</span>
+<a name="199"><font size=-1>199     </font></a><span class="default">        </span><span class="string">&quot;estanques&quot;</span><span class="default">,</span>
+<a name="200"><font size=-1>200     </font></a><span class="default">        </span><span class="string">&quot;lotes&quot;</span><span class="default">,</span>
+<a name="201"><font size=-1>201     </font></a><span class="default">        </span><span class="string">&quot;lecturas_agua&quot;</span><span class="default">,</span>
+<a name="202"><font size=-1>202     </font></a><span class="default">        </span><span class="string">&quot;alertas&quot;</span><span class="default">,</span>
+<a name="203"><font size=-1>203     </font></a><span class="default">        </span><span class="string">&quot;registros_alimentacion&quot;</span><span class="default">,</span>
+<a name="204"><font size=-1>204     </font></a><span class="default">        </span><span class="string">&quot;registros_mortalidad&quot;</span><span class="default">,</span>
+<a name="205"><font size=-1>205     </font></a><span class="default">    ):</span>
+<a name="206"><font size=-1>206     </font></a><span class="default">        out.append(</span>
+<a name="207"><font size=-1>207     </font></a><span class="default">            f</span><span class="string">&quot;SELECT setval(pg_get_serial_sequence('{tabla}', 'id'), &quot;</span>
+<a name="208"><font size=-1>208     </font></a><span class="string">            </span><span class="default">f</span><span class="string">&quot;(SELECT MAX(id) FROM {tabla}));&quot;</span>
+<a name="209"><font size=-1>209     </font></a><span class="string">        </span><span class="default">)</span>
+<a name="210"><font size=-1>210     </font></a><span class="default">    </span><span class="keyword">return </span><span class="string">&quot;\n&quot;</span><span class="default">.join(out) + </span><span class="string">&quot;\n&quot;</span>
+<a name="211"><font size=-1>211     </font></a><span class="string"></span>
+<a name="212"><font size=-1>212     </font></a><span class="string"></span>
+<a name="213"><font size=-1>213     </font></a><span class="string"></span><span class="keyword">if </span><span class="default">__name__ == </span><span class="string">&quot;__main__&quot;</span><span class="default">:</span>
+<a name="214"><font size=-1>214     </font></a><span class="default">    DESTINO.write_text(generar(), encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">, newline=</span><span class="string">&quot;\n&quot;</span><span class="default">)</span>
+<a name="215"><font size=-1>215     </font></a><span class="default">    print(f</span><span class="string">&quot;Escrito {DESTINO.relative_to(RAIZ)}&quot;</span><span class="default">)</span>
+<a name="216"><font size=-1>216     </font></a><span class="default"></span>
+</pre></body></html>

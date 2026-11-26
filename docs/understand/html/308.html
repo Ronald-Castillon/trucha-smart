@@ -1,0 +1,100 @@
+<html><head><title>errores.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: D:\actions-runner\_work\_temp\understand\trucha-smart\src\adapters\inbound\rest\errores.py</h3>
+<SCRIPT>
+defaultStatus = "File: D:\\actions-runner\\_work\\_temp\\understand\\trucha-smart\\src\\adapters\\inbound\\rest\\errores.py";
+top.document.title  = "errores.py";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="string">&quot;&quot;&quot;Traducción consistente de errores a respuestas HTTP.</span>
+<a name="2"><font size=-1>2     </font></a><span class="string"></span>
+<a name="3"><font size=-1>3     </font></a><span class="string">Formato JSON de error en toda la API:</span>
+<a name="4"><font size=-1>4     </font></a><span class="string">    {&quot;error&quot;: &quot;&lt;codigo&gt;&quot;, &quot;detalle&quot;: &quot;&lt;mensaje legible&gt;&quot;, &quot;campo&quot;: &quot;&lt;campo o null&gt;&quot;}</span>
+<a name="5"><font size=-1>5     </font></a><span class="string">&quot;&quot;&quot;</span>
+<a name="6"><font size=-1>6     </font></a><span class="string"></span>
+<a name="7"><font size=-1>7     </font></a><span class="string"></span><span class="keyword">from </span><span class="default">__future__ </span><span class="keyword">import </span><span class="default">annotations</span>
+<a name="8"><font size=-1>8     </font></a><span class="default"></span>
+<a name="9"><font size=-1>9     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">fastapi </span><span class="keyword">import </span><span class="default">FastAPI, Request</span>
+<a name="10"><font size=-1>10     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">fastapi.exceptions </span><span class="keyword">import </span><span class="default">RequestValidationError</span>
+<a name="11"><font size=-1>11     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">fastapi.responses </span><span class="keyword">import </span><span class="default">JSONResponse, RedirectResponse</span>
+<a name="12"><font size=-1>12     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">pydantic </span><span class="keyword">import </span><span class="default">BaseModel</span>
+<a name="13"><font size=-1>13     </font></a><span class="default"></span>
+<a name="14"><font size=-1>14     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.adapters.inbound.rest.dependencias </span><span class="keyword">import </span><span class="default">NoAutenticado</span>
+<a name="15"><font size=-1>15     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.errores </span><span class="keyword">import </span><span class="default">(</span>
+<a name="16"><font size=-1>16     </font></a><span class="default">    ClaveInvalida,</span>
+<a name="17"><font size=-1>17     </font></a><span class="default">    Conflicto,</span>
+<a name="18"><font size=-1>18     </font></a><span class="default">    CredencialesInvalidas,</span>
+<a name="19"><font size=-1>19     </font></a><span class="default">    CuentaBloqueada,</span>
+<a name="20"><font size=-1>20     </font></a><span class="default">    ErrorDominio,</span>
+<a name="21"><font size=-1>21     </font></a><span class="default">    ErrorValidacion,</span>
+<a name="22"><font size=-1>22     </font></a><span class="default">    NoEncontrado,</span>
+<a name="23"><font size=-1>23     </font></a><span class="default">    PermisoDenegado,</span>
+<a name="24"><font size=-1>24     </font></a><span class="default">)</span>
+<a name="25"><font size=-1>25     </font></a><span class="default"></span>
+<a name="26"><font size=-1>26     </font></a><span class="default"></span>
+<a name="27"><font size=-1>27     </font></a><span class="default"></span><span class="keyword">class </span><span class="default">RespuestaError(BaseModel):</span>
+<a name="28"><font size=-1>28     </font></a><span class="default">    error: str</span>
+<a name="29"><font size=-1>29     </font></a><span class="default">    detalle: str</span>
+<a name="30"><font size=-1>30     </font></a><span class="default">    campo: str | </span><span class="keyword">None </span><span class="default">= </span><span class="keyword">None</span>
+<a name="31"><font size=-1>31     </font></a><span class="keyword"></span>
+<a name="32"><font size=-1>32     </font></a><span class="keyword"></span>
+<a name="33"><font size=-1>33     </font></a><span class="keyword"></span><span class="default">RESPUESTAS_ERROR = {</span>
+<a name="34"><font size=-1>34     </font></a><span class="default">    </span><span class="number">401</span><span class="default">: {</span><span class="string">&quot;model&quot;</span><span class="default">: RespuestaError, </span><span class="string">&quot;description&quot;</span><span class="default">: </span><span class="string">&quot;No autenticado o credenciales inválidas&quot;</span><span class="default">},</span>
+<a name="35"><font size=-1>35     </font></a><span class="default">    </span><span class="number">403</span><span class="default">: {</span><span class="string">&quot;model&quot;</span><span class="default">: RespuestaError, </span><span class="string">&quot;description&quot;</span><span class="default">: </span><span class="string">&quot;El rol no tiene permiso&quot;</span><span class="default">},</span>
+<a name="36"><font size=-1>36     </font></a><span class="default">    </span><span class="number">404</span><span class="default">: {</span><span class="string">&quot;model&quot;</span><span class="default">: RespuestaError, </span><span class="string">&quot;description&quot;</span><span class="default">: </span><span class="string">&quot;Recurso no encontrado&quot;</span><span class="default">},</span>
+<a name="37"><font size=-1>37     </font></a><span class="default">    </span><span class="number">409</span><span class="default">: {</span><span class="string">&quot;model&quot;</span><span class="default">: RespuestaError, </span><span class="string">&quot;description&quot;</span><span class="default">: </span><span class="string">&quot;Conflicto con el estado actual&quot;</span><span class="default">},</span>
+<a name="38"><font size=-1>38     </font></a><span class="default">    </span><span class="number">422</span><span class="default">: {</span><span class="string">&quot;model&quot;</span><span class="default">: RespuestaError, </span><span class="string">&quot;description&quot;</span><span class="default">: </span><span class="string">&quot;Datos inválidos&quot;</span><span class="default">},</span>
+<a name="39"><font size=-1>39     </font></a><span class="default">}</span>
+<a name="40"><font size=-1>40     </font></a><span class="default"></span>
+<a name="41"><font size=-1>41     </font></a><span class="default">_MAPA: list[tuple[type[ErrorDominio], int, str]] = [</span>
+<a name="42"><font size=-1>42     </font></a><span class="default">    (ErrorValidacion, </span><span class="number">422</span><span class="default">, </span><span class="string">&quot;validacion&quot;</span><span class="default">),</span>
+<a name="43"><font size=-1>43     </font></a><span class="default">    (CredencialesInvalidas, </span><span class="number">401</span><span class="default">, </span><span class="string">&quot;credenciales_invalidas&quot;</span><span class="default">),</span>
+<a name="44"><font size=-1>44     </font></a><span class="default">    (ClaveInvalida, </span><span class="number">401</span><span class="default">, </span><span class="string">&quot;clave_invalida&quot;</span><span class="default">),</span>
+<a name="45"><font size=-1>45     </font></a><span class="default">    (CuentaBloqueada, </span><span class="number">423</span><span class="default">, </span><span class="string">&quot;cuenta_bloqueada&quot;</span><span class="default">),</span>
+<a name="46"><font size=-1>46     </font></a><span class="default">    (PermisoDenegado, </span><span class="number">403</span><span class="default">, </span><span class="string">&quot;permiso_denegado&quot;</span><span class="default">),</span>
+<a name="47"><font size=-1>47     </font></a><span class="default">    (NoEncontrado, </span><span class="number">404</span><span class="default">, </span><span class="string">&quot;no_encontrado&quot;</span><span class="default">),</span>
+<a name="48"><font size=-1>48     </font></a><span class="default">    (Conflicto, </span><span class="number">409</span><span class="default">, </span><span class="string">&quot;conflicto&quot;</span><span class="default">),</span>
+<a name="49"><font size=-1>49     </font></a><span class="default">]</span>
+<a name="50"><font size=-1>50     </font></a><span class="default"></span>
+<a name="51"><font size=-1>51     </font></a><span class="default"></span>
+<a name="52"><font size=-1>52     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">_json(estado: int, error: str, detalle: str, campo: str | </span><span class="keyword">None </span><span class="default">= </span><span class="keyword">None</span><span class="default">) -&gt; JSONResponse:</span>
+<a name="53"><font size=-1>53     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">JSONResponse(</span>
+<a name="54"><font size=-1>54     </font></a><span class="default">        status_code=estado, content={</span><span class="string">&quot;error&quot;</span><span class="default">: error, </span><span class="string">&quot;detalle&quot;</span><span class="default">: detalle, </span><span class="string">&quot;campo&quot;</span><span class="default">: campo}</span>
+<a name="55"><font size=-1>55     </font></a><span class="default">    )</span>
+<a name="56"><font size=-1>56     </font></a><span class="default"></span>
+<a name="57"><font size=-1>57     </font></a><span class="default"></span>
+<a name="58"><font size=-1>58     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">registrar_manejadores(app: FastAPI) -&gt; </span><span class="keyword">None</span><span class="default">:</span>
+<a name="59"><font size=-1>59     </font></a><span class="default">    @app.exception_handler(ErrorDominio)</span>
+<a name="60"><font size=-1>60     </font></a><span class="default">    async </span><span class="keyword">def </span><span class="default">_dominio(request: Request, exc: ErrorDominio):</span>
+<a name="61"><font size=-1>61     </font></a><span class="default">        estado, codigo = next(</span>
+<a name="62"><font size=-1>62     </font></a><span class="default">            ((e, c) </span><span class="keyword">for </span><span class="default">tipo, e, c </span><span class="keyword">in </span><span class="default">_MAPA </span><span class="keyword">if </span><span class="default">isinstance(exc, tipo)), (</span><span class="number">400</span><span class="default">, </span><span class="string">&quot;error_dominio&quot;</span><span class="default">)</span>
+<a name="63"><font size=-1>63     </font></a><span class="default">        )</span>
+<a name="64"><font size=-1>64     </font></a><span class="default">        </span><span class="keyword">if not </span><span class="default">request.url.path.startswith(</span><span class="string">&quot;/api&quot;</span><span class="default">):</span>
+<a name="65"><font size=-1>65     </font></a><span class="default">            </span><span class="keyword">from </span><span class="default">src.adapters.inbound.web.plantillas </span><span class="keyword">import </span><span class="default">render</span>
+<a name="66"><font size=-1>66     </font></a><span class="default"></span>
+<a name="67"><font size=-1>67     </font></a><span class="default">            </span><span class="keyword">return </span><span class="default">render(</span>
+<a name="68"><font size=-1>68     </font></a><span class="default">                request,</span>
+<a name="69"><font size=-1>69     </font></a><span class="default">                </span><span class="string">&quot;error.html&quot;</span><span class="default">,</span>
+<a name="70"><font size=-1>70     </font></a><span class="default">                estado,</span>
+<a name="71"><font size=-1>71     </font></a><span class="default">                titulo_error=</span><span class="string">&quot;No se pudo completar la acción&quot;</span><span class="default">,</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">                mensaje=exc.mensaje,</span>
+<a name="73"><font size=-1>73     </font></a><span class="default">            )</span>
+<a name="74"><font size=-1>74     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">_json(estado, codigo, exc.mensaje, getattr(exc, </span><span class="string">&quot;campo&quot;</span><span class="default">, </span><span class="keyword">None</span><span class="default">))</span>
+<a name="75"><font size=-1>75     </font></a><span class="default"></span>
+<a name="76"><font size=-1>76     </font></a><span class="default">    @app.exception_handler(NoAutenticado)</span>
+<a name="77"><font size=-1>77     </font></a><span class="default">    async </span><span class="keyword">def </span><span class="default">_no_autenticado(request: Request, exc: NoAutenticado):</span>
+<a name="78"><font size=-1>78     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">request.url.path.startswith(</span><span class="string">&quot;/api&quot;</span><span class="default">):</span>
+<a name="79"><font size=-1>79     </font></a><span class="default">            </span><span class="keyword">return </span><span class="default">_json(</span><span class="number">401</span><span class="default">, </span><span class="string">&quot;no_autenticado&quot;</span><span class="default">, </span><span class="string">&quot;Debe iniciar sesión&quot;</span><span class="default">)</span>
+<a name="80"><font size=-1>80     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">RedirectResponse(</span><span class="string">&quot;/login&quot;</span><span class="default">, status_code=</span><span class="number">303</span><span class="default">)</span>
+<a name="81"><font size=-1>81     </font></a><span class="default"></span>
+<a name="82"><font size=-1>82     </font></a><span class="default">    @app.exception_handler(RequestValidationError)</span>
+<a name="83"><font size=-1>83     </font></a><span class="default">    async </span><span class="keyword">def </span><span class="default">_validacion(request: Request, exc: RequestValidationError):</span>
+<a name="84"><font size=-1>84     </font></a><span class="default">        errores = exc.errors()</span>
+<a name="85"><font size=-1>85     </font></a><span class="default">        primero = errores[</span><span class="number">0</span><span class="default">] </span><span class="keyword">if </span><span class="default">errores </span><span class="keyword">else </span><span class="default">{}</span>
+<a name="86"><font size=-1>86     </font></a><span class="default">        loc = [str(p) </span><span class="keyword">for </span><span class="default">p </span><span class="keyword">in </span><span class="default">primero.get(</span><span class="string">&quot;loc&quot;</span><span class="default">, ()) </span><span class="keyword">if </span><span class="default">p </span><span class="keyword">not in </span><span class="default">(</span><span class="string">&quot;body&quot;</span><span class="default">, </span><span class="string">&quot;query&quot;</span><span class="default">, </span><span class="string">&quot;path&quot;</span><span class="default">)]</span>
+<a name="87"><font size=-1>87     </font></a><span class="default">        campo = </span><span class="string">&quot;.&quot;</span><span class="default">.join(loc) </span><span class="keyword">or None</span>
+<a name="88"><font size=-1>88     </font></a><span class="keyword">        </span><span class="default">detalle = f</span><span class="string">&quot;{campo}: {primero.get('msg', 'dato inválido')}&quot; </span><span class="keyword">if </span><span class="default">campo </span><span class="keyword">else </span><span class="string">&quot;Datos inválidos&quot;</span>
+<a name="89"><font size=-1>89     </font></a><span class="string">        </span><span class="keyword">return </span><span class="default">_json(</span><span class="number">422</span><span class="default">, </span><span class="string">&quot;validacion&quot;</span><span class="default">, detalle, campo)</span>
+<a name="90"><font size=-1>90     </font></a><span class="default"></span>
+</pre></body></html>

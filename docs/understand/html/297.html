@@ -1,0 +1,168 @@
+<html><head><title>integraciones.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: D:\actions-runner\_work\_temp\understand\trucha-smart\src\adapters\inbound\rest\integraciones.py</h3>
+<SCRIPT>
+defaultStatus = "File: D:\\actions-runner\\_work\\_temp\\understand\\trucha-smart\\src\\adapters\\inbound\\rest\\integraciones.py";
+top.document.title  = "integraciones.py";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="string">&quot;&quot;&quot;Routers de integración externa (RF-09): administración de claves y API de solo lectura.&quot;&quot;&quot;</span>
+<a name="2"><font size=-1>2     </font></a><span class="string"></span>
+<a name="3"><font size=-1>3     </font></a><span class="string"></span><span class="keyword">from </span><span class="default">__future__ </span><span class="keyword">import </span><span class="default">annotations</span>
+<a name="4"><font size=-1>4     </font></a><span class="default"></span>
+<a name="5"><font size=-1>5     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">datetime </span><span class="keyword">import </span><span class="default">date, datetime</span>
+<a name="6"><font size=-1>6     </font></a><span class="default"></span>
+<a name="7"><font size=-1>7     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">fastapi </span><span class="keyword">import </span><span class="default">APIRouter, Depends, Request, Security</span>
+<a name="8"><font size=-1>8     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">fastapi.security </span><span class="keyword">import </span><span class="default">APIKeyHeader</span>
+<a name="9"><font size=-1>9     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">pydantic </span><span class="keyword">import </span><span class="default">BaseModel, Field</span>
+<a name="10"><font size=-1>10     </font></a><span class="default"></span>
+<a name="11"><font size=-1>11     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.adapters.inbound.rest.dependencias </span><span class="keyword">import </span><span class="default">Contenedor, contenedor, usuario_actual</span>
+<a name="12"><font size=-1>12     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.adapters.inbound.rest.errores </span><span class="keyword">import </span><span class="default">RESPUESTAS_ERROR</span>
+<a name="13"><font size=-1>13     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.model.clave_integracion </span><span class="keyword">import </span><span class="default">ClaveIntegracion</span>
+<a name="14"><font size=-1>14     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.model.lectura_agua </span><span class="keyword">import </span><span class="default">Parametro</span>
+<a name="15"><font size=-1>15     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.model.umbral </span><span class="keyword">import </span><span class="default">Nivel</span>
+<a name="16"><font size=-1>16     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.model.usuario </span><span class="keyword">import </span><span class="default">Usuario</span>
+<a name="17"><font size=-1>17     </font></a><span class="default"></span>
+<a name="18"><font size=-1>18     </font></a><span class="default">admin = APIRouter(prefix=</span><span class="string">&quot;/api/integraciones&quot;</span><span class="default">, tags=[</span><span class="string">&quot;integraciones&quot;</span><span class="default">], responses=RESPUESTAS_ERROR)</span>
+<a name="19"><font size=-1>19     </font></a><span class="default">externa = APIRouter(</span>
+<a name="20"><font size=-1>20     </font></a><span class="default">    prefix=</span><span class="string">&quot;/api/externa/v1&quot;</span><span class="default">,</span>
+<a name="21"><font size=-1>21     </font></a><span class="default">    tags=[</span><span class="string">&quot;API externa (claves de integración)&quot;</span><span class="default">],</span>
+<a name="22"><font size=-1>22     </font></a><span class="default">    responses=RESPUESTAS_ERROR,</span>
+<a name="23"><font size=-1>23     </font></a><span class="default">)</span>
+<a name="24"><font size=-1>24     </font></a><span class="default"></span>
+<a name="25"><font size=-1>25     </font></a><span class="default">_cabecera_clave = APIKeyHeader(</span>
+<a name="26"><font size=-1>26     </font></a><span class="default">    name=</span><span class="string">&quot;X-API-Key&quot;</span><span class="default">,</span>
+<a name="27"><font size=-1>27     </font></a><span class="default">    auto_error=</span><span class="keyword">False</span><span class="default">,</span>
+<a name="28"><font size=-1>28     </font></a><span class="default">    description=</span><span class="string">&quot;Clave de integración emitida por un Administrador&quot;</span><span class="default">,</span>
+<a name="29"><font size=-1>29     </font></a><span class="default">)</span>
+<a name="30"><font size=-1>30     </font></a><span class="default"></span>
+<a name="31"><font size=-1>31     </font></a><span class="default"></span>
+<a name="32"><font size=-1>32     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">_ip(request: Request) -&gt; str | </span><span class="keyword">None</span><span class="default">:</span>
+<a name="33"><font size=-1>33     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">request.client.host </span><span class="keyword">if </span><span class="default">request.client </span><span class="keyword">else None</span>
+<a name="34"><font size=-1>34     </font></a><span class="keyword"></span>
+<a name="35"><font size=-1>35     </font></a><span class="keyword"></span>
+<a name="36"><font size=-1>36     </font></a><span class="keyword">class </span><span class="default">ClaveEntrada(BaseModel):</span>
+<a name="37"><font size=-1>37     </font></a><span class="default">    nombre: str = Field(examples=[</span><span class="string">&quot;ERP de la piscigranja&quot;</span><span class="default">])</span>
+<a name="38"><font size=-1>38     </font></a><span class="default"></span>
+<a name="39"><font size=-1>39     </font></a><span class="default"></span>
+<a name="40"><font size=-1>40     </font></a><span class="default"></span><span class="keyword">class </span><span class="default">ClaveSalida(BaseModel):</span>
+<a name="41"><font size=-1>41     </font></a><span class="default">    id: int</span>
+<a name="42"><font size=-1>42     </font></a><span class="default">    nombre: str</span>
+<a name="43"><font size=-1>43     </font></a><span class="default">    prefijo: str</span>
+<a name="44"><font size=-1>44     </font></a><span class="default">    activa: bool</span>
+<a name="45"><font size=-1>45     </font></a><span class="default">    creada_en: datetime</span>
+<a name="46"><font size=-1>46     </font></a><span class="default">    ultimo_uso: datetime | </span><span class="keyword">None</span>
+<a name="47"><font size=-1>47     </font></a><span class="keyword"></span>
+<a name="48"><font size=-1>48     </font></a><span class="keyword">    </span><span class="default">@classmethod</span>
+<a name="49"><font size=-1>49     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">de(cls, c: ClaveIntegracion) -&gt; ClaveSalida:</span>
+<a name="50"><font size=-1>50     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">cls(**{k: getattr(c, k) </span><span class="keyword">for </span><span class="default">k </span><span class="keyword">in </span><span class="default">cls.model_fields})</span>
+<a name="51"><font size=-1>51     </font></a><span class="default"></span>
+<a name="52"><font size=-1>52     </font></a><span class="default"></span>
+<a name="53"><font size=-1>53     </font></a><span class="default"></span><span class="keyword">class </span><span class="default">ClaveCreadaSalida(ClaveSalida):</span>
+<a name="54"><font size=-1>54     </font></a><span class="default">    clave: str = Field(description=</span><span class="string">&quot;Se muestra una sola vez; guárdela en un lugar seguro&quot;</span><span class="default">)</span>
+<a name="55"><font size=-1>55     </font></a><span class="default"></span>
+<a name="56"><font size=-1>56     </font></a><span class="default"></span>
+<a name="57"><font size=-1>57     </font></a><span class="default"></span><span class="keyword">class </span><span class="default">LecturaExterna(BaseModel):</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">    medido_en: datetime</span>
+<a name="59"><font size=-1>59     </font></a><span class="default">    temperatura_c: float</span>
+<a name="60"><font size=-1>60     </font></a><span class="default">    oxigeno_mg_l: float</span>
+<a name="61"><font size=-1>61     </font></a><span class="default">    ph: float</span>
+<a name="62"><font size=-1>62     </font></a><span class="default"></span>
+<a name="63"><font size=-1>63     </font></a><span class="default"></span>
+<a name="64"><font size=-1>64     </font></a><span class="default"></span><span class="keyword">class </span><span class="default">EstanqueExterno(BaseModel):</span>
+<a name="65"><font size=-1>65     </font></a><span class="default">    id: int</span>
+<a name="66"><font size=-1>66     </font></a><span class="default">    nombre: str</span>
+<a name="67"><font size=-1>67     </font></a><span class="default">    tipo: str</span>
+<a name="68"><font size=-1>68     </font></a><span class="default">    ultima_lectura: LecturaExterna | </span><span class="keyword">None</span>
+<a name="69"><font size=-1>69     </font></a><span class="keyword">    </span><span class="default">niveles: dict[Parametro, Nivel]</span>
+<a name="70"><font size=-1>70     </font></a><span class="default">    alertas_abiertas: int</span>
+<a name="71"><font size=-1>71     </font></a><span class="default"></span>
+<a name="72"><font size=-1>72     </font></a><span class="default"></span>
+<a name="73"><font size=-1>73     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">_lectura(x) -&gt; LecturaExterna:</span>
+<a name="74"><font size=-1>74     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">LecturaExterna(</span>
+<a name="75"><font size=-1>75     </font></a><span class="default">        medido_en=x.medido_en, temperatura_c=x.temperatura_c, oxigeno_mg_l=x.oxigeno_mg_l, ph=x.ph</span>
+<a name="76"><font size=-1>76     </font></a><span class="default">    )</span>
+<a name="77"><font size=-1>77     </font></a><span class="default"></span>
+<a name="78"><font size=-1>78     </font></a><span class="default"></span>
+<a name="79"><font size=-1>79     </font></a><span class="default"></span><span class="comment"># --------------------------------------------------------------------------- administración</span>
+<a name="80"><font size=-1>80     </font></a><span class="comment"></span>
+<a name="81"><font size=-1>81     </font></a><span class="comment"></span>
+<a name="82"><font size=-1>82     </font></a><span class="comment"></span><span class="default">@admin.get(</span><span class="string">&quot;&quot;</span><span class="default">, response_model=list[ClaveSalida])</span>
+<a name="83"><font size=-1>83     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">listar_claves(</span>
+<a name="84"><font size=-1>84     </font></a><span class="default">    usuario: Usuario = Depends(usuario_actual), c: Contenedor = Depends(contenedor)</span>
+<a name="85"><font size=-1>85     </font></a><span class="default">) -&gt; list[ClaveSalida]:</span>
+<a name="86"><font size=-1>86     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">[ClaveSalida.de(x) </span><span class="keyword">for </span><span class="default">x </span><span class="keyword">in </span><span class="default">c.integraciones.listar(usuario)]</span>
+<a name="87"><font size=-1>87     </font></a><span class="default"></span>
+<a name="88"><font size=-1>88     </font></a><span class="default"></span>
+<a name="89"><font size=-1>89     </font></a><span class="default">@admin.post(</span><span class="string">&quot;&quot;</span><span class="default">, response_model=ClaveCreadaSalida, status_code=</span><span class="number">201</span><span class="default">)</span>
+<a name="90"><font size=-1>90     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">crear_clave(</span>
+<a name="91"><font size=-1>91     </font></a><span class="default">    datos: ClaveEntrada,</span>
+<a name="92"><font size=-1>92     </font></a><span class="default">    request: Request,</span>
+<a name="93"><font size=-1>93     </font></a><span class="default">    usuario: Usuario = Depends(usuario_actual),</span>
+<a name="94"><font size=-1>94     </font></a><span class="default">    c: Contenedor = Depends(contenedor),</span>
+<a name="95"><font size=-1>95     </font></a><span class="default">) -&gt; ClaveCreadaSalida:</span>
+<a name="96"><font size=-1>96     </font></a><span class="default">    </span><span class="string">&quot;&quot;&quot;Emite una clave de integración (solo Administrador). La clave se devuelve una única vez.&quot;&quot;&quot;</span>
+<a name="97"><font size=-1>97     </font></a><span class="string">    </span><span class="default">creada = c.integraciones.crear(datos.nombre, usuario, _ip(request))</span>
+<a name="98"><font size=-1>98     </font></a><span class="default">    c.confirmar()</span>
+<a name="99"><font size=-1>99     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">ClaveCreadaSalida(**ClaveSalida.de(creada.clave).model_dump(), clave=creada.secreto)</span>
+<a name="100"><font size=-1>100     </font></a><span class="default"></span>
+<a name="101"><font size=-1>101     </font></a><span class="default"></span>
+<a name="102"><font size=-1>102     </font></a><span class="default">@admin.delete(</span><span class="string">&quot;/{clave_id}&quot;</span><span class="default">, response_model=ClaveSalida)</span>
+<a name="103"><font size=-1>103     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">revocar_clave(</span>
+<a name="104"><font size=-1>104     </font></a><span class="default">    clave_id: int,</span>
+<a name="105"><font size=-1>105     </font></a><span class="default">    request: Request,</span>
+<a name="106"><font size=-1>106     </font></a><span class="default">    usuario: Usuario = Depends(usuario_actual),</span>
+<a name="107"><font size=-1>107     </font></a><span class="default">    c: Contenedor = Depends(contenedor),</span>
+<a name="108"><font size=-1>108     </font></a><span class="default">) -&gt; ClaveSalida:</span>
+<a name="109"><font size=-1>109     </font></a><span class="default">    revocada = c.integraciones.revocar(clave_id, usuario, _ip(request))</span>
+<a name="110"><font size=-1>110     </font></a><span class="default">    c.confirmar()</span>
+<a name="111"><font size=-1>111     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">ClaveSalida.de(revocada)</span>
+<a name="112"><font size=-1>112     </font></a><span class="default"></span>
+<a name="113"><font size=-1>113     </font></a><span class="default"></span>
+<a name="114"><font size=-1>114     </font></a><span class="default"></span><span class="comment"># --------------------------------------------------------------------------- consumo externo</span>
+<a name="115"><font size=-1>115     </font></a><span class="comment"></span>
+<a name="116"><font size=-1>116     </font></a><span class="comment"></span>
+<a name="117"><font size=-1>117     </font></a><span class="comment"></span><span class="keyword">def </span><span class="default">clave_actual(</span>
+<a name="118"><font size=-1>118     </font></a><span class="default">    request: Request,</span>
+<a name="119"><font size=-1>119     </font></a><span class="default">    secreto: str | </span><span class="keyword">None </span><span class="default">= Security(_cabecera_clave),</span>
+<a name="120"><font size=-1>120     </font></a><span class="default">    c: Contenedor = Depends(contenedor),</span>
+<a name="121"><font size=-1>121     </font></a><span class="default">) -&gt; ClaveIntegracion:</span>
+<a name="122"><font size=-1>122     </font></a><span class="default">    ip = _ip(request)</span>
+<a name="123"><font size=-1>123     </font></a><span class="default">    </span><span class="keyword">try</span><span class="default">:</span>
+<a name="124"><font size=-1>124     </font></a><span class="default">        clave = c.integraciones.autenticar(secreto, ip)</span>
+<a name="125"><font size=-1>125     </font></a><span class="default">    </span><span class="keyword">finally</span><span class="default">:</span>
+<a name="126"><font size=-1>126     </font></a><span class="default">        c.confirmar()  </span><span class="comment"># registra el último uso o el rechazo en la bitácora (RF-11)</span>
+<a name="127"><font size=-1>127     </font></a><span class="comment">    </span><span class="keyword">return </span><span class="default">clave</span>
+<a name="128"><font size=-1>128     </font></a><span class="default"></span>
+<a name="129"><font size=-1>129     </font></a><span class="default"></span>
+<a name="130"><font size=-1>130     </font></a><span class="default">@externa.get(</span><span class="string">&quot;/estanques&quot;</span><span class="default">, response_model=list[EstanqueExterno])</span>
+<a name="131"><font size=-1>131     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">estanques_externos(</span>
+<a name="132"><font size=-1>132     </font></a><span class="default">    clave: ClaveIntegracion = Depends(clave_actual), c: Contenedor = Depends(contenedor)</span>
+<a name="133"><font size=-1>133     </font></a><span class="default">) -&gt; list[EstanqueExterno]:</span>
+<a name="134"><font size=-1>134     </font></a><span class="default">    </span><span class="string">&quot;&quot;&quot;Estado actual de los estanques activos: última lectura, nivel por parámetro y alertas.&quot;&quot;&quot;</span>
+<a name="135"><font size=-1>135     </font></a><span class="string">    </span><span class="keyword">return </span><span class="default">[</span>
+<a name="136"><font size=-1>136     </font></a><span class="default">        EstanqueExterno(</span>
+<a name="137"><font size=-1>137     </font></a><span class="default">            id=e.estanque.id,</span>
+<a name="138"><font size=-1>138     </font></a><span class="default">            nombre=e.estanque.nombre,</span>
+<a name="139"><font size=-1>139     </font></a><span class="default">            tipo=e.estanque.tipo.value,</span>
+<a name="140"><font size=-1>140     </font></a><span class="default">            ultima_lectura=_lectura(e.ultima_lectura) </span><span class="keyword">if </span><span class="default">e.ultima_lectura </span><span class="keyword">else None</span><span class="default">,</span>
+<a name="141"><font size=-1>141     </font></a><span class="default">            niveles=e.niveles,</span>
+<a name="142"><font size=-1>142     </font></a><span class="default">            alertas_abiertas=e.alertas_abiertas,</span>
+<a name="143"><font size=-1>143     </font></a><span class="default">        )</span>
+<a name="144"><font size=-1>144     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">e </span><span class="keyword">in </span><span class="default">c.integraciones.estado_estanques(clave)</span>
+<a name="145"><font size=-1>145     </font></a><span class="default">    ]</span>
+<a name="146"><font size=-1>146     </font></a><span class="default"></span>
+<a name="147"><font size=-1>147     </font></a><span class="default"></span>
+<a name="148"><font size=-1>148     </font></a><span class="default">@externa.get(</span><span class="string">&quot;/estanques/{estanque_id}/lecturas&quot;</span><span class="default">, response_model=list[LecturaExterna])</span>
+<a name="149"><font size=-1>149     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">lecturas_externas(</span>
+<a name="150"><font size=-1>150     </font></a><span class="default">    estanque_id: int,</span>
+<a name="151"><font size=-1>151     </font></a><span class="default">    desde: date | </span><span class="keyword">None </span><span class="default">= </span><span class="keyword">None</span><span class="default">,</span>
+<a name="152"><font size=-1>152     </font></a><span class="default">    hasta: date | </span><span class="keyword">None </span><span class="default">= </span><span class="keyword">None</span><span class="default">,</span>
+<a name="153"><font size=-1>153     </font></a><span class="default">    clave: ClaveIntegracion = Depends(clave_actual),</span>
+<a name="154"><font size=-1>154     </font></a><span class="default">    c: Contenedor = Depends(contenedor),</span>
+<a name="155"><font size=-1>155     </font></a><span class="default">) -&gt; list[LecturaExterna]:</span>
+<a name="156"><font size=-1>156     </font></a><span class="default">    </span><span class="string">&quot;&quot;&quot;Lecturas del estanque entre `desde` y `hasta` (UTC, inclusivas; máximo 31 días).&quot;&quot;&quot;</span>
+<a name="157"><font size=-1>157     </font></a><span class="string">    </span><span class="keyword">return </span><span class="default">[_lectura(x) </span><span class="keyword">for </span><span class="default">x </span><span class="keyword">in </span><span class="default">c.integraciones.lecturas(clave, estanque_id, desde, hasta)]</span>
+<a name="158"><font size=-1>158     </font></a><span class="default"></span>
+</pre></body></html>

@@ -28,7 +28,12 @@ if ((& $und license -isundlicensed) -ne "1") { throw "Understand no está licenc
 Write-Host (& $und license -licensehowmanydays)
 
 Paso "Paso 1 · Clonar el repositorio GitHub ($Ref)"
-git clone --quiet --depth 1 --branch $Ref $Repo (Join-Path $Trabajo "trucha-smart")
+for ($intento = 1; $intento -le 3; $intento++) {
+    git clone --quiet --depth 1 --branch $Ref $Repo (Join-Path $Trabajo "trucha-smart")
+    if ($LASTEXITCODE -eq 0) { break }
+    if ($intento -eq 3) { throw "git clone falló 3 veces" }
+    Write-Host "git clone falló (intento $intento de 3); reintento en 15 s"; Start-Sleep 15
+}
 $codigo = Join-Path $Trabajo "trucha-smart"
 Write-Host ("Commit analizado: " + (git -C $codigo log -1 --format="%h %s"))
 

@@ -1,0 +1,93 @@
+<html><head><title>contraste_paleta.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: D:\actions-runner\_work\_temp\understand\trucha-smart\tools\contraste_paleta.py</h3>
+<SCRIPT>
+defaultStatus = "File: D:\\actions-runner\\_work\\_temp\\understand\\trucha-smart\\tools\\contraste_paleta.py";
+top.document.title  = "contraste_paleta.py";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="string">&quot;&quot;&quot;RNF-U: verifica el contraste WCAG 2.1 (1.4.3, AA &gt;= 4.5:1) de cada par texto/fondo de la paleta.</span>
+<a name="2"><font size=-1>2     </font></a><span class="string"></span>
+<a name="3"><font size=-1>3     </font></a><span class="string">Lee las variables de :root en estilos.css y calcula la razón de contraste con la luminancia relativa</span>
+<a name="4"><font size=-1>4     </font></a><span class="string">de WCAG: L = 0.2126 R + 0.7152 G + 0.0722 B (canales linealizados);</span>
+<a name="5"><font size=-1>5     </font></a><span class="string">razón = (L1 + 0.05) / (L2 + 0.05).</span>
+<a name="6"><font size=-1>6     </font></a><span class="string">Sale con código 1 si algún par usado para texto no alcanza 4.5:1.</span>
+<a name="7"><font size=-1>7     </font></a><span class="string"></span>
+<a name="8"><font size=-1>8     </font></a><span class="string">Uso: python tools/contraste_paleta.py [--markdown]</span>
+<a name="9"><font size=-1>9     </font></a><span class="string">&quot;&quot;&quot;</span>
+<a name="10"><font size=-1>10     </font></a><span class="string"></span>
+<a name="11"><font size=-1>11     </font></a><span class="string"></span><span class="keyword">from </span><span class="default">__future__ </span><span class="keyword">import </span><span class="default">annotations</span>
+<a name="12"><font size=-1>12     </font></a><span class="default"></span>
+<a name="13"><font size=-1>13     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">re</span>
+<a name="14"><font size=-1>14     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">sys</span>
+<a name="15"><font size=-1>15     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">pathlib </span><span class="keyword">import </span><span class="default">Path</span>
+<a name="16"><font size=-1>16     </font></a><span class="default"></span>
+<a name="17"><font size=-1>17     </font></a><span class="default">CSS = Path(__file__).resolve().parents[</span><span class="number">1</span><span class="default">] / </span><span class="string">&quot;src/adapters/inbound/web/static/estilos.css&quot;</span>
+<a name="18"><font size=-1>18     </font></a><span class="string"></span><span class="default">MINIMO_AA = </span><span class="number">4.5</span>
+<a name="19"><font size=-1>19     </font></a><span class="number"></span>
+<a name="20"><font size=-1>20     </font></a><span class="number"></span><span class="comment"># (texto, fondo, dónde se usa). &quot;#fff&quot; = blanco literal en estilos.css.</span>
+<a name="21"><font size=-1>21     </font></a><span class="comment"></span><span class="default">PARES = [</span>
+<a name="22"><font size=-1>22     </font></a><span class="default">    (</span><span class="string">&quot;texto&quot;</span><span class="default">, </span><span class="string">&quot;fondo&quot;</span><span class="default">, </span><span class="string">&quot;texto general sobre el fondo de la página&quot;</span><span class="default">),</span>
+<a name="23"><font size=-1>23     </font></a><span class="default">    (</span><span class="string">&quot;texto&quot;</span><span class="default">, </span><span class="string">&quot;superficie&quot;</span><span class="default">, </span><span class="string">&quot;texto en tarjetas&quot;</span><span class="default">),</span>
+<a name="24"><font size=-1>24     </font></a><span class="default">    (</span><span class="string">&quot;suave&quot;</span><span class="default">, </span><span class="string">&quot;superficie&quot;</span><span class="default">, </span><span class="string">&quot;texto secundario (.suave, etiquetas de formulario)&quot;</span><span class="default">),</span>
+<a name="25"><font size=-1>25     </font></a><span class="default">    (</span><span class="string">&quot;suave&quot;</span><span class="default">, </span><span class="string">&quot;fondo&quot;</span><span class="default">, </span><span class="string">&quot;texto secundario fuera de tarjetas&quot;</span><span class="default">),</span>
+<a name="26"><font size=-1>26     </font></a><span class="default">    (</span><span class="string">&quot;#ffffff&quot;</span><span class="default">, </span><span class="string">&quot;primario&quot;</span><span class="default">, </span><span class="string">&quot;menú superior y botones&quot;</span><span class="default">),</span>
+<a name="27"><font size=-1>27     </font></a><span class="default">    (</span><span class="string">&quot;primario&quot;</span><span class="default">, </span><span class="string">&quot;superficie&quot;</span><span class="default">, </span><span class="string">&quot;botón secundario y enlaces&quot;</span><span class="default">),</span>
+<a name="28"><font size=-1>28     </font></a><span class="default">    (</span><span class="string">&quot;#ffffff&quot;</span><span class="default">, </span><span class="string">&quot;verde&quot;</span><span class="default">, </span><span class="string">&quot;etiqueta / semáforo NORMAL&quot;</span><span class="default">),</span>
+<a name="29"><font size=-1>29     </font></a><span class="default">    (</span><span class="string">&quot;texto&quot;</span><span class="default">, </span><span class="string">&quot;amarillo&quot;</span><span class="default">, </span><span class="string">&quot;etiqueta / semáforo PRECAUCIÓN (texto oscuro)&quot;</span><span class="default">),</span>
+<a name="30"><font size=-1>30     </font></a><span class="default">    (</span><span class="string">&quot;#ffffff&quot;</span><span class="default">, </span><span class="string">&quot;rojo&quot;</span><span class="default">, </span><span class="string">&quot;etiqueta / semáforo CRÍTICA, botón detener simulador&quot;</span><span class="default">),</span>
+<a name="31"><font size=-1>31     </font></a><span class="default">    (</span><span class="string">&quot;amarillo-texto&quot;</span><span class="default">, </span><span class="string">&quot;superficie&quot;</span><span class="default">, </span><span class="string">&quot;valor en nivel de precaución (.nivel-PRECAUCION)&quot;</span><span class="default">),</span>
+<a name="32"><font size=-1>32     </font></a><span class="default">    (</span><span class="string">&quot;rojo&quot;</span><span class="default">, </span><span class="string">&quot;superficie&quot;</span><span class="default">, </span><span class="string">&quot;valor crítico, predicción de riesgo, bitácora&quot;</span><span class="default">),</span>
+<a name="33"><font size=-1>33     </font></a><span class="default">    (</span><span class="string">&quot;verde&quot;</span><span class="default">, </span><span class="string">&quot;superficie&quot;</span><span class="default">, </span><span class="string">&quot;indicador 'en vivo'&quot;</span><span class="default">),</span>
+<a name="34"><font size=-1>34     </font></a><span class="default">    (</span><span class="string">&quot;rojo&quot;</span><span class="default">, </span><span class="string">&quot;#fdecea&quot;</span><span class="default">, </span><span class="string">&quot;mensaje de error&quot;</span><span class="default">),</span>
+<a name="35"><font size=-1>35     </font></a><span class="default">    (</span><span class="string">&quot;verde&quot;</span><span class="default">, </span><span class="string">&quot;#e8f5ee&quot;</span><span class="default">, </span><span class="string">&quot;mensaje de confirmación&quot;</span><span class="default">),</span>
+<a name="36"><font size=-1>36     </font></a><span class="default">]</span>
+<a name="37"><font size=-1>37     </font></a><span class="default"></span>
+<a name="38"><font size=-1>38     </font></a><span class="default"></span>
+<a name="39"><font size=-1>39     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">variables(css: str) -&gt; dict[str, str]:</span>
+<a name="40"><font size=-1>40     </font></a><span class="default">    raiz = re.search(</span><span class="string">r&quot;:root\s*\{(.*?)\}&quot;</span><span class="default">, css, re.S).group(</span><span class="number">1</span><span class="default">)</span>
+<a name="41"><font size=-1>41     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">dict(re.findall(</span><span class="string">r&quot;--([\w-]+):\s*(#[0-9a-fA-F]{6})&quot;</span><span class="default">, raiz))</span>
+<a name="42"><font size=-1>42     </font></a><span class="default"></span>
+<a name="43"><font size=-1>43     </font></a><span class="default"></span>
+<a name="44"><font size=-1>44     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">luminancia(hexa: str) -&gt; float:</span>
+<a name="45"><font size=-1>45     </font></a><span class="default">    canales = [int(hexa[i : i + </span><span class="number">2</span><span class="default">], </span><span class="number">16</span><span class="default">) / </span><span class="number">255 </span><span class="keyword">for </span><span class="default">i </span><span class="keyword">in </span><span class="default">(</span><span class="number">1</span><span class="default">, </span><span class="number">3</span><span class="default">, </span><span class="number">5</span><span class="default">)]</span>
+<a name="46"><font size=-1>46     </font></a><span class="default">    lin = [c / </span><span class="number">12.92 </span><span class="keyword">if </span><span class="default">c &lt;= </span><span class="number">0.03928 </span><span class="keyword">else </span><span class="default">((c + </span><span class="number">0.055</span><span class="default">) / </span><span class="number">1.055</span><span class="default">) ** </span><span class="number">2.4 </span><span class="keyword">for </span><span class="default">c </span><span class="keyword">in </span><span class="default">canales]</span>
+<a name="47"><font size=-1>47     </font></a><span class="default">    </span><span class="keyword">return </span><span class="number">0.2126 </span><span class="default">* lin[</span><span class="number">0</span><span class="default">] + </span><span class="number">0.7152 </span><span class="default">* lin[</span><span class="number">1</span><span class="default">] + </span><span class="number">0.0722 </span><span class="default">* lin[</span><span class="number">2</span><span class="default">]</span>
+<a name="48"><font size=-1>48     </font></a><span class="default"></span>
+<a name="49"><font size=-1>49     </font></a><span class="default"></span>
+<a name="50"><font size=-1>50     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">contraste(a: str, b: str) -&gt; float:</span>
+<a name="51"><font size=-1>51     </font></a><span class="default">    claro, oscuro = sorted((luminancia(a), luminancia(b)), reverse=</span><span class="keyword">True</span><span class="default">)</span>
+<a name="52"><font size=-1>52     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">(claro + </span><span class="number">0.05</span><span class="default">) / (oscuro + </span><span class="number">0.05</span><span class="default">)</span>
+<a name="53"><font size=-1>53     </font></a><span class="default"></span>
+<a name="54"><font size=-1>54     </font></a><span class="default"></span>
+<a name="55"><font size=-1>55     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">main() -&gt; int:</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">    sys.stdout.reconfigure(encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">)</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">    paleta = variables(CSS.read_text(encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">))</span>
+<a name="58"><font size=-1>58     </font></a><span class="default"></span>
+<a name="59"><font size=-1>59     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">color(nombre: str) -&gt; str:</span>
+<a name="60"><font size=-1>60     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">nombre </span><span class="keyword">if </span><span class="default">nombre.startswith(</span><span class="string">&quot;#&quot;</span><span class="default">) </span><span class="keyword">else </span><span class="default">paleta[nombre]</span>
+<a name="61"><font size=-1>61     </font></a><span class="default"></span>
+<a name="62"><font size=-1>62     </font></a><span class="default">    filas, fallos = [], </span><span class="number">0</span>
+<a name="63"><font size=-1>63     </font></a><span class="number">    </span><span class="keyword">for </span><span class="default">texto, fondo, uso </span><span class="keyword">in </span><span class="default">PARES:</span>
+<a name="64"><font size=-1>64     </font></a><span class="default">        r = contraste(color(texto), color(fondo))</span>
+<a name="65"><font size=-1>65     </font></a><span class="default">        ok = r &gt;= MINIMO_AA</span>
+<a name="66"><font size=-1>66     </font></a><span class="default">        fallos += </span><span class="keyword">not </span><span class="default">ok</span>
+<a name="67"><font size=-1>67     </font></a><span class="default">        filas.append((texto, color(texto), fondo, color(fondo), r, ok, uso))</span>
+<a name="68"><font size=-1>68     </font></a><span class="default">    </span><span class="keyword">if </span><span class="string">&quot;--markdown&quot; </span><span class="keyword">in </span><span class="default">sys.argv:</span>
+<a name="69"><font size=-1>69     </font></a><span class="default">        print(</span><span class="string">&quot;| Texto | Fondo | Contraste | AA (≥ 4.5:1) | Uso |&quot;</span><span class="default">)</span>
+<a name="70"><font size=-1>70     </font></a><span class="default">        print(</span><span class="string">&quot;|---|---|---:|:---:|---|&quot;</span><span class="default">)</span>
+<a name="71"><font size=-1>71     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">t, tc, f, fc, r, ok, uso </span><span class="keyword">in </span><span class="default">filas:</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">            print(f</span><span class="string">&quot;| {t} `{tc}` | {f} `{fc}` | {r:.2f}:1 | {'Sí' if ok else 'No'} | {uso} |&quot;</span><span class="default">)</span>
+<a name="73"><font size=-1>73     </font></a><span class="default">    </span><span class="keyword">else</span><span class="default">:</span>
+<a name="74"><font size=-1>74     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">t, tc, f, fc, r, ok, uso </span><span class="keyword">in </span><span class="default">filas:</span>
+<a name="75"><font size=-1>75     </font></a><span class="default">            estado = </span><span class="string">&quot;OK &quot; </span><span class="keyword">if </span><span class="default">ok </span><span class="keyword">else </span><span class="string">&quot;NO &quot;</span>
+<a name="76"><font size=-1>76     </font></a><span class="string">            </span><span class="default">print(f</span><span class="string">&quot;{estado} {r:5.2f}:1  {t:&lt;15} {tc}  sobre {f:&lt;11} {fc}  ({uso})&quot;</span><span class="default">)</span>
+<a name="77"><font size=-1>77     </font></a><span class="default">        print(f</span><span class="string">&quot;\n{len(filas) - fallos}/{len(filas)} pares cumplen WCAG 2.1 AA (&gt;= {MINIMO_AA}:1)&quot;</span><span class="default">)</span>
+<a name="78"><font size=-1>78     </font></a><span class="default">    </span><span class="keyword">return </span><span class="number">1 </span><span class="keyword">if </span><span class="default">fallos </span><span class="keyword">else </span><span class="number">0</span>
+<a name="79"><font size=-1>79     </font></a><span class="number"></span>
+<a name="80"><font size=-1>80     </font></a><span class="number"></span>
+<a name="81"><font size=-1>81     </font></a><span class="number"></span><span class="keyword">if </span><span class="default">__name__ == </span><span class="string">&quot;__main__&quot;</span><span class="default">:</span>
+<a name="82"><font size=-1>82     </font></a><span class="default">    sys.exit(main())</span>
+<a name="83"><font size=-1>83     </font></a><span class="default"></span>
+</pre></body></html>

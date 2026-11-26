@@ -1,0 +1,43 @@
+<html><head><title>render_api.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: D:\actions-runner\_work\_temp\understand\trucha-smart\tools\evidencias\render_api.py</h3>
+<SCRIPT>
+defaultStatus = "File: D:\\actions-runner\\_work\\_temp\\understand\\trucha-smart\\tools\\evidencias\\render_api.py";
+top.document.title  = "render_api.py";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="string">&quot;&quot;&quot;Consume la API REST pública de TruchaSmart desplegada en Render (login JWT + endpoints).&quot;&quot;&quot;</span>
+<a name="2"><font size=-1>2     </font></a><span class="string"></span>
+<a name="3"><font size=-1>3     </font></a><span class="string"></span><span class="keyword">import </span><span class="default">json</span>
+<a name="4"><font size=-1>4     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">urllib.request</span>
+<a name="5"><font size=-1>5     </font></a><span class="default"></span>
+<a name="6"><font size=-1>6     </font></a><span class="default">URL = </span><span class="string">&quot;https://truchasmart.onrender.com&quot;</span>
+<a name="7"><font size=-1>7     </font></a><span class="string"></span>
+<a name="8"><font size=-1>8     </font></a><span class="string"></span>
+<a name="9"><font size=-1>9     </font></a><span class="string"></span><span class="keyword">def </span><span class="default">pedir(ruta, datos=</span><span class="keyword">None</span><span class="default">, token=</span><span class="keyword">None</span><span class="default">):</span>
+<a name="10"><font size=-1>10     </font></a><span class="default">    cab = {</span><span class="string">&quot;Content-Type&quot;</span><span class="default">: </span><span class="string">&quot;application/json&quot;</span><span class="default">}</span>
+<a name="11"><font size=-1>11     </font></a><span class="default">    </span><span class="keyword">if </span><span class="default">token:</span>
+<a name="12"><font size=-1>12     </font></a><span class="default">        cab[</span><span class="string">&quot;Authorization&quot;</span><span class="default">] = f</span><span class="string">&quot;Bearer {token}&quot;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string">    </span><span class="default">req = urllib.request.Request(</span>
+<a name="14"><font size=-1>14     </font></a><span class="default">        URL + ruta, data=json.dumps(datos).encode() </span><span class="keyword">if </span><span class="default">datos </span><span class="keyword">else None</span><span class="default">, headers=cab</span>
+<a name="15"><font size=-1>15     </font></a><span class="default">    )</span>
+<a name="16"><font size=-1>16     </font></a><span class="default">    </span><span class="keyword">with </span><span class="default">urllib.request.urlopen(req, timeout=</span><span class="number">120</span><span class="default">) </span><span class="keyword">as </span><span class="default">r:</span>
+<a name="17"><font size=-1>17     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">r.status, json.loads(r.read())</span>
+<a name="18"><font size=-1>18     </font></a><span class="default"></span>
+<a name="19"><font size=-1>19     </font></a><span class="default"></span>
+<a name="20"><font size=-1>20     </font></a><span class="default">st, s = pedir(</span><span class="string">&quot;/api/auth/login&quot;</span><span class="default">, {</span><span class="string">&quot;nombre_usuario&quot;</span><span class="default">: </span><span class="string">&quot;piscicultor&quot;</span><span class="default">, </span><span class="string">&quot;password&quot;</span><span class="default">: </span><span class="string">&quot;Pisci123!&quot;</span><span class="default">})</span>
+<a name="21"><font size=-1>21     </font></a><span class="default">print(</span>
+<a name="22"><font size=-1>22     </font></a><span class="default">    f</span><span class="string">&quot;POST /api/auth/login -&gt; {st}  usuario={s['usuario']['nombre_usuario']} rol={s['usuario']['rol']} token={s['access_token'][:20]}...&quot;</span>
+<a name="23"><font size=-1>23     </font></a><span class="string"></span><span class="default">)</span>
+<a name="24"><font size=-1>24     </font></a><span class="default">tk = s[</span><span class="string">&quot;access_token&quot;</span><span class="default">]</span>
+<a name="25"><font size=-1>25     </font></a><span class="default">st, panel = pedir(</span><span class="string">&quot;/api/panel&quot;</span><span class="default">, token=tk)</span>
+<a name="26"><font size=-1>26     </font></a><span class="default">items = panel </span><span class="keyword">if </span><span class="default">isinstance(panel, list) </span><span class="keyword">else </span><span class="default">panel.get(</span><span class="string">&quot;estanques&quot;</span><span class="default">, panel)</span>
+<a name="27"><font size=-1>27     </font></a><span class="default">print(</span>
+<a name="28"><font size=-1>28     </font></a><span class="default">    f</span><span class="string">&quot;GET /api/panel -&gt; {st}  estanques: {[e.get('nombre', e) for e in items] if isinstance(items, list) else list(items)[:5]}&quot;</span>
+<a name="29"><font size=-1>29     </font></a><span class="string"></span><span class="default">)</span>
+<a name="30"><font size=-1>30     </font></a><span class="default">st, r = pedir(</span><span class="string">&quot;/api/estanques/3/riesgo-modelo&quot;</span><span class="default">, token=tk)</span>
+<a name="31"><font size=-1>31     </font></a><span class="default">print(f</span><span class="string">&quot;GET /api/estanques/3/riesgo-modelo -&gt; {st}&quot;</span><span class="default">)</span>
+<a name="32"><font size=-1>32     </font></a><span class="default">print(json.dumps(r, ensure_ascii=</span><span class="keyword">False</span><span class="default">, indent=</span><span class="number">1</span><span class="default">)[:</span><span class="number">900</span><span class="default">])</span>
+<a name="33"><font size=-1>33     </font></a><span class="default"></span>
+</pre></body></html>

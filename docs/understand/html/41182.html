@@ -1,0 +1,104 @@
+<html><head><title>gqm.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: D:\actions-runner\_work\_temp\understand\trucha-smart\tools\evidencias\gqm.py</h3>
+<SCRIPT>
+defaultStatus = "File: D:\\actions-runner\\_work\\_temp\\understand\\trucha-smart\\tools\\evidencias\\gqm.py";
+top.document.title  = "gqm.py";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="string">&quot;&quot;&quot;Evidencias ejecutadas de M2.1, M2.2 y M3.1 (GQM) leyendo el repositorio y GitHub.</span>
+<a name="2"><font size=-1>2     </font></a><span class="string"></span>
+<a name="3"><font size=-1>3     </font></a><span class="string">Uso: python tools/evidencias/gqm.py m21|m22|m31   (m22 usa la CLI gh con GH_TOKEN).</span>
+<a name="4"><font size=-1>4     </font></a><span class="string">&quot;&quot;&quot;</span>
+<a name="5"><font size=-1>5     </font></a><span class="string"></span>
+<a name="6"><font size=-1>6     </font></a><span class="string"></span><span class="keyword">import </span><span class="default">json</span>
+<a name="7"><font size=-1>7     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">re</span>
+<a name="8"><font size=-1>8     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">subprocess</span>
+<a name="9"><font size=-1>9     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">sys</span>
+<a name="10"><font size=-1>10     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">pathlib </span><span class="keyword">import </span><span class="default">Path</span>
+<a name="11"><font size=-1>11     </font></a><span class="default"></span>
+<a name="12"><font size=-1>12     </font></a><span class="default"></span><span class="keyword">import </span><span class="default">yaml</span>
+<a name="13"><font size=-1>13     </font></a><span class="default"></span>
+<a name="14"><font size=-1>14     </font></a><span class="default">sys.stdout.reconfigure(encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">)</span>
+<a name="15"><font size=-1>15     </font></a><span class="default">R = Path(__file__).resolve().parents[</span><span class="number">2</span><span class="default">]</span>
+<a name="16"><font size=-1>16     </font></a><span class="default">TAGS = {</span><span class="number">1</span><span class="default">: </span><span class="string">&quot;v1.0-PMV&quot;</span><span class="default">, </span><span class="number">2</span><span class="default">: </span><span class="string">&quot;v2.0-Inc2&quot;</span><span class="default">, </span><span class="number">3</span><span class="default">: </span><span class="string">&quot;v3.0-Inc3&quot;</span><span class="default">}</span>
+<a name="17"><font size=-1>17     </font></a><span class="default">RF = {</span><span class="number">1</span><span class="default">: [</span><span class="number">1</span><span class="default">, </span><span class="number">2</span><span class="default">, </span><span class="number">3</span><span class="default">, </span><span class="number">4</span><span class="default">], </span><span class="number">2</span><span class="default">: [</span><span class="number">5</span><span class="default">, </span><span class="number">6</span><span class="default">, </span><span class="number">7</span><span class="default">, </span><span class="number">8</span><span class="default">], </span><span class="number">3</span><span class="default">: [</span><span class="number">9</span><span class="default">, </span><span class="number">10</span><span class="default">, </span><span class="number">11</span><span class="default">]}</span>
+<a name="18"><font size=-1>18     </font></a><span class="default"></span>
+<a name="19"><font size=-1>19     </font></a><span class="default"></span>
+<a name="20"><font size=-1>20     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">git(*a):</span>
+<a name="21"><font size=-1>21     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">subprocess.run(</span>
+<a name="22"><font size=-1>22     </font></a><span class="default">        [</span><span class="string">&quot;git&quot;</span><span class="default">, *a], cwd=R, capture_output=</span><span class="keyword">True</span><span class="default">, text=</span><span class="keyword">True</span><span class="default">, encoding=</span><span class="string">&quot;utf-8&quot;</span>
+<a name="23"><font size=-1>23     </font></a><span class="string">    </span><span class="default">).stdout</span>
+<a name="24"><font size=-1>24     </font></a><span class="default"></span>
+<a name="25"><font size=-1>25     </font></a><span class="default"></span>
+<a name="26"><font size=-1>26     </font></a><span class="default">modo = sys.argv[</span><span class="number">1</span><span class="default">]</span>
+<a name="27"><font size=-1>27     </font></a><span class="default"></span><span class="keyword">if </span><span class="default">modo == </span><span class="string">&quot;m21&quot;</span><span class="default">:</span>
+<a name="28"><font size=-1>28     </font></a><span class="default">    </span><span class="keyword">for </span><span class="default">n, tag </span><span class="keyword">in </span><span class="default">TAGS.items():</span>
+<a name="29"><font size=-1>29     </font></a><span class="default">        archivos = [</span>
+<a name="30"><font size=-1>30     </font></a><span class="default">            a</span>
+<a name="31"><font size=-1>31     </font></a><span class="default">            </span><span class="keyword">for </span><span class="default">a </span><span class="keyword">in </span><span class="default">git(</span><span class="string">&quot;ls-tree&quot;</span><span class="default">, </span><span class="string">&quot;-r&quot;</span><span class="default">, </span><span class="string">&quot;--name-only&quot;</span><span class="default">, tag, f</span><span class="string">&quot;evidencias/inc{n}&quot;</span><span class="default">).split()</span>
+<a name="32"><font size=-1>32     </font></a><span class="default">            </span><span class="keyword">if </span><span class="default">a.endswith(</span><span class="string">&quot;.png&quot;</span><span class="default">)</span>
+<a name="33"><font size=-1>33     </font></a><span class="default">        ]</span>
+<a name="34"><font size=-1>34     </font></a><span class="default">        esperadas = [</span>
+<a name="35"><font size=-1>35     </font></a><span class="default">            f</span><span class="string">&quot;evidencias/inc{n}/RF{rf:02d}_paso{k}_{s}.png&quot;</span>
+<a name="36"><font size=-1>36     </font></a><span class="string">            </span><span class="keyword">for </span><span class="default">rf </span><span class="keyword">in </span><span class="default">RF[n]</span>
+<a name="37"><font size=-1>37     </font></a><span class="default">            </span><span class="keyword">for </span><span class="default">k, s </span><span class="keyword">in </span><span class="default">((</span><span class="number">1</span><span class="default">, </span><span class="string">&quot;entrada&quot;</span><span class="default">), (</span><span class="number">2</span><span class="default">, </span><span class="string">&quot;resultado&quot;</span><span class="default">))</span>
+<a name="38"><font size=-1>38     </font></a><span class="default">        ]</span>
+<a name="39"><font size=-1>39     </font></a><span class="default">        ok = [e </span><span class="keyword">for </span><span class="default">e </span><span class="keyword">in </span><span class="default">esperadas </span><span class="keyword">if </span><span class="default">e </span><span class="keyword">in </span><span class="default">archivos]</span>
+<a name="40"><font size=-1>40     </font></a><span class="default">        print(</span>
+<a name="41"><font size=-1>41     </font></a><span class="default">            f</span><span class="string">&quot;{tag}: git ls-tree evidencias/inc{n}  →  {len(ok)} de {len(esperadas)} capturas esperadas  ·  M2.1 = {100 * len(ok) / len(esperadas):.0f} %&quot;</span>
+<a name="42"><font size=-1>42     </font></a><span class="string">        </span><span class="default">)</span>
+<a name="43"><font size=-1>43     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">e </span><span class="keyword">in </span><span class="default">esperadas:</span>
+<a name="44"><font size=-1>44     </font></a><span class="default">            print(f</span><span class="string">&quot;   {'✓' if e in archivos else '✗'} {e}&quot;</span><span class="default">)</span>
+<a name="45"><font size=-1>45     </font></a><span class="default"></span><span class="keyword">elif </span><span class="default">modo == </span><span class="string">&quot;m22&quot;</span><span class="default">:</span>
+<a name="46"><font size=-1>46     </font></a><span class="default">    </span><span class="keyword">for </span><span class="default">n, tag </span><span class="keyword">in </span><span class="default">TAGS.items():</span>
+<a name="47"><font size=-1>47     </font></a><span class="default">        r = subprocess.run(</span>
+<a name="48"><font size=-1>48     </font></a><span class="default">            [</span>
+<a name="49"><font size=-1>49     </font></a><span class="default">                </span><span class="string">&quot;gh&quot;</span><span class="default">,</span>
+<a name="50"><font size=-1>50     </font></a><span class="default">                </span><span class="string">&quot;issue&quot;</span><span class="default">,</span>
+<a name="51"><font size=-1>51     </font></a><span class="default">                </span><span class="string">&quot;list&quot;</span><span class="default">,</span>
+<a name="52"><font size=-1>52     </font></a><span class="default">                </span><span class="string">&quot;--state&quot;</span><span class="default">,</span>
+<a name="53"><font size=-1>53     </font></a><span class="default">                </span><span class="string">&quot;all&quot;</span><span class="default">,</span>
+<a name="54"><font size=-1>54     </font></a><span class="default">                </span><span class="string">&quot;--label&quot;</span><span class="default">,</span>
+<a name="55"><font size=-1>55     </font></a><span class="default">                </span><span class="string">&quot;bug&quot;</span><span class="default">,</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">                </span><span class="string">&quot;--label&quot;</span><span class="default">,</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">                f</span><span class="string">&quot;inc{n}&quot;</span><span class="default">,</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">                </span><span class="string">&quot;--json&quot;</span><span class="default">,</span>
+<a name="59"><font size=-1>59     </font></a><span class="default">                </span><span class="string">&quot;number,title,state&quot;</span><span class="default">,</span>
+<a name="60"><font size=-1>60     </font></a><span class="default">            ],</span>
+<a name="61"><font size=-1>61     </font></a><span class="default">            cwd=R,</span>
+<a name="62"><font size=-1>62     </font></a><span class="default">            capture_output=</span><span class="keyword">True</span><span class="default">,</span>
+<a name="63"><font size=-1>63     </font></a><span class="default">            text=</span><span class="keyword">True</span><span class="default">,</span>
+<a name="64"><font size=-1>64     </font></a><span class="default">            encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">,</span>
+<a name="65"><font size=-1>65     </font></a><span class="default">        )</span>
+<a name="66"><font size=-1>66     </font></a><span class="default">        bugs = json.loads(r.stdout)</span>
+<a name="67"><font size=-1>67     </font></a><span class="default">        print(</span>
+<a name="68"><font size=-1>68     </font></a><span class="default">            f</span><span class="string">&quot;Incremento {n} ({tag}): {len(bugs)} defecto(s) / {len(RF[n])} RF  →  M2.2 = {len(bugs) / len(RF[n]):.2f} Def/RF&quot;</span>
+<a name="69"><font size=-1>69     </font></a><span class="string">        </span><span class="default">)</span>
+<a name="70"><font size=-1>70     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">b </span><span class="keyword">in </span><span class="default">sorted(bugs, key=</span><span class="keyword">lambda </span><span class="default">x: x[</span><span class="string">&quot;number&quot;</span><span class="default">]):</span>
+<a name="71"><font size=-1>71     </font></a><span class="default">            print(f</span><span class="string">&quot;   #{b['number']:&lt;3} {b['state']:&lt;6} {b['title'][:95]}&quot;</span><span class="default">)</span>
+<a name="72"><font size=-1>72     </font></a><span class="default"></span><span class="keyword">elif </span><span class="default">modo == </span><span class="string">&quot;m31&quot;</span><span class="default">:</span>
+<a name="73"><font size=-1>73     </font></a><span class="default">    brechas = yaml.safe_load((R / </span><span class="string">&quot;docs/gqm/brechas.yaml&quot;</span><span class="default">).read_text(encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">))[</span><span class="string">&quot;brechas&quot;</span><span class="default">]</span>
+<a name="74"><font size=-1>74     </font></a><span class="default">    texto = </span><span class="string">&quot;\n&quot;</span><span class="default">.join(p.read_text(encoding=</span><span class="string">&quot;utf-8&quot;</span><span class="default">) </span><span class="keyword">for </span><span class="default">p </span><span class="keyword">in </span><span class="default">(R / </span><span class="string">&quot;tests&quot;</span><span class="default">).rglob(</span><span class="string">&quot;*.py&quot;</span><span class="default">))</span>
+<a name="75"><font size=-1>75     </font></a><span class="default">    ids = set(re.findall(</span><span class="string">r&quot;CP[-_]RF(\d{2})[-_](\d{2})&quot;</span><span class="default">, texto))</span>
+<a name="76"><font size=-1>76     </font></a><span class="default">    print(</span><span class="string">&quot;Brecha  Inc.  RF        Capturas  Pruebas CP-RFxx-01/02   Resuelta y verificada&quot;</span><span class="default">)</span>
+<a name="77"><font size=-1>77     </font></a><span class="default">    total = </span><span class="number">0</span>
+<a name="78"><font size=-1>78     </font></a><span class="number">    </span><span class="keyword">for </span><span class="default">b </span><span class="keyword">in </span><span class="default">brechas:</span>
+<a name="79"><font size=-1>79     </font></a><span class="default">        rfs = [int(r.split(</span><span class="string">&quot;-&quot;</span><span class="default">)[</span><span class="number">1</span><span class="default">]) </span><span class="keyword">for </span><span class="default">r </span><span class="keyword">in </span><span class="default">b[</span><span class="string">&quot;rf&quot;</span><span class="default">]]</span>
+<a name="80"><font size=-1>80     </font></a><span class="default">        inc = b[</span><span class="string">&quot;resuelta_en&quot;</span><span class="default">]</span>
+<a name="81"><font size=-1>81     </font></a><span class="default">        caps = all(</span>
+<a name="82"><font size=-1>82     </font></a><span class="default">            (R / f</span><span class="string">&quot;evidencias/inc{inc}/RF{r:02d}_paso{k}_{s}.png&quot;</span><span class="default">).is_file()</span>
+<a name="83"><font size=-1>83     </font></a><span class="default">            </span><span class="keyword">for </span><span class="default">r </span><span class="keyword">in </span><span class="default">rfs</span>
+<a name="84"><font size=-1>84     </font></a><span class="default">            </span><span class="keyword">for </span><span class="default">k, s </span><span class="keyword">in </span><span class="default">((</span><span class="number">1</span><span class="default">, </span><span class="string">&quot;entrada&quot;</span><span class="default">), (</span><span class="number">2</span><span class="default">, </span><span class="string">&quot;resultado&quot;</span><span class="default">))</span>
+<a name="85"><font size=-1>85     </font></a><span class="default">        )</span>
+<a name="86"><font size=-1>86     </font></a><span class="default">        pruebas = all({(f</span><span class="string">&quot;{r:02d}&quot;</span><span class="default">, </span><span class="string">&quot;01&quot;</span><span class="default">), (f</span><span class="string">&quot;{r:02d}&quot;</span><span class="default">, </span><span class="string">&quot;02&quot;</span><span class="default">)} &lt;= ids </span><span class="keyword">for </span><span class="default">r </span><span class="keyword">in </span><span class="default">rfs)</span>
+<a name="87"><font size=-1>87     </font></a><span class="default">        total += caps </span><span class="keyword">and </span><span class="default">pruebas</span>
+<a name="88"><font size=-1>88     </font></a><span class="default">        print(</span>
+<a name="89"><font size=-1>89     </font></a><span class="default">            f</span><span class="string">&quot;{b['id']:&lt;7} {inc:&lt;5} {', '.join(b['rf']):&lt;9} {'sí' if caps else 'NO':&lt;9} {'sí' if pruebas else 'NO':&lt;23} {'✓' if caps and pruebas else '✗'}  {b['descripcion']}&quot;</span>
+<a name="90"><font size=-1>90     </font></a><span class="string">        </span><span class="default">)</span>
+<a name="91"><font size=-1>91     </font></a><span class="default">    print(</span>
+<a name="92"><font size=-1>92     </font></a><span class="default">        f</span><span class="string">&quot;\nM3.1 = {total} de {len(brechas)} brechas resueltas y verificadas = {100 * total / len(brechas):.0f} %&quot;</span>
+<a name="93"><font size=-1>93     </font></a><span class="string">    </span><span class="default">)</span>
+<a name="94"><font size=-1>94     </font></a><span class="default"></span>
+</pre></body></html>

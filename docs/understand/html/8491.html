@@ -1,0 +1,199 @@
+<html><head><title>servicio_reportes.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: D:\actions-runner\_work\_temp\understand\trucha-smart\src\domain\service\servicio_reportes.py</h3>
+<SCRIPT>
+defaultStatus = "File: D:\\actions-runner\\_work\\_temp\\understand\\trucha-smart\\src\\domain\\service\\servicio_reportes.py";
+top.document.title  = "servicio_reportes.py";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="string">&quot;&quot;&quot;Caso de uso exportar_reporte: arma los datos del reporte y delega el formato (RF-08).&quot;&quot;&quot;</span>
+<a name="2"><font size=-1>2     </font></a><span class="string"></span>
+<a name="3"><font size=-1>3     </font></a><span class="string"></span><span class="keyword">from </span><span class="default">__future__ </span><span class="keyword">import </span><span class="default">annotations</span>
+<a name="4"><font size=-1>4     </font></a><span class="default"></span>
+<a name="5"><font size=-1>5     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">datetime </span><span class="keyword">import </span><span class="default">UTC, date, datetime, time</span>
+<a name="6"><font size=-1>6     </font></a><span class="default"></span>
+<a name="7"><font size=-1>7     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.errores </span><span class="keyword">import </span><span class="default">ErrorValidacion</span>
+<a name="8"><font size=-1>8     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.model.alerta </span><span class="keyword">import </span><span class="default">EstadoAlerta</span>
+<a name="9"><font size=-1>9     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.model.lectura_agua </span><span class="keyword">import </span><span class="default">Parametro</span>
+<a name="10"><font size=-1>10     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.model.umbral </span><span class="keyword">import </span><span class="default">Nivel</span>
+<a name="11"><font size=-1>11     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.model.usuario </span><span class="keyword">import </span><span class="default">Permiso, Usuario</span>
+<a name="12"><font size=-1>12     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.service.calculadora_fcr </span><span class="keyword">import </span><span class="default">resumen_produccion</span>
+<a name="13"><font size=-1>13     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.service.evaluador_calidad_agua </span><span class="keyword">import </span><span class="default">EvaluadorCalidadAgua</span>
+<a name="14"><font size=-1>14     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.ports.inbound.exportar_reporte </span><span class="keyword">import </span><span class="default">(</span>
+<a name="15"><font size=-1>15     </font></a><span class="default">    ArchivoReporte,</span>
+<a name="16"><font size=-1>16     </font></a><span class="default">    FilaCalidad,</span>
+<a name="17"><font size=-1>17     </font></a><span class="default">    FilaProduccion,</span>
+<a name="18"><font size=-1>18     </font></a><span class="default">    FormatoReporte,</span>
+<a name="19"><font size=-1>19     </font></a><span class="default">    Reporte,</span>
+<a name="20"><font size=-1>20     </font></a><span class="default">    ResumenCalidadEstanque,</span>
+<a name="21"><font size=-1>21     </font></a><span class="default">    TipoReporte,</span>
+<a name="22"><font size=-1>22     </font></a><span class="default">)</span>
+<a name="23"><font size=-1>23     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.ports.outbound.generador_reportes </span><span class="keyword">import </span><span class="default">GeneradorReportes</span>
+<a name="24"><font size=-1>24     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.ports.outbound.reloj </span><span class="keyword">import </span><span class="default">Reloj</span>
+<a name="25"><font size=-1>25     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.ports.outbound.repositorio_alerta </span><span class="keyword">import </span><span class="default">RepositorioAlerta</span>
+<a name="26"><font size=-1>26     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.ports.outbound.repositorio_alimentacion </span><span class="keyword">import </span><span class="default">RepositorioAlimentacion</span>
+<a name="27"><font size=-1>27     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.ports.outbound.repositorio_estanque </span><span class="keyword">import </span><span class="default">RepositorioEstanque</span>
+<a name="28"><font size=-1>28     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.ports.outbound.repositorio_lectura </span><span class="keyword">import </span><span class="default">RepositorioLectura</span>
+<a name="29"><font size=-1>29     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.ports.outbound.repositorio_lote </span><span class="keyword">import </span><span class="default">RepositorioLote</span>
+<a name="30"><font size=-1>30     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.ports.outbound.repositorio_mortalidad </span><span class="keyword">import </span><span class="default">RepositorioMortalidad</span>
+<a name="31"><font size=-1>31     </font></a><span class="default"></span>
+<a name="32"><font size=-1>32     </font></a><span class="default">MAXIMO_DIAS = </span><span class="number">366</span>
+<a name="33"><font size=-1>33     </font></a><span class="number"></span><span class="default">TITULOS = {</span>
+<a name="34"><font size=-1>34     </font></a><span class="default">    TipoReporte.CALIDAD_AGUA: </span><span class="string">&quot;Reporte de calidad de agua&quot;</span><span class="default">,</span>
+<a name="35"><font size=-1>35     </font></a><span class="default">    TipoReporte.PRODUCCION: </span><span class="string">&quot;Reporte de producción&quot;</span><span class="default">,</span>
+<a name="36"><font size=-1>36     </font></a><span class="default">}</span>
+<a name="37"><font size=-1>37     </font></a><span class="default">TIPOS_CONTENIDO = {</span>
+<a name="38"><font size=-1>38     </font></a><span class="default">    FormatoReporte.CSV: </span><span class="string">&quot;text/csv; charset=utf-8&quot;</span><span class="default">,</span>
+<a name="39"><font size=-1>39     </font></a><span class="default">    FormatoReporte.PDF: </span><span class="string">&quot;application/pdf&quot;</span><span class="default">,</span>
+<a name="40"><font size=-1>40     </font></a><span class="default">}</span>
+<a name="41"><font size=-1>41     </font></a><span class="default"></span>
+<a name="42"><font size=-1>42     </font></a><span class="default"></span>
+<a name="43"><font size=-1>43     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">_estadistica(valores: list[float]) -&gt; tuple[float, float, float] | </span><span class="keyword">None</span><span class="default">:</span>
+<a name="44"><font size=-1>44     </font></a><span class="default">    </span><span class="keyword">if not </span><span class="default">valores:</span>
+<a name="45"><font size=-1>45     </font></a><span class="default">        </span><span class="keyword">return None</span>
+<a name="46"><font size=-1>46     </font></a><span class="keyword">    return </span><span class="default">(min(valores), round(sum(valores) / len(valores), </span><span class="number">2</span><span class="default">), max(valores))</span>
+<a name="47"><font size=-1>47     </font></a><span class="default"></span>
+<a name="48"><font size=-1>48     </font></a><span class="default"></span>
+<a name="49"><font size=-1>49     </font></a><span class="default"></span><span class="keyword">class </span><span class="default">ServicioReportes:</span>
+<a name="50"><font size=-1>50     </font></a><span class="default">    </span><span class="string">&quot;&quot;&quot;Implementa el puerto de entrada ExportarReporte.&quot;&quot;&quot;</span>
+<a name="51"><font size=-1>51     </font></a><span class="string"></span>
+<a name="52"><font size=-1>52     </font></a><span class="string">    </span><span class="keyword">def </span><span class="default">__init__(</span>
+<a name="53"><font size=-1>53     </font></a><span class="default">        self,</span>
+<a name="54"><font size=-1>54     </font></a><span class="default">        estanques: RepositorioEstanque,</span>
+<a name="55"><font size=-1>55     </font></a><span class="default">        lotes: RepositorioLote,</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">        lecturas: RepositorioLectura,</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">        alertas: RepositorioAlerta,</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">        alimentacion: RepositorioAlimentacion,</span>
+<a name="59"><font size=-1>59     </font></a><span class="default">        mortalidad: RepositorioMortalidad,</span>
+<a name="60"><font size=-1>60     </font></a><span class="default">        evaluador: EvaluadorCalidadAgua,</span>
+<a name="61"><font size=-1>61     </font></a><span class="default">        generador: GeneradorReportes,</span>
+<a name="62"><font size=-1>62     </font></a><span class="default">        reloj: Reloj,</span>
+<a name="63"><font size=-1>63     </font></a><span class="default">    ) -&gt; </span><span class="keyword">None</span><span class="default">:</span>
+<a name="64"><font size=-1>64     </font></a><span class="default">        self._estanques = estanques</span>
+<a name="65"><font size=-1>65     </font></a><span class="default">        self._lotes = lotes</span>
+<a name="66"><font size=-1>66     </font></a><span class="default">        self._lecturas = lecturas</span>
+<a name="67"><font size=-1>67     </font></a><span class="default">        self._alertas = alertas</span>
+<a name="68"><font size=-1>68     </font></a><span class="default">        self._alimentacion = alimentacion</span>
+<a name="69"><font size=-1>69     </font></a><span class="default">        self._mortalidad = mortalidad</span>
+<a name="70"><font size=-1>70     </font></a><span class="default">        self._evaluador = evaluador</span>
+<a name="71"><font size=-1>71     </font></a><span class="default">        self._generador = generador</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">        self._reloj = reloj</span>
+<a name="73"><font size=-1>73     </font></a><span class="default"></span>
+<a name="74"><font size=-1>74     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">exportar(</span>
+<a name="75"><font size=-1>75     </font></a><span class="default">        self,</span>
+<a name="76"><font size=-1>76     </font></a><span class="default">        tipo: TipoReporte,</span>
+<a name="77"><font size=-1>77     </font></a><span class="default">        formato: FormatoReporte,</span>
+<a name="78"><font size=-1>78     </font></a><span class="default">        desde: date,</span>
+<a name="79"><font size=-1>79     </font></a><span class="default">        hasta: date,</span>
+<a name="80"><font size=-1>80     </font></a><span class="default">        solicitante: Usuario,</span>
+<a name="81"><font size=-1>81     </font></a><span class="default">    ) -&gt; ArchivoReporte:</span>
+<a name="82"><font size=-1>82     </font></a><span class="default">        solicitante.exigir(Permiso.GESTIONAR_REPORTES)</span>
+<a name="83"><font size=-1>83     </font></a><span class="default">        reporte = self.armar(tipo, desde, hasta, solicitante)</span>
+<a name="84"><font size=-1>84     </font></a><span class="default">        contenido = (</span>
+<a name="85"><font size=-1>85     </font></a><span class="default">            self._generador.csv(reporte)</span>
+<a name="86"><font size=-1>86     </font></a><span class="default">            </span><span class="keyword">if </span><span class="default">formato </span><span class="keyword">is </span><span class="default">FormatoReporte.CSV</span>
+<a name="87"><font size=-1>87     </font></a><span class="default">            </span><span class="keyword">else </span><span class="default">self._generador.pdf(reporte)</span>
+<a name="88"><font size=-1>88     </font></a><span class="default">        )</span>
+<a name="89"><font size=-1>89     </font></a><span class="default">        nombre = f</span><span class="string">&quot;truchasmart_{tipo.value}_{desde.isoformat()}_{hasta.isoformat()}.{formato.value}&quot;</span>
+<a name="90"><font size=-1>90     </font></a><span class="string">        </span><span class="keyword">return </span><span class="default">ArchivoReporte(nombre, TIPOS_CONTENIDO[formato], contenido)</span>
+<a name="91"><font size=-1>91     </font></a><span class="default"></span>
+<a name="92"><font size=-1>92     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">armar(self, tipo: TipoReporte, desde: date, hasta: date, solicitante: Usuario) -&gt; Reporte:</span>
+<a name="93"><font size=-1>93     </font></a><span class="default">        solicitante.exigir(Permiso.GESTIONAR_REPORTES)</span>
+<a name="94"><font size=-1>94     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">desde &gt; hasta:</span>
+<a name="95"><font size=-1>95     </font></a><span class="default">            </span><span class="keyword">raise </span><span class="default">ErrorValidacion(</span><span class="string">&quot;desde&quot;</span><span class="default">, </span><span class="string">&quot;La fecha 'desde' no puede ser posterior a 'hasta'&quot;</span><span class="default">)</span>
+<a name="96"><font size=-1>96     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">(hasta - desde).days + </span><span class="number">1 </span><span class="default">&gt; MAXIMO_DIAS:</span>
+<a name="97"><font size=-1>97     </font></a><span class="default">            </span><span class="keyword">raise </span><span class="default">ErrorValidacion(</span><span class="string">&quot;desde&quot;</span><span class="default">, f</span><span class="string">&quot;El rango máximo es de {MAXIMO_DIAS} días&quot;</span><span class="default">)</span>
+<a name="98"><font size=-1>98     </font></a><span class="default">        inicio = datetime.combine(desde, time.min, tzinfo=UTC)</span>
+<a name="99"><font size=-1>99     </font></a><span class="default">        fin = datetime.combine(hasta, time.max, tzinfo=UTC)</span>
+<a name="100"><font size=-1>100     </font></a><span class="default">        filas_calidad, resumen_calidad, filas_produccion = [], [], []</span>
+<a name="101"><font size=-1>101     </font></a><span class="default">        </span><span class="keyword">if </span><span class="default">tipo </span><span class="keyword">is </span><span class="default">TipoReporte.CALIDAD_AGUA:</span>
+<a name="102"><font size=-1>102     </font></a><span class="default">            filas_calidad, resumen_calidad = self._calidad(inicio, fin)</span>
+<a name="103"><font size=-1>103     </font></a><span class="default">        </span><span class="keyword">else</span><span class="default">:</span>
+<a name="104"><font size=-1>104     </font></a><span class="default">            filas_produccion = self._produccion(desde, hasta, inicio, fin)</span>
+<a name="105"><font size=-1>105     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">Reporte(</span>
+<a name="106"><font size=-1>106     </font></a><span class="default">            tipo=tipo,</span>
+<a name="107"><font size=-1>107     </font></a><span class="default">            titulo=TITULOS[tipo],</span>
+<a name="108"><font size=-1>108     </font></a><span class="default">            desde=desde,</span>
+<a name="109"><font size=-1>109     </font></a><span class="default">            hasta=hasta,</span>
+<a name="110"><font size=-1>110     </font></a><span class="default">            generado_en=self._reloj.ahora(),</span>
+<a name="111"><font size=-1>111     </font></a><span class="default">            generado_por=solicitante.nombre_completo,</span>
+<a name="112"><font size=-1>112     </font></a><span class="default">            filas_calidad=filas_calidad,</span>
+<a name="113"><font size=-1>113     </font></a><span class="default">            resumen_calidad=resumen_calidad,</span>
+<a name="114"><font size=-1>114     </font></a><span class="default">            filas_produccion=filas_produccion,</span>
+<a name="115"><font size=-1>115     </font></a><span class="default">        )</span>
+<a name="116"><font size=-1>116     </font></a><span class="default"></span>
+<a name="117"><font size=-1>117     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">_calidad(self, inicio: datetime, fin: datetime):</span>
+<a name="118"><font size=-1>118     </font></a><span class="default">        filas, resumen = [], []</span>
+<a name="119"><font size=-1>119     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">e </span><span class="keyword">in </span><span class="default">self._estanques.listar(solo_activos=</span><span class="keyword">False</span><span class="default">):</span>
+<a name="120"><font size=-1>120     </font></a><span class="default">            lecturas = sorted(</span>
+<a name="121"><font size=-1>121     </font></a><span class="default">                self._lecturas.de_estanque(e.id, inicio, fin), key=</span><span class="keyword">lambda </span><span class="default">x: (x.medido_en, x.id)</span>
+<a name="122"><font size=-1>122     </font></a><span class="default">            )</span>
+<a name="123"><font size=-1>123     </font></a><span class="default">            </span><span class="keyword">for </span><span class="default">x </span><span class="keyword">in </span><span class="default">lecturas:</span>
+<a name="124"><font size=-1>124     </font></a><span class="default">                filas.append(</span>
+<a name="125"><font size=-1>125     </font></a><span class="default">                    FilaCalidad(</span>
+<a name="126"><font size=-1>126     </font></a><span class="default">                        estanque=e.nombre,</span>
+<a name="127"><font size=-1>127     </font></a><span class="default">                        medido_en=x.medido_en,</span>
+<a name="128"><font size=-1>128     </font></a><span class="default">                        temperatura_c=x.temperatura_c,</span>
+<a name="129"><font size=-1>129     </font></a><span class="default">                        oxigeno_mg_l=x.oxigeno_mg_l,</span>
+<a name="130"><font size=-1>130     </font></a><span class="default">                        ph=x.ph,</span>
+<a name="131"><font size=-1>131     </font></a><span class="default">                        fuente=x.fuente.value,</span>
+<a name="132"><font size=-1>132     </font></a><span class="default">                        niveles=self._evaluador.niveles(x),</span>
+<a name="133"><font size=-1>133     </font></a><span class="default">                    )</span>
+<a name="134"><font size=-1>134     </font></a><span class="default">                )</span>
+<a name="135"><font size=-1>135     </font></a><span class="default">            alertas = [a </span><span class="keyword">for </span><span class="default">a </span><span class="keyword">in </span><span class="default">self._alertas.listar(e.id) </span><span class="keyword">if </span><span class="default">inicio &lt;= a.creada_en &lt;= fin]</span>
+<a name="136"><font size=-1>136     </font></a><span class="default">            </span><span class="keyword">if not </span><span class="default">lecturas </span><span class="keyword">and not </span><span class="default">alertas:</span>
+<a name="137"><font size=-1>137     </font></a><span class="default">                </span><span class="keyword">continue</span>
+<a name="138"><font size=-1>138     </font></a><span class="keyword">            </span><span class="default">resumen.append(</span>
+<a name="139"><font size=-1>139     </font></a><span class="default">                ResumenCalidadEstanque(</span>
+<a name="140"><font size=-1>140     </font></a><span class="default">                    estanque=e.nombre,</span>
+<a name="141"><font size=-1>141     </font></a><span class="default">                    lecturas=len(lecturas),</span>
+<a name="142"><font size=-1>142     </font></a><span class="default">                    temperatura=_estadistica([x.temperatura_c </span><span class="keyword">for </span><span class="default">x </span><span class="keyword">in </span><span class="default">lecturas]),</span>
+<a name="143"><font size=-1>143     </font></a><span class="default">                    oxigeno=_estadistica([x.oxigeno_mg_l </span><span class="keyword">for </span><span class="default">x </span><span class="keyword">in </span><span class="default">lecturas]),</span>
+<a name="144"><font size=-1>144     </font></a><span class="default">                    ph=_estadistica([x.valores()[Parametro.PH] </span><span class="keyword">for </span><span class="default">x </span><span class="keyword">in </span><span class="default">lecturas]),</span>
+<a name="145"><font size=-1>145     </font></a><span class="default">                    alertas_precaucion=sum(a.nivel </span><span class="keyword">is </span><span class="default">Nivel.PRECAUCION </span><span class="keyword">for </span><span class="default">a </span><span class="keyword">in </span><span class="default">alertas),</span>
+<a name="146"><font size=-1>146     </font></a><span class="default">                    alertas_criticas=sum(a.nivel </span><span class="keyword">is </span><span class="default">Nivel.CRITICA </span><span class="keyword">for </span><span class="default">a </span><span class="keyword">in </span><span class="default">alertas),</span>
+<a name="147"><font size=-1>147     </font></a><span class="default">                    alertas_atendidas=sum(a.estado </span><span class="keyword">is </span><span class="default">EstadoAlerta.ATENDIDA </span><span class="keyword">for </span><span class="default">a </span><span class="keyword">in </span><span class="default">alertas),</span>
+<a name="148"><font size=-1>148     </font></a><span class="default">                )</span>
+<a name="149"><font size=-1>149     </font></a><span class="default">            )</span>
+<a name="150"><font size=-1>150     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">filas, resumen</span>
+<a name="151"><font size=-1>151     </font></a><span class="default"></span>
+<a name="152"><font size=-1>152     </font></a><span class="default">    </span><span class="keyword">def </span><span class="default">_produccion(self, desde: date, hasta: date, inicio: datetime, fin: datetime):</span>
+<a name="153"><font size=-1>153     </font></a><span class="default">        filas = []</span>
+<a name="154"><font size=-1>154     </font></a><span class="default">        </span><span class="keyword">for </span><span class="default">e </span><span class="keyword">in </span><span class="default">self._estanques.listar(solo_activos=</span><span class="keyword">False</span><span class="default">):</span>
+<a name="155"><font size=-1>155     </font></a><span class="default">            </span><span class="keyword">for </span><span class="default">lote </span><span class="keyword">in </span><span class="default">sorted(self._lotes.de_estanque(e.id), key=</span><span class="keyword">lambda </span><span class="default">lo: lo.fecha_siembra):</span>
+<a name="156"><font size=-1>156     </font></a><span class="default">                vigente = lote.fecha_siembra &lt;= hasta </span><span class="keyword">and </span><span class="default">(</span>
+<a name="157"><font size=-1>157     </font></a><span class="default">                    lote.fecha_cierre </span><span class="keyword">is None or </span><span class="default">lote.fecha_cierre &gt;= desde</span>
+<a name="158"><font size=-1>158     </font></a><span class="default">                )</span>
+<a name="159"><font size=-1>159     </font></a><span class="default">                </span><span class="keyword">if not </span><span class="default">vigente:</span>
+<a name="160"><font size=-1>160     </font></a><span class="default">                    </span><span class="keyword">continue</span>
+<a name="161"><font size=-1>161     </font></a><span class="keyword">                </span><span class="default">mortalidad_total = self._mortalidad.total(lote.id)</span>
+<a name="162"><font size=-1>162     </font></a><span class="default">                r = resumen_produccion(lote, mortalidad_total, self._alimentacion.total_kg(lote.id))</span>
+<a name="163"><font size=-1>163     </font></a><span class="default">                filas.append(</span>
+<a name="164"><font size=-1>164     </font></a><span class="default">                    FilaProduccion(</span>
+<a name="165"><font size=-1>165     </font></a><span class="default">                        estanque=e.nombre,</span>
+<a name="166"><font size=-1>166     </font></a><span class="default">                        lote=lote.codigo,</span>
+<a name="167"><font size=-1>167     </font></a><span class="default">                        fecha_siembra=lote.fecha_siembra,</span>
+<a name="168"><font size=-1>168     </font></a><span class="default">                        activo=lote.activo,</span>
+<a name="169"><font size=-1>169     </font></a><span class="default">                        peces_sembrados=lote.num_peces_inicial,</span>
+<a name="170"><font size=-1>170     </font></a><span class="default">                        mortalidad_periodo=sum(</span>
+<a name="171"><font size=-1>171     </font></a><span class="default">                            m.cantidad </span><span class="keyword">for </span><span class="default">m </span><span class="keyword">in </span><span class="default">self._mortalidad.de_lote(lote.id, inicio, fin)</span>
+<a name="172"><font size=-1>172     </font></a><span class="default">                        ),</span>
+<a name="173"><font size=-1>173     </font></a><span class="default">                        mortalidad_total=mortalidad_total,</span>
+<a name="174"><font size=-1>174     </font></a><span class="default">                        peces_vivos=r.peces_vivos,</span>
+<a name="175"><font size=-1>175     </font></a><span class="default">                        peso_medio_actual_g=lote.peso_medio_actual_g,</span>
+<a name="176"><font size=-1>176     </font></a><span class="default">                        biomasa_kg=r.biomasa_kg,</span>
+<a name="177"><font size=-1>177     </font></a><span class="default">                        alimento_periodo_kg=round(</span>
+<a name="178"><font size=-1>178     </font></a><span class="default">                            sum(</span>
+<a name="179"><font size=-1>179     </font></a><span class="default">                                a.cantidad_kg</span>
+<a name="180"><font size=-1>180     </font></a><span class="default">                                </span><span class="keyword">for </span><span class="default">a </span><span class="keyword">in </span><span class="default">self._alimentacion.de_lote(lote.id, inicio, fin)</span>
+<a name="181"><font size=-1>181     </font></a><span class="default">                            ),</span>
+<a name="182"><font size=-1>182     </font></a><span class="default">                            </span><span class="number">3</span><span class="default">,</span>
+<a name="183"><font size=-1>183     </font></a><span class="default">                        ),</span>
+<a name="184"><font size=-1>184     </font></a><span class="default">                        alimento_total_kg=r.alimento_total_kg,</span>
+<a name="185"><font size=-1>185     </font></a><span class="default">                        fcr=r.fcr_texto,</span>
+<a name="186"><font size=-1>186     </font></a><span class="default">                    )</span>
+<a name="187"><font size=-1>187     </font></a><span class="default">                )</span>
+<a name="188"><font size=-1>188     </font></a><span class="default">        </span><span class="keyword">return </span><span class="default">filas</span>
+<a name="189"><font size=-1>189     </font></a><span class="default"></span>
+</pre></body></html>

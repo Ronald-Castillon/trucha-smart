@@ -1,0 +1,56 @@
+<html><head><title>reportes.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: D:\actions-runner\_work\_temp\understand\trucha-smart\src\adapters\inbound\rest\reportes.py</h3>
+<SCRIPT>
+defaultStatus = "File: D:\\actions-runner\\_work\\_temp\\understand\\trucha-smart\\src\\adapters\\inbound\\rest\\reportes.py";
+top.document.title  = "reportes.py";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="string">&quot;&quot;&quot;Router de exportación de reportes PDF y CSV (RF-08).&quot;&quot;&quot;</span>
+<a name="2"><font size=-1>2     </font></a><span class="string"></span>
+<a name="3"><font size=-1>3     </font></a><span class="string"></span><span class="keyword">from </span><span class="default">__future__ </span><span class="keyword">import </span><span class="default">annotations</span>
+<a name="4"><font size=-1>4     </font></a><span class="default"></span>
+<a name="5"><font size=-1>5     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">datetime </span><span class="keyword">import </span><span class="default">date</span>
+<a name="6"><font size=-1>6     </font></a><span class="default"></span>
+<a name="7"><font size=-1>7     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">fastapi </span><span class="keyword">import </span><span class="default">APIRouter, Depends, Response</span>
+<a name="8"><font size=-1>8     </font></a><span class="default"></span>
+<a name="9"><font size=-1>9     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.adapters.inbound.rest.dependencias </span><span class="keyword">import </span><span class="default">Contenedor, contenedor, usuario_actual</span>
+<a name="10"><font size=-1>10     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.adapters.inbound.rest.errores </span><span class="keyword">import </span><span class="default">RESPUESTAS_ERROR</span>
+<a name="11"><font size=-1>11     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.domain.model.usuario </span><span class="keyword">import </span><span class="default">Usuario</span>
+<a name="12"><font size=-1>12     </font></a><span class="default"></span><span class="keyword">from </span><span class="default">src.ports.inbound.exportar_reporte </span><span class="keyword">import </span><span class="default">ArchivoReporte, FormatoReporte, TipoReporte</span>
+<a name="13"><font size=-1>13     </font></a><span class="default"></span>
+<a name="14"><font size=-1>14     </font></a><span class="default">router = APIRouter(prefix=</span><span class="string">&quot;/api&quot;</span><span class="default">, tags=[</span><span class="string">&quot;reportes&quot;</span><span class="default">], responses=RESPUESTAS_ERROR)</span>
+<a name="15"><font size=-1>15     </font></a><span class="default"></span>
+<a name="16"><font size=-1>16     </font></a><span class="default"></span>
+<a name="17"><font size=-1>17     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">respuesta_archivo(archivo: ArchivoReporte) -&gt; Response:</span>
+<a name="18"><font size=-1>18     </font></a><span class="default">    </span><span class="keyword">return </span><span class="default">Response(</span>
+<a name="19"><font size=-1>19     </font></a><span class="default">        content=archivo.contenido,</span>
+<a name="20"><font size=-1>20     </font></a><span class="default">        media_type=archivo.tipo_contenido,</span>
+<a name="21"><font size=-1>21     </font></a><span class="default">        headers={</span><span class="string">&quot;Content-Disposition&quot;</span><span class="default">: f</span><span class="string">'attachment; filename=&quot;{archivo.nombre}&quot;'</span><span class="default">},</span>
+<a name="22"><font size=-1>22     </font></a><span class="default">    )</span>
+<a name="23"><font size=-1>23     </font></a><span class="default"></span>
+<a name="24"><font size=-1>24     </font></a><span class="default"></span>
+<a name="25"><font size=-1>25     </font></a><span class="default">@router.get(</span>
+<a name="26"><font size=-1>26     </font></a><span class="default">    </span><span class="string">&quot;/reportes/{tipo}.{formato}&quot;</span><span class="default">,</span>
+<a name="27"><font size=-1>27     </font></a><span class="default">    response_class=Response,</span>
+<a name="28"><font size=-1>28     </font></a><span class="default">    responses={</span>
+<a name="29"><font size=-1>29     </font></a><span class="default">        </span><span class="number">200</span><span class="default">: {</span>
+<a name="30"><font size=-1>30     </font></a><span class="default">            </span><span class="string">&quot;content&quot;</span><span class="default">: {</span><span class="string">&quot;text/csv&quot;</span><span class="default">: {}, </span><span class="string">&quot;application/pdf&quot;</span><span class="default">: {}},</span>
+<a name="31"><font size=-1>31     </font></a><span class="default">            </span><span class="string">&quot;description&quot;</span><span class="default">: </span><span class="string">&quot;Archivo del reporte (descarga)&quot;</span><span class="default">,</span>
+<a name="32"><font size=-1>32     </font></a><span class="default">        }</span>
+<a name="33"><font size=-1>33     </font></a><span class="default">    },</span>
+<a name="34"><font size=-1>34     </font></a><span class="default">)</span>
+<a name="35"><font size=-1>35     </font></a><span class="default"></span><span class="keyword">def </span><span class="default">exportar_reporte(</span>
+<a name="36"><font size=-1>36     </font></a><span class="default">    tipo: TipoReporte,</span>
+<a name="37"><font size=-1>37     </font></a><span class="default">    formato: FormatoReporte,</span>
+<a name="38"><font size=-1>38     </font></a><span class="default">    desde: date,</span>
+<a name="39"><font size=-1>39     </font></a><span class="default">    hasta: date,</span>
+<a name="40"><font size=-1>40     </font></a><span class="default">    usuario: Usuario = Depends(usuario_actual),</span>
+<a name="41"><font size=-1>41     </font></a><span class="default">    c: Contenedor = Depends(contenedor),</span>
+<a name="42"><font size=-1>42     </font></a><span class="default">) -&gt; Response:</span>
+<a name="43"><font size=-1>43     </font></a><span class="default">    </span><span class="string">&quot;&quot;&quot;Reporte de `calidad-agua` o `produccion` en `csv` o `pdf` para el rango de fechas UTC</span>
+<a name="44"><font size=-1>44     </font></a><span class="string">    (inclusivo). Requiere rol Piscicultor o Administrador. Rango inválido → 422.&quot;&quot;&quot;</span>
+<a name="45"><font size=-1>45     </font></a><span class="string">    </span><span class="keyword">return </span><span class="default">respuesta_archivo(c.reportes.exportar(tipo, formato, desde, hasta, usuario))</span>
+<a name="46"><font size=-1>46     </font></a><span class="default"></span>
+</pre></body></html>

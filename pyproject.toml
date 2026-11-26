@@ -63,6 +63,8 @@ ignore = ["B008"]  # Depends() en firmas de FastAPI
 "tools/verificar_formulas_gqm.py" = ["E501"]
 # Scripts de evidencias: cada línea muestra una petición y su resultado esperado completos.
 "tools/evidencias/*" = ["E501"]
+# Resumen de Understand: tablas Markdown con sus filas completas.
+"tools/understand/*" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

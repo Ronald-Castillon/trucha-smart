@@ -1,0 +1,48 @@
+# Análisis estático con SciTools Understand (guía S14).
+#
+# Corre en el runner propio del equipo (etiqueta «understand»), donde Understand está instalado
+# con la licencia educativa: la licencia no sale de esa máquina y no se guarda en GitHub.
+# Se lanza a mano (Actions → Understand → Run workflow) o con un push a una rama
+# feature/understand-*; nunca con pull_request, para que ningún PR externo ejecute código en
+# el runner propio.
+name: Understand
+
+on:
+  push:
+    branches: ["feature/understand-*"]
+    paths-ignore: ["docs/understand/**"] # el commit de los reportes no vuelve a lanzarlo
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Rama o tag a analizar"
+        default: develop
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  analisis:
+    name: Analizar TruchaSmart con Understand
+    runs-on: [self-hosted, understand]
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pasos 1 a 6 de la guía (clonar, crear, añadir, analizar y emitir reportes)
+        run: ./tools/understand/analizar.ps1 -Ref "${{ inputs.ref || github.ref_name }}" -Salida docs/understand
+
+      - name: Resumen en la página de la corrida
+        if: always()
+        run: Get-Content docs/understand/README.md -Encoding UTF8 | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+
+      - name: Subir los reportes de Understand
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-understand
+          path: docs/understand/
+          if-no-files-found: error

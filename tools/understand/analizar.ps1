@@ -1,4 +1,4 @@
-# Análisis estático de TruchaSmart con SciTools Understand (guía S14), pasos 1 a 6 de la guía.
+﻿# Análisis estático de TruchaSmart con SciTools Understand (guía S14), pasos 1 a 6 de la guía.
 #
 # Uso (lo ejecuta el workflow .github/workflows/understand.yml en el runner con Understand):
 #   powershell -File tools/understand/analizar.ps1 -Ref develop -Salida docs/understand
@@ -21,7 +21,9 @@ function Paso($titulo) { Write-Host ""; Write-Host "=== $titulo" }
 function Und { & $und @args; if ($LASTEXITCODE -ne 0) { throw "und $($args[0]) terminó con código $LASTEXITCODE" } }
 
 Paso "Paso 0 · Licencia de Understand"
-Write-Host ("Understand: " + (Get-Item $und).VersionInfo.ProductVersion + " · " + $und)
+$xml = Join-Path (Split-Path (Split-Path (Split-Path $und))) "components.xml"
+$version = if (Test-Path $xml) { ([xml](Get-Content $xml -Raw)).SelectSingleNode("//Package[Name='com.scitools.understand']/Version").InnerText } else { "?" }
+Write-Host "Understand $version · $und"
 if ((& $und license -isundlicensed) -ne "1") { throw "Understand no está licenciado en este runner" }
 Write-Host (& $und license -licensehowmanydays)
 

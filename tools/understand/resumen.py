@@ -81,14 +81,17 @@ def main(argv: list[str] | None = None) -> int:
     ciclo = [numero(f["Cyclomatic"]) for f in funciones]
     altas = [c for c in ciclo if c > 10]
 
-    s = ["# Análisis estático con SciTools Understand (guía S14)\n"]
+    s = ["# Análisis estático con SciTools Understand (guía S14)\n\n"]
     s.append(
         f"Generado por `tools/understand/analizar.ps1` en GitHub Actions "
         f"({datetime.now(UTC):%d/%m/%Y %H:%M} UTC). "
         f"Corrida: {os.getenv('GITHUB_SERVER_URL', 'https://github.com')}/"
-        f"{os.getenv('GITHUB_REPOSITORY', '')}/actions/runs/{os.getenv('GITHUB_RUN_ID', '')}\n"
+        f"{os.getenv('GITHUB_REPOSITORY', '')}/actions/runs/{os.getenv('GITHUB_RUN_ID', '')}\n\n"
     )
-    s.append("Alcance: `src/` (arquitectura hexagonal) y `tools/`, lenguaje Python.\n")
+    s.append(
+        "Alcance: `src/` (arquitectura hexagonal) y `tools/`, lenguaje Python. Herramienta: "
+        "SciTools Understand 8.1 con licencia educativa, en el runner propio del equipo.\n"
+    )
     s.append("\n## 1. Métricas del proyecto\n\n")
     s.append(tabla(["Métrica", "Valor"], [
         ["Archivos de código (Module File)", len(archivos)],
